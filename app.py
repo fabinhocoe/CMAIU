@@ -860,7 +860,7 @@ def init_db():
     with app.app_context():
         db.create_all()
         if not Usuario.query.first():
-            admin = Usuario(nome='Administrador', email='admin@cmaiu.palhoça.sc.gov.br',
+            admin = Usuario(nome='Administrador', email='admin@cmaiu.palhoca.sc.gov.br',
                             perfil='administrador')
             admin.set_senha('cmaiu@2025')
             db.session.add(admin)
