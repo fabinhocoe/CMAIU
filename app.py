@@ -332,8 +332,11 @@ class CMAIUApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("CMAIU – Avaliação de Impacto Urbano | Prefeitura de Palhoça – SC")
-        self.state("zoomed")
         self.configure(bg=COR_AZUL_ESCURO)
+        try:
+            self.state("zoomed")  # Windows / alguns WMs Linux
+        except tk.TclError:
+            self.geometry("1400x900")  # fallback Linux/Mac
         self.minsize(1000, 700)
         init_db()
         self._build_header()
