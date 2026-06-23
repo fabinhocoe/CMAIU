@@ -10,6 +10,7 @@
       A alteração de parâmetros afeta apenas <strong>novos cálculos</strong>. Cálculos anteriores são preservados com os valores originais.
     </div>
     <form method="POST">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <div class="row g-3">
         {% for p in params %}
         <div class="col-md-4">

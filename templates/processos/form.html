@@ -4,6 +4,7 @@
 {% block page_title %}{% if editing %}Editar Processo{% else %}Novo Processo{% endif %}{% endblock %}
 {% block content %}
 <form method="POST" id="processoForm">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 <ul class="nav nav-tabs mt-2 mb-3" id="formTabs">
   <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-processo">1 – Processo</a></li>
   <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-prop">2 – Proprietário</a></li>

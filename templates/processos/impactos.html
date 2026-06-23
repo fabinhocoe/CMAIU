@@ -3,6 +3,7 @@
 {% block page_title %}Avaliação de Impactos — {{ processo.protocolo_cmaiu or processo.id }}{% endblock %}
 {% block content %}
 <form method="POST">
+    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 <div class="d-flex gap-2 mb-3 mt-2">
   <a href="{{ url_for('processos_detail', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>Voltar

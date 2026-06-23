@@ -8,6 +8,7 @@
       <div class="card-header section-header"><i class="bi bi-person-plus me-2"></i>Adicionar Integrante</div>
       <div class="card-body">
         <form method="POST">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" value="add">
           <div class="mb-2">
             <label class="form-label small fw-semibold">Nome <span class="text-danger">*</span></label>

@@ -2,11 +2,11 @@
 CMAIU – Sistema de Cálculo e Relatórios
 Comissão Municipal de Avaliação de Impacto Urbano – Palhoça/SC
 """
-import os, io, re
-from datetime import datetime, date
+import os, io, re, secrets
+from datetime import datetime, date, timedelta
 from functools import wraps
 from flask import (Flask, render_template, request, redirect, url_for,
-                   flash, jsonify, send_file, abort)
+                   flash, jsonify, send_file, abort, session, g)
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import (db, Usuario, Zoneamento, CUB, Parametro, HistoricoParametro,
                     Integrante, Processo, Proprietario, Empreendimento,
@@ -16,9 +16,19 @@ from models import (db, Usuario, Zoneamento, CUB, Parametro, HistoricoParametro,
                     NIVEIS_COMPENSACAO, PARAMS_INICIAIS, MESES)
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'cmaiu-palhoça-2025-dev-key')
+
+# Chave secreta: sempre via variável de ambiente em produção
+_default_key = secrets.token_hex(32)
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', _default_key)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cmaiu.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Segurança de sessão
+app.config['SESSION_COOKIE_HTTPONLY'] = True   # JS não acessa o cookie
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax' # Proteção CSRF básica
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=8)
+# Em produção com HTTPS, ativar: app.config['SESSION_COOKIE_SECURE'] = True
 
 db.init_app(app)
 
@@ -26,6 +36,44 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Faça login para acessar o sistema.'
 login_manager.login_message_category = 'warning'
+
+# ─── CSRF Protection (token manual) ─────────────────────────────────────────
+
+def _generate_csrf():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(32)
+    return session['_csrf_token']
+
+def _check_csrf():
+    """Valida token CSRF em todas as requisições POST."""
+    if request.method == 'POST':
+        token = session.get('_csrf_token')
+        form_token = request.form.get('_csrf_token') or request.headers.get('X-CSRFToken')
+        if not token or not form_token or not secrets.compare_digest(token, form_token):
+            abort(403)
+
+app.jinja_env.globals['csrf_token'] = _generate_csrf
+
+@app.before_request
+def enforce_csrf():
+    # Login tem seu próprio token; static não tem form
+    if request.endpoint not in ('login', 'static', None):
+        _check_csrf()
+
+# ─── Rate limiting simples (tentativas de login) ─────────────────────────────
+
+_login_attempts: dict = {}  # ip -> [timestamps]
+
+def _check_rate_limit(ip: str) -> bool:
+    """Bloqueia IP após 10 tentativas de login em 5 minutos."""
+    now = datetime.utcnow()
+    window = timedelta(minutes=5)
+    attempts = [t for t in _login_attempts.get(ip, []) if now - t < window]
+    _login_attempts[ip] = attempts
+    return len(attempts) >= 10
+
+def _record_attempt(ip: str):
+    _login_attempts.setdefault(ip, []).append(datetime.utcnow())
 
 
 @login_manager.user_loader
@@ -79,12 +127,22 @@ def login():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     if request.method == 'POST':
+        ip = request.remote_addr or '0.0.0.0'
+        if _check_rate_limit(ip):
+            flash('Muitas tentativas. Aguarde 5 minutos.', 'danger')
+            return render_template('login.html')
         email = request.form.get('email', '').strip().lower()
         senha = request.form.get('senha', '')
         u = Usuario.query.filter_by(email=email, situacao='ativo').first()
         if u and u.check_senha(senha):
-            login_user(u, remember=True)
-            return redirect(request.args.get('next') or url_for('dashboard'))
+            login_user(u, remember=False)   # sem cookie permanente
+            session.permanent = True        # expira em 8h conforme config
+            # Valida o next para evitar open redirect
+            next_url = request.args.get('next', '')
+            if next_url and not next_url.startswith('/'):
+                next_url = ''
+            return redirect(next_url or url_for('dashboard'))
+        _record_attempt(ip)
         flash('E-mail ou senha inválidos.', 'danger')
     return render_template('login.html')
 
@@ -1033,6 +1091,27 @@ def _safe_int(v):
         return None
 
 
+# ─── Cabeçalhos de segurança HTTP ────────────────────────────────────────────
+
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    # Content-Security-Policy: permite Bootstrap CDN + ícones
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+        "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
+        "font-src 'self' https://cdn.jsdelivr.net; "
+        "img-src 'self' data:; "
+        "frame-ancestors 'self';"
+    )
+    return response
+
+
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    debug = os.environ.get('FLASK_DEBUG', 'false').lower() == 'true'
+    app.run(debug=debug, host='127.0.0.1', port=5000)
