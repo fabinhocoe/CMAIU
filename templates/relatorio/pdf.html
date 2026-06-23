@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10pt; margin: 0; color: #111; }
+  h1 { font-size: 13pt; text-align: center; margin-bottom: 2px; }
+  h2 { font-size: 11pt; text-align: center; margin-bottom: 2px; }
+  h3 { font-size: 10pt; margin: 12px 0 4px; text-transform: uppercase; border-bottom: 1px solid #1a3a5c; color: #1a3a5c; padding-bottom: 2px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 9pt; }
+  th, td { border: 1px solid #ccc; padding: 3px 5px; }
+  th { background: #e8f0f8; font-weight: bold; }
+  .header { text-align: center; margin-bottom: 16px; border-bottom: 2px solid #1a3a5c; padding-bottom: 8px; }
+  .footer-row { margin-top: 30px; }
+  .sig-box { display: inline-block; width: 30%; text-align: center; vertical-align: top; margin: 0 1%; }
+  .sig-line { border-top: 1px solid #555; margin-top: 40px; margin-bottom: 4px; }
+  .highlight { background: #ddeeff; font-weight: bold; }
+  p { font-size: 9pt; margin: 4px 0; }
+</style>
+</head>
+<body>
+{% set emp = processo.empreendimento %}
+{% set prop = processo.proprietario %}
+{% set c = calc %}
+
+<div class="header">
+  <h2>COMISSÃO MUNICIPAL DE AVALIAÇÃO DE IMPACTO URBANO</h2>
+  <h2>PREFEITURA MUNICIPAL DE PALHOÇA – SC</h2>
+  <h1>RELATÓRIO DE AVALIAÇÃO DE IMPACTO URBANO{% if rel %} Nº {{ rel.numero }}{% endif %}</h1>
+</div>
+
+<h3>1 – Identificação</h3>
+<table>
+  <tr><th width="20%">Protocolo CMAIU</th><td>{{ processo.protocolo_cmaiu or '—' }}</td>
+      <th width="22%">Processo Administrativo</th><td>{{ processo.num_processo or '—' }}</td></tr>
+  <tr><th>Protocolo Aprovação</th><td>{{ processo.protocolo_aprovacao or '—' }}</td>
+      <th>Data de Entrada</th><td>{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</td></tr>
+  <tr><th>Proprietário</th><td colspan="3">{{ prop.nome if prop else '—' }}</td></tr>
+  <tr><th>Empreendimento</th><td colspan="3">{{ emp.nome if emp else '—' }}</td></tr>
+  <tr><th>Endereço</th><td colspan="3">{{ emp.endereco if emp else '—' }}, {{ emp.bairro if emp else '—' }}</td></tr>
+  <tr><th>Zoneamento</th><td>{{ emp.zoneamento.codigo if emp and emp.zoneamento else '—' }}</td>
+      <th>Resp. Técnico</th><td>{{ emp.responsavel_tecnico if emp else '—' }}</td></tr>
+</table>
+
+<h3>2 – Dados do Empreendimento</h3>
+<table>
+  <tr><th>Área do Terreno</th><td>{{ emp.area_terreno|fmt_area if emp and emp.area_terreno else '—' }}</td>
+      <th>Área Construída Total</th><td>{{ emp.area_construida|fmt_area if emp and emp.area_construida else '—' }}</td></tr>
+  <tr><th>Área Computável</th><td>{{ emp.area_computavel|fmt_area if emp and emp.area_computavel else '—' }}</td>
+      <th>Nº de Pavimentos</th><td>{{ emp.num_pavimentos or '—' }}</td></tr>
+  <tr><th>Coef. Básico (CAB)</th><td>{{ emp.cab or '—' }}</td>
+      <th>Coef. do Projeto</th><td>{{ '%.4f'|format(emp.area_computavel / emp.area_terreno) if emp and emp.area_computavel and emp.area_terreno else '—' }}</td></tr>
+  <tr><th>UH / UC</th><td>{{ emp.num_uh or 0 }} / {{ emp.num_uc or 0 }}</td>
+      <th>Dormitórios</th><td>{{ emp.total_dormitorios or '—' }}</td></tr>
+  <tr><th>Pop. Total</th><td>{{ emp.pop_total or '—' }} hab.</td>
+      <th>Padrão de Impacto</th><td>{{ emp.padrao_impacto or '—' }}</td></tr>
+</table>
+
+{% if processo.impactos %}
+<h3>3 – Avaliação dos Impactos</h3>
+<table>
+  <thead><tr><th>Impacto</th><th>Tipo</th><th>Classificação</th><th>Justificativa</th></tr></thead>
+  <tbody>
+    {% for imp in processo.impactos %}
+    <tr>
+      <td>{{ imp.descricao }}</td>
+      <td>{{ 'Social' if imp.tipo == 'social' else 'Viário' }}</td>
+      <td>{{ imp.classificacao }}</td>
+      <td>{{ imp.justificativa or '—' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+{% if c %}
+<h3>4 – Compensação Urbana</h3>
+<table>
+  <tr><th>CUB de Referência</th><td>{{ c.cub_valor|brl }}/m² ({{ c.cub_mes_ref }})</td>
+      <th>População Adotada</th><td>{{ c.populacao or '—' }} hab.</td></tr>
+  <tr><th>Fator-base (FC = 33%)</th><td>—</td>
+      <th>Valor-Base</th><td>{{ c.valor_base|brl }}</td></tr>
+  <tr><th>Nível 25%</th><td>{{ c.valor_25|brl }}</td>
+      <th>Nível 50%</th><td>{{ c.valor_50|brl }}</td></tr>
+  <tr><th>Nível 75%</th><td>{{ c.valor_75|brl }}</td>
+      <th>Nível 100%</th><td>{{ c.valor_100|brl }}</td></tr>
+  <tr class="highlight"><th>Nível Aprovado</th><td>{{ c.nivel_label }}</td>
+      <th>Valor Aprovado</th><td>{{ c.valor_compensacao|brl }}</td></tr>
+  {% if c.nivel_selecionado == 'dispensado' and c.justificativa_dispensa %}
+  <tr><th>Justificativa Dispensa</th><td colspan="3">{{ c.justificativa_dispensa }}</td></tr>
+  {% endif %}
+</table>
+
+<h3>5 – Solo Criado</h3>
+<table>
+  <tr><th>Área Básica (AB)</th><td>{{ c.area_basica|fmt_area }}</td>
+      <th>Área Excedente (AE)</th><td>{{ c.area_excedente|fmt_area }}</td></tr>
+  <tr><th colspan="2">Valor Unitário (VU = CUB × 6%)</th><td colspan="2">{{ c.valor_unitario|brl }}/m²</td></tr>
+</table>
+<table>
+  <thead><tr><th>Modalidade</th><th>Percentual</th><th>Área</th><th>Valor</th></tr></thead>
+  <tbody>
+    <tr><td>Oneroso (máx. 40%)</td><td>{{ '%.2f'|format(c.perc_oneroso) }}%</td><td>{{ c.area_onerosa|fmt_area }}</td><td>{{ c.valor_oneroso|brl }}</td></tr>
+    <tr><td>Infraestrutura (máx. 5%)</td><td>{{ '%.2f'|format(c.perc_infra) }}%</td><td>{{ c.area_infra|fmt_area }}</td><td>{{ c.valor_infra|brl }}</td></tr>
+    <tr><td>Captação de Águas (máx. 5%)</td><td>{{ '%.2f'|format(c.perc_captacao) }}%</td><td>{{ c.area_captacao|fmt_area }}</td><td>{{ c.valor_captacao|brl }}</td></tr>
+    <tr class="highlight"><td>Total (máx. 50%)</td><td>{{ '%.2f'|format(c.perc_total) }}%</td><td>{{ c.area_total_solo|fmt_area }}</td><td>{{ c.valor_total_solo|brl }}</td></tr>
+  </tbody>
+</table>
+{% endif %}
+
+{% if rel %}
+<h3>6 – Deliberação da CMAIU</h3>
+<p>{{ rel.deliberacao or '—' }}</p>
+{% if rel.medidas %}<p><strong>Medidas compensatórias:</strong> {{ rel.medidas }}</p>{% endif %}
+{% if rel.obs_deliberacao %}<p><strong>Observações:</strong> {{ rel.obs_deliberacao }}</p>{% endif %}
+<p>Palhoça, {{ rel.data.strftime('%d de %B de %Y') if rel.data else data_emissao.strftime('%d de %B de %Y') }}</p>
+{% endif %}
+
+{% if integrantes %}
+<div class="footer-row">
+  {% for i in integrantes %}
+  <div class="sig-box">
+    <div class="sig-line"></div>
+    <strong>{{ i.nome }}</strong><br>
+    {{ i.cargo or '' }}<br>
+    {{ i.orgao or '' }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<p style="font-size:8pt;color:#888;margin-top:20px;text-align:center">
+  Emitido em {{ data_emissao.strftime('%d/%m/%Y') }} – Sistema CMAIU / Prefeitura Municipal de Palhoça – SC
+</p>
+</body>
+</html>

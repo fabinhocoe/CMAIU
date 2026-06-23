@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Usuários – CMAIU{% endblock %}
+{% block page_title %}Gerenciamento de Usuários{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-end mb-3 mt-2">
+  <a href="{{ url_for('admin_usuarios_novo') }}" class="btn btn-sm btn-primary">
+    <i class="bi bi-person-plus me-1"></i>Novo Usuário
+  </a>
+</div>
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Nome</th>
+          <th>E-mail</th>
+          <th>Perfil</th>
+          <th>Situação</th>
+          <th>Cadastro</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in usuarios %}
+        <tr>
+          <td class="fw-semibold">{{ u.nome }}</td>
+          <td class="text-muted small">{{ u.email }}</td>
+          <td><span class="badge bg-{% if u.is_admin %}danger{% elif u.is_tecnico %}primary{% else %}secondary{% endif %}">{{ u.perfil_label }}</span></td>
+          <td><span class="badge bg-{% if u.situacao == 'ativo' %}success{% else %}secondary{% endif %}">{{ u.situacao }}</span></td>
+          <td class="text-muted small">{{ u.criado_em.strftime('%d/%m/%Y') if u.criado_em else '—' }}</td>
+          <td>
+            <a href="{{ url_for('admin_usuarios_editar', uid=u.id) }}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}CUB – CMAIU{% endblock %}
+{% block page_title %}Custo Unitário Básico (CUB){% endblock %}
+{% block content %}
+<div class="d-flex justify-content-end mb-3 mt-2">
+  {% if current_user.is_admin %}
+  <a href="{{ url_for('cub_novo') }}" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus-circle me-1"></i>Adicionar CUB
+  </a>
+  {% endif %}
+</div>
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Mês/Ano</th>
+            <th>Categoria</th>
+            <th class="text-end">Valor (R$/m²)</th>
+            <th>Fonte</th>
+            <th>Data Cadastro</th>
+            <th>Cadastrado por</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in cubs %}
+          <tr>
+            <td class="fw-semibold">{{ c.mes_ano_str }}</td>
+            <td class="small">{{ c.categoria }}</td>
+            <td class="text-end fw-bold">{{ c.valor|brl }}</td>
+            <td class="small text-muted">{{ c.fonte or '—' }}</td>
+            <td class="small text-muted">{{ c.data_cadastro.strftime('%d/%m/%Y') if c.data_cadastro else '—' }}</td>
+            <td class="small text-muted">{{ c.usuario.nome if c.usuario else 'Sistema' }}</td>
+            <td>
+              {% if current_user.is_admin %}
+              <a href="{{ url_for('cub_editar', cid=c.id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">Nenhum CUB cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

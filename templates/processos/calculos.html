@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+{% block title %}Cálculos – CMAIU{% endblock %}
+{% block page_title %}Cálculos — {{ processo.protocolo_cmaiu or processo.id }}{% endblock %}
+{% block content %}
+{% set c = calc %}
+<form method="POST" id="calcForm">
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('processos_detail', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  <button type="submit" class="btn btn-sm btn-primary">
+    <i class="bi bi-calculator me-1"></i>Salvar Cálculo
+  </button>
+</div>
+
+<!-- CUB e Dados Básicos -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header"><i class="bi bi-currency-dollar me-2"></i>1 – CUB e Dados Base</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">CUB de Referência <span class="text-danger">*</span></label>
+        <select name="cub_id" id="cubSelect" class="form-select" required>
+          <option value="">Selecione o mês/ano...</option>
+          {% for cub in cubs %}
+          <option value="{{ cub.id }}" data-valor="{{ cub.valor }}"
+            {% if c and c.cub_id == cub.id %}selected{% endif %}>
+            {{ cub.mes_ano_str }} – {{ cub.categoria }} – {{ cub.valor|brl }}/m²
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">CUB (R$/m²)</label>
+        <input type="text" id="cubValorDisplay" class="form-control bg-light" readonly
+          value="{{ '%.2f'|format(c.cub_valor) if c and c.cub_valor else '' }}">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">Valor Unitário SC (R$/m²)</label>
+        <input type="text" id="vuDisplay" class="form-control bg-light" readonly
+          value="{{ '%.4f'|format(c.cub_valor * 0.06) if c and c.cub_valor else '' }}">
+        <div class="form-text">CUB × 6%</div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Padrão de Impacto</label>
+        <select name="padrao_impacto" class="form-select">
+          <option value="">—</option>
+          {% for p in padroes %}
+          <option value="{{ p }}" {% if c and c.padrao_impacto == p %}selected{% elif emp and emp.padrao_impacto == p and not c %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Compensação Urbana -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header"><i class="bi bi-cash-coin me-2"></i>2 – Compensação Urbana</div>
+  <div class="card-body">
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">População Total Adotada <span class="text-danger">*</span></label>
+        <input type="number" name="populacao" id="popInput" class="form-control" required
+          value="{{ c.populacao if c else (emp.pop_total if emp else '') }}">
+        {% if emp and emp.pop_total %}
+        <div class="form-text">Calculado: {{ emp.pop_total }} hab.</div>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Fator-base (FC = 33%)</label>
+        <input type="text" class="form-control bg-light" readonly value="{{ '%.0f'|format(params.get('fator_base_compensacao', 0.33)*100) }}%">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Valor-Base (P × CUB × FC)</label>
+        <input type="text" id="valorBaseDisplay" class="form-control bg-light fw-bold" readonly
+          value="{{ c.valor_base|brl if c else '' }}">
+      </div>
+    </div>
+
+    <div class="alert alert-light border p-2 mb-3 small">
+      <strong><i class="bi bi-info-circle me-1"></i>Fórmula:</strong>
+      VBC = P × CUB × 0,33 &nbsp;|&nbsp; VCU(n) = VBC × n%
+    </div>
+
+    <!-- Tabela dos 4 níveis -->
+    <div class="table-responsive mb-3">
+      <table class="table table-sm table-bordered text-center align-middle">
+        <thead class="table-primary"><tr>
+          <th>Nível 25%</th><th>Nível 50%</th><th>Nível 75%</th><th>Nível 100%</th>
+        </tr></thead>
+        <tbody><tr>
+          <td id="v25" class="fw-semibold">{{ c.valor_25|brl if c else '—' }}</td>
+          <td id="v50" class="fw-semibold">{{ c.valor_50|brl if c else '—' }}</td>
+          <td id="v75" class="fw-semibold">{{ c.valor_75|brl if c else '—' }}</td>
+          <td id="v100" class="fw-semibold">{{ c.valor_100|brl if c else '—' }}</td>
+        </tr></tbody>
+      </table>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Nível de Compensação Deliberado <span class="text-danger">*</span></label>
+        <div class="d-flex flex-wrap gap-2">
+          {% for val, label in niveis %}
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="nivel_selecionado"
+              id="nivel_{{ val }}" value="{{ val }}"
+              {% if c and c.nivel_selecionado == val %}checked{% endif %}
+              onchange="toggleDispensa(this.value)">
+            <label class="form-check-label" for="nivel_{{ val }}">{{ label }}</label>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-md-8" id="dispensaBox" style="display:none">
+        <label class="form-label small fw-semibold">Justificativa da Dispensa <span class="text-danger">*</span></label>
+        <textarea name="justificativa_dispensa" class="form-control" rows="2">{{ c.justificativa_dispensa if c else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Solo Criado -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header"><i class="bi bi-layers me-2"></i>3 – Solo Criado</div>
+  <div class="card-body">
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Área do Terreno (m²) <span class="text-danger">*</span></label>
+        <input type="number" step="0.01" name="area_terreno" id="at" class="form-control"
+          value="{{ c.area_basica / emp.cab if c and c.area_basica and emp and emp.cab else (emp.area_terreno if emp and emp.area_terreno else '') }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Coef. Básico (CAB) <span class="text-danger">*</span></label>
+        <input type="number" step="0.0001" name="cab" id="cab" class="form-control"
+          value="{{ emp.cab if emp and emp.cab else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Área Básica (AB = AT × CAB)</label>
+        <input type="text" id="abDisplay" class="form-control bg-light" readonly
+          value="{{ c.area_basica|fmt_area if c else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Área Computável (m²) <span class="text-danger">*</span></label>
+        <input type="number" step="0.01" name="area_computavel" id="ac" class="form-control"
+          value="{{ emp.area_computavel if emp and emp.area_computavel else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Área Excedente (AE = AC − AB)</label>
+        <input type="text" id="aeDisplay" class="form-control bg-light" readonly
+          value="{{ c.area_excedente|fmt_area if c else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Percentual Total Necessário</label>
+        <input type="text" id="ptDisplay" class="form-control bg-light" readonly>
+      </div>
+    </div>
+
+    <div id="alertSoloDisabled" class="alert alert-warning small d-none">
+      <i class="bi bi-exclamation-triangle me-1"></i>O zoneamento selecionado <strong>não permite</strong> solo criado.
+    </div>
+
+    <!-- Oneroso -->
+    <div class="card mb-2 border-primary border-opacity-25">
+      <div class="card-header bg-primary bg-opacity-10 py-2 fw-semibold small">
+        <i class="bi bi-cash me-1"></i>Solo Criado Oneroso
+        <span class="badge bg-primary ms-2">Limite: {{ params.get('limite_oneroso', 40)|int }}%</span>
+      </div>
+      <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small">Percentual (%)</label>
+            <div class="input-group input-group-sm">
+              <input type="number" step="0.0001" name="perc_oneroso" id="percOn" class="form-control"
+                value="{{ c.perc_oneroso if c else '0' }}" min="0" max="{{ params.get('limite_oneroso', 40) }}">
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Área (m²)</label>
+            <input type="number" step="0.01" name="area_onerosa" id="areaOn" class="form-control form-control-sm"
+              value="{{ c.area_onerosa if c else '0' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Valor (R$)</label>
+            <input type="text" id="valorOnDisplay" class="form-control form-control-sm bg-light" readonly
+              value="{{ c.valor_oneroso|brl if c else '' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Infraestrutura -->
+    <div class="card mb-2 border-success border-opacity-25">
+      <div class="card-header bg-success bg-opacity-10 py-2 fw-semibold small">
+        <i class="bi bi-building-gear me-1"></i>Solo Criado Não Oneroso – Infraestrutura
+        <span class="badge bg-success ms-2">Limite: {{ params.get('limite_infra', 5)|int }}%</span>
+      </div>
+      <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small">Percentual (%)</label>
+            <div class="input-group input-group-sm">
+              <input type="number" step="0.0001" name="perc_infra" id="percInf" class="form-control"
+                value="{{ c.perc_infra if c else '0' }}" min="0" max="{{ params.get('limite_infra', 5) }}">
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Área (m²)</label>
+            <input type="number" step="0.01" name="area_infra" id="areaInf" class="form-control form-control-sm"
+              value="{{ c.area_infra if c else '0' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Valor Correspondente</label>
+            <input type="text" id="valorInfDisplay" class="form-control form-control-sm bg-light" readonly
+              value="{{ c.valor_infra|brl if c else '' }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label small">Descrição da Infraestrutura</label>
+            <input type="text" name="desc_infra" class="form-control form-control-sm" value="{{ c.desc_infra if c else '' }}">
+          </div>
+          <div class="col-12">
+            <label class="form-label small">Localização da Intervenção</label>
+            <input type="text" name="loc_infra" class="form-control form-control-sm" value="{{ c.loc_infra if c else '' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Captação -->
+    <div class="card mb-2 border-info border-opacity-25">
+      <div class="card-header bg-info bg-opacity-10 py-2 fw-semibold small">
+        <i class="bi bi-droplet me-1"></i>Solo Criado Não Oneroso – Captação de Águas Pluviais
+        <span class="badge bg-info ms-2">Limite: {{ params.get('limite_captacao', 5)|int }}%</span>
+      </div>
+      <div class="card-body py-2">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small">Percentual (%)</label>
+            <div class="input-group input-group-sm">
+              <input type="number" step="0.0001" name="perc_captacao" id="percCap" class="form-control"
+                value="{{ c.perc_captacao if c else '0' }}" min="0" max="{{ params.get('limite_captacao', 5) }}">
+              <span class="input-group-text">%</span>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Área (m²)</label>
+            <input type="number" step="0.01" name="area_captacao" id="areaCap" class="form-control form-control-sm"
+              value="{{ c.area_captacao if c else '0' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Valor Correspondente</label>
+            <input type="text" id="valorCapDisplay" class="form-control form-control-sm bg-light" readonly
+              value="{{ c.valor_captacao|brl if c else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">Descrição do Sistema de Captação</label>
+            <input type="text" name="desc_captacao" class="form-control form-control-sm" value="{{ c.desc_captacao if c else '' }}">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label small">Capacidade do Reservatório (L)</label>
+            <input type="number" step="0.01" name="cap_reservatorio" class="form-control form-control-sm"
+              value="{{ c.cap_reservatorio if c else '' }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">Utilização Prevista da Água</label>
+            <input type="text" name="uso_agua" class="form-control form-control-sm" value="{{ c.uso_agua if c else '' }}">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Totais -->
+    <div class="card bg-light border-0 mt-2">
+      <div class="card-body py-2">
+        <div class="row g-2 text-center small fw-semibold">
+          <div class="col-md-4">Total %: <span id="percTotalDisplay" class="text-primary">0%</span></div>
+          <div class="col-md-4">Total Área: <span id="areaTotalDisplay" class="text-primary">0,00 m²</span></div>
+          <div class="col-md-4">Total Valor SC: <span id="valorTotalDisplay" class="text-primary">R$ 0,00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button type="submit" class="btn btn-primary">
+  <i class="bi bi-calculator me-2"></i>Confirmar e Salvar Cálculo
+</button>
+</form>
+
+{% block scripts %}
+<script>
+const limOn  = {{ params.get('limite_oneroso', 40) }};
+const limInf = {{ params.get('limite_infra', 5) }};
+const limCap = {{ params.get('limite_captacao', 5) }};
+const limTot = {{ params.get('limite_total', 50) }};
+const fc     = {{ params.get('fator_base_compensacao', 0.33) }};
+const percCUB = {{ params.get('perc_cub_solo_criado', 0.06) }};
+
+let cubValor = {{ c.cub_valor if c and c.cub_valor else 0 }};
+
+function fmtBrl(v) {
+  return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtArea(v) {
+  return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' m²';
+}
+
+// CUB select
+document.getElementById('cubSelect').addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  cubValor = parseFloat(opt.dataset.valor) || 0;
+  document.getElementById('cubValorDisplay').value = cubValor.toFixed(2);
+  document.getElementById('vuDisplay').value = (cubValor * percCUB).toFixed(4);
+  calcCompensacao();
+  calcSolo();
+});
+
+// Compensação
+function calcCompensacao() {
+  const pop = parseInt(document.getElementById('popInput').value) || 0;
+  const vb = pop * cubValor * fc;
+  document.getElementById('valorBaseDisplay').value = fmtBrl(vb);
+  document.getElementById('v25').textContent = fmtBrl(vb * 0.25);
+  document.getElementById('v50').textContent = fmtBrl(vb * 0.50);
+  document.getElementById('v75').textContent = fmtBrl(vb * 0.75);
+  document.getElementById('v100').textContent = fmtBrl(vb * 1.00);
+}
+document.getElementById('popInput').addEventListener('input', calcCompensacao);
+
+// Dispensa
+function toggleDispensa(val) {
+  document.getElementById('dispensaBox').style.display = val === 'dispensado' ? '' : 'none';
+}
+// init
+const checked = document.querySelector('input[name="nivel_selecionado"]:checked');
+if (checked) toggleDispensa(checked.value);
+
+// Solo Criado – calcula AB, AE
+function calcBase() {
+  const at = parseFloat(document.getElementById('at').value) || 0;
+  const cab = parseFloat(document.getElementById('cab').value) || 0;
+  const ac = parseFloat(document.getElementById('ac').value) || 0;
+  const ab = at * cab;
+  const ae = Math.max(0, ac - ab);
+  document.getElementById('abDisplay').value = fmtArea(ab);
+  document.getElementById('aeDisplay').value = fmtArea(ae);
+  const pt = ab > 0 ? (ae / ab * 100) : 0;
+  document.getElementById('ptDisplay').value = pt.toFixed(4) + '%';
+  return {ab, ae};
+}
+['at','cab','ac'].forEach(id => document.getElementById(id).addEventListener('input', () => { calcBase(); calcSolo(); }));
+
+// Quando % muda → atualiza área
+function percToArea(percId, areaId) {
+  const {ab} = calcBase();
+  const perc = parseFloat(document.getElementById(percId).value) || 0;
+  document.getElementById(areaId).value = (ab * perc / 100).toFixed(2);
+  calcSolo();
+}
+// Quando área muda → atualiza %
+function areaToPerc(areaId, percId) {
+  const {ab} = calcBase();
+  const area = parseFloat(document.getElementById(areaId).value) || 0;
+  document.getElementById(percId).value = ab > 0 ? (area / ab * 100).toFixed(4) : '0';
+  calcSolo();
+}
+
+document.getElementById('percOn').addEventListener('input', () => percToArea('percOn','areaOn'));
+document.getElementById('areaOn').addEventListener('input', () => areaToPerc('areaOn','percOn'));
+document.getElementById('percInf').addEventListener('input', () => percToArea('percInf','areaInf'));
+document.getElementById('areaInf').addEventListener('input', () => areaToPerc('areaInf','percInf'));
+document.getElementById('percCap').addEventListener('input', () => percToArea('percCap','areaCap'));
+document.getElementById('areaCap').addEventListener('input', () => areaToPerc('areaCap','percCap'));
+
+function calcSolo() {
+  const vu = cubValor * percCUB;
+  const aOn  = parseFloat(document.getElementById('areaOn').value)  || 0;
+  const aInf = parseFloat(document.getElementById('areaInf').value) || 0;
+  const aCap = parseFloat(document.getElementById('areaCap').value) || 0;
+  const pOn  = parseFloat(document.getElementById('percOn').value)  || 0;
+  const pInf = parseFloat(document.getElementById('percInf').value) || 0;
+  const pCap = parseFloat(document.getElementById('percCap').value) || 0;
+
+  document.getElementById('valorOnDisplay').value  = fmtBrl(aOn  * vu);
+  document.getElementById('valorInfDisplay').value = fmtBrl(aInf * vu);
+  document.getElementById('valorCapDisplay').value = fmtBrl(aCap * vu);
+
+  const pt = pOn + pInf + pCap;
+  const at = aOn + aInf + aCap;
+  const vt = at * vu;
+  document.getElementById('percTotalDisplay').textContent = pt.toFixed(2) + '%';
+  document.getElementById('areaTotalDisplay').textContent = fmtArea(at);
+  document.getElementById('valorTotalDisplay').textContent = fmtBrl(vt);
+
+  // Alertas de limite
+  document.getElementById('percOn').classList.toggle('is-invalid', pOn > limOn);
+  document.getElementById('percInf').classList.toggle('is-invalid', pInf > limInf);
+  document.getElementById('percCap').classList.toggle('is-invalid', pCap > limCap);
+}
+
+// Init
+calcBase();
+calcSolo();
+calcCompensacao();
+</script>
+{% endblock %}
+{% endblock %}

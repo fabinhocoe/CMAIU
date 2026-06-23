@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}Processos – CMAIU{% endblock %}
+{% block page_title %}Processos{% endblock %}
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mt-2 mb-3">
+  <form class="d-flex gap-2 flex-wrap" method="GET">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Pesquisar protocolo..." style="width:220px">
+    <select name="situacao" class="form-select form-select-sm" style="width:180px">
+      <option value="">Todas as situações</option>
+      {% for s in situacoes %}
+      <option value="{{ s }}" {% if s == sit %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
+    {% if q or sit %}<a href="{{ url_for('processos_index') }}" class="btn btn-sm btn-outline-danger" title="Limpar"><i class="bi bi-x-circle"></i></a>{% endif %}
+  </form>
+  {% if current_user.is_tecnico %}
+  <a href="{{ url_for('processos_novo') }}" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus-circle me-1"></i>Novo Processo
+  </a>
+  {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>#</th>
+            <th>Protocolo CMAIU</th>
+            <th>Nº Processo</th>
+            <th>Proprietário</th>
+            <th>Empreendimento</th>
+            <th>Bairro / Zona</th>
+            <th>Situação</th>
+            <th>Data</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in processos %}
+          <tr>
+            <td class="text-muted small">{{ p.id }}</td>
+            <td><code>{{ p.protocolo_cmaiu or '—' }}</code></td>
+            <td class="text-muted small">{{ p.num_processo or '—' }}</td>
+            <td>{{ p.proprietario.nome if p.proprietario else '—' }}</td>
+            <td>{{ p.empreendimento.nome if p.empreendimento else '—' }}</td>
+            <td class="small">
+              {% if p.empreendimento %}
+                {{ p.empreendimento.bairro or '—' }}
+                {% if p.empreendimento.zoneamento %}
+                  <span class="badge bg-secondary ms-1">{{ p.empreendimento.zoneamento.codigo }}</span>
+                {% endif %}
+              {% else %}—{% endif %}
+            </td>
+            <td><span class="badge bg-{{ p.situacao_badge }}">{{ p.situacao }}</span></td>
+            <td class="text-muted small">{{ p.data_entrada.strftime('%d/%m/%Y') if p.data_entrada else '—' }}</td>
+            <td>
+              <a href="{{ url_for('processos_detail', pid=p.id) }}" class="btn btn-sm btn-outline-primary" title="Ver"><i class="bi bi-eye"></i></a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="9" class="text-center text-muted py-5">
+            {% if q or sit %}Nenhum processo encontrado.{% else %}Nenhum processo cadastrado ainda.{% endif %}
+          </td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

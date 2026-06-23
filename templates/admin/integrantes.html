@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Integrantes – CMAIU{% endblock %}
+{% block page_title %}Integrantes da CMAIU{% endblock %}
+{% block content %}
+<div class="row g-3 mt-1">
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-person-plus me-2"></i>Adicionar Integrante</div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="action" value="add">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Nome <span class="text-danger">*</span></label>
+            <input type="text" name="nome" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Cargo / Função</label>
+            <input type="text" name="cargo" class="form-control form-control-sm">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Órgão / Secretaria</label>
+            <input type="text" name="orgao" class="form-control form-control-sm">
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>Adicionar
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-people me-2"></i>Integrantes Cadastrados</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0 align-middle">
+          <thead class="table-light">
+            <tr><th>Nome</th><th>Cargo</th><th>Órgão</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for i in integrantes %}
+            <tr {% if not i.ativo %}class="text-muted"{% endif %}>
+              <td class="fw-semibold small">{{ i.nome }}</td>
+              <td class="small">{{ i.cargo or '—' }}</td>
+              <td class="small">{{ i.orgao or '—' }}</td>
+              <td>
+                <form method="POST" class="d-inline">
+                  <input type="hidden" name="action" value="toggle">
+                  <input type="hidden" name="id" value="{{ i.id }}">
+                  <button type="submit" class="btn btn-sm btn-{{ 'outline-success' if not i.ativo else 'outline-secondary' }}">
+                    {{ 'Reativar' if not i.ativo else 'Desativar' }}
+                  </button>
+                </form>
+              </td>
+              <td>
+                <form method="POST" class="d-inline">
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="id" value="{{ i.id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Excluir {{ i.nome }}?')">
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-3 small">Nenhum integrante cadastrado.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

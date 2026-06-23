@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{% if u %}Editar Usuário{% else %}Novo Usuário{% endif %} – CMAIU{% endblock %}
+{% block page_title %}{% if u %}Editar Usuário{% else %}Novo Usuário{% endif %}{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm mt-2" style="max-width:500px">
+  <div class="card-body">
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Nome Completo</label>
+        <input type="text" name="nome" class="form-control" required value="{{ u.nome if u else '' }}">
+      </div>
+      {% if not u %}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">E-mail</label>
+        <input type="email" name="email" class="form-control" required>
+      </div>
+      {% else %}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">E-mail</label>
+        <input type="email" class="form-control bg-light" value="{{ u.email }}" readonly>
+      </div>
+      {% endif %}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Perfil de Acesso</label>
+        <select name="perfil" class="form-select">
+          <option value="consulta" {% if u and u.perfil == 'consulta' %}selected{% endif %}>Consulta</option>
+          <option value="tecnico" {% if u and u.perfil == 'tecnico' %}selected{% endif %}>Técnico</option>
+          <option value="administrador" {% if u and u.perfil == 'administrador' %}selected{% endif %}>Administrador</option>
+        </select>
+      </div>
+      {% if u %}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Situação</label>
+        <select name="situacao" class="form-select">
+          <option value="ativo" {% if u.situacao == 'ativo' %}selected{% endif %}>Ativo</option>
+          <option value="inativo" {% if u.situacao == 'inativo' %}selected{% endif %}>Inativo</option>
+        </select>
+      </div>
+      {% endif %}
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">{% if u %}Nova Senha (deixar em branco para não alterar){% else %}Senha{% endif %}</label>
+        <input type="password" name="senha" class="form-control" {% if not u %}required{% endif %}
+          placeholder="{% if u %}Nova senha...{% else %}{% endif %}">
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Salvar</button>
+        <a href="{{ url_for('admin_usuarios') }}" class="btn btn-outline-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

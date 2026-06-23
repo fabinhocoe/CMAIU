@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Parâmetros – CMAIU{% endblock %}
+{% block page_title %}Parâmetros do Sistema{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm mt-2">
+  <div class="card-header section-header"><i class="bi bi-sliders me-2"></i>Parâmetros Configuráveis</div>
+  <div class="card-body">
+    <div class="alert alert-warning small mb-3">
+      <i class="bi bi-exclamation-triangle me-1"></i>
+      A alteração de parâmetros afeta apenas <strong>novos cálculos</strong>. Cálculos anteriores são preservados com os valores originais.
+    </div>
+    <form method="POST">
+      <div class="row g-3">
+        {% for p in params %}
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">{{ p.descricao }}</label>
+          <div class="input-group input-group-sm">
+            <input type="text" name="{{ p.chave }}" class="form-control" value="{{ p.valor }}">
+            {% if p.unidade %}<span class="input-group-text">{{ p.unidade }}</span>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Justificativa para as alterações <span class="text-danger">*</span></label>
+          <textarea name="justificativa" class="form-control" rows="2" required
+            placeholder="Descreva o motivo das alterações..."></textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">
+        <i class="bi bi-check-circle me-2"></i>Salvar Parâmetros
+      </button>
+    </form>
+  </div>
+</div>
+
+{% if historico %}
+<div class="card border-0 shadow-sm mt-3">
+  <div class="card-header section-header"><i class="bi bi-clock-history me-2"></i>Histórico de Alterações</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0 small">
+      <thead class="table-light">
+        <tr><th>Data</th><th>Parâmetro</th><th>Valor Anterior</th><th>Valor Novo</th><th>Usuário</th><th>Justificativa</th></tr>
+      </thead>
+      <tbody>
+        {% for h in historico %}
+        <tr>
+          <td>{{ h.data_alteracao.strftime('%d/%m/%Y %H:%M') }}</td>
+          <td>{{ h.parametro.descricao if h.parametro else '—' }}</td>
+          <td class="text-muted">{{ h.valor_anterior }}</td>
+          <td class="fw-semibold">{{ h.valor_novo }}</td>
+          <td>{{ h.usuario.nome if h.usuario else '—' }}</td>
+          <td>{{ h.justificativa or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

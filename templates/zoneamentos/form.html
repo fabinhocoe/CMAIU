@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}{% if z %}Editar Zoneamento{% else %}Novo Zoneamento{% endif %} – CMAIU{% endblock %}
+{% block page_title %}{% if z %}Editar Zoneamento{% else %}Novo Zoneamento{% endif %}{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm mt-2" style="max-width:700px">
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Código <span class="text-danger">*</span></label>
+          <input type="text" name="codigo" class="form-control text-uppercase" required
+            value="{{ z.codigo if z else '' }}">
+        </div>
+        <div class="col-md-9">
+          <label class="form-label small fw-semibold">Descrição <span class="text-danger">*</span></label>
+          <input type="text" name="descricao" class="form-control" required
+            value="{{ z.descricao if z else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Coef. Básico (CAB)</label>
+          <input type="number" step="0.0001" name="cab" class="form-control"
+            value="{{ z.cab if z else '1.0' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Coef. Máximo (CMAX)</label>
+          <input type="number" step="0.0001" name="cmax" class="form-control"
+            value="{{ z.cmax if z else '4.0' }}">
+        </div>
+        <div class="col-md-6 d-flex align-items-end">
+          <div class="form-check mb-1">
+            <input class="form-check-input" type="checkbox" name="permite_solo_criado" id="psc"
+              {% if not z or z.permite_solo_criado %}checked{% endif %}>
+            <label class="form-check-label" for="psc">Permite Solo Criado</label>
+          </div>
+          {% if z %}
+          <div class="form-check mb-1 ms-4">
+            <input class="form-check-input" type="checkbox" name="ativo" id="ativo"
+              {% if z.ativo %}checked{% endif %}>
+            <label class="form-check-label" for="ativo">Ativo</label>
+          </div>
+          {% endif %}
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Limite Oneroso (%)</label>
+          <input type="number" step="0.01" name="limite_oneroso" class="form-control"
+            value="{{ z.limite_oneroso if z else '40' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Limite Infraestrutura (%)</label>
+          <input type="number" step="0.01" name="limite_infra" class="form-control"
+            value="{{ z.limite_infra if z else '5' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Limite Captação (%)</label>
+          <input type="number" step="0.01" name="limite_captacao" class="form-control"
+            value="{{ z.limite_captacao if z else '5' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Fundamento Normativo</label>
+          <input type="text" name="norma" class="form-control"
+            value="{{ z.norma if z else '' }}" placeholder="Ex: Lei nº 12.345/2020, art. 10">
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Observações</label>
+          <textarea name="observacoes" class="form-control" rows="2">{{ z.observacoes if z else '' }}</textarea>
+        </div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Salvar</button>
+        <a href="{{ url_for('zoneamentos_index') }}" class="btn btn-outline-secondary">Cancelar</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

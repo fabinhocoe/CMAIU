@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% block title %}Processo {{ processo.protocolo_cmaiu or processo.id }} – CMAIU{% endblock %}
+{% block page_title %}Processo – {{ processo.protocolo_cmaiu or processo.id }}{% endblock %}
+{% block content %}
+{% set emp = processo.empreendimento %}
+{% set prop = processo.proprietario %}
+{% set calc = processo.ultimo_calculo %}
+
+<!-- Cabeçalho -->
+<div class="d-flex align-items-start justify-content-between mt-2 mb-3 flex-wrap gap-2">
+  <div>
+    <span class="badge bg-{{ processo.situacao_badge }} fs-6 me-2">{{ processo.situacao }}</span>
+    {% if emp and emp.zoneamento %}<span class="badge bg-secondary">{{ emp.zoneamento.codigo }}</span>{% endif %}
+  </div>
+  <div class="d-flex gap-2 flex-wrap">
+    {% if current_user.is_tecnico %}
+    <a href="{{ url_for('processos_editar', pid=processo.id) }}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-pencil me-1"></i>Editar
+    </a>
+    <a href="{{ url_for('processos_impactos', pid=processo.id) }}" class="btn btn-sm btn-outline-warning">
+      <i class="bi bi-clipboard-check me-1"></i>Impactos
+    </a>
+    <a href="{{ url_for('processos_calculos', pid=processo.id) }}" class="btn btn-sm btn-outline-success">
+      <i class="bi bi-calculator me-1"></i>Cálculos
+    </a>
+    <a href="{{ url_for('processos_relatorio', pid=processo.id) }}" class="btn btn-sm btn-outline-info">
+      <i class="bi bi-file-earmark-text me-1"></i>Relatório
+    </a>
+    {% endif %}
+    <a href="{{ url_for('processos_exportar_excel', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-file-earmark-excel me-1"></i>Excel
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+<!-- Processo -->
+<div class="col-lg-6">
+  <div class="card border-0 shadow-sm h-100">
+    <div class="card-header section-header"><i class="bi bi-file-earmark-text me-2"></i>Processo</div>
+    <div class="card-body">
+      <dl class="row mb-0 small">
+        <dt class="col-sm-5">Protocolo CMAIU</dt><dd class="col-sm-7"><code>{{ processo.protocolo_cmaiu or '—' }}</code></dd>
+        <dt class="col-sm-5">Processo Administrativo</dt><dd class="col-sm-7">{{ processo.num_processo or '—' }}</dd>
+        <dt class="col-sm-5">Protocolo de Aprovação</dt><dd class="col-sm-7">{{ processo.protocolo_aprovacao or '—' }}</dd>
+        <dt class="col-sm-5">Data de Entrada</dt><dd class="col-sm-7">{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</dd>
+        <dt class="col-sm-5">Data da Análise</dt><dd class="col-sm-7">{{ processo.data_analise.strftime('%d/%m/%Y') if processo.data_analise else '—' }}</dd>
+        {% if processo.observacoes %}<dt class="col-sm-5">Observações</dt><dd class="col-sm-7">{{ processo.observacoes }}</dd>{% endif %}
+      </dl>
+    </div>
+  </div>
+</div>
+
+<!-- Proprietário -->
+<div class="col-lg-6">
+  <div class="card border-0 shadow-sm h-100">
+    <div class="card-header section-header"><i class="bi bi-person me-2"></i>Proprietário / Empreendedor</div>
+    <div class="card-body">
+      {% if prop %}
+      <dl class="row mb-0 small">
+        <dt class="col-sm-5">Nome / Razão Social</dt><dd class="col-sm-7">{{ prop.nome or '—' }}</dd>
+        <dt class="col-sm-5">CPF / CNPJ</dt><dd class="col-sm-7">{{ prop.cpf_cnpj or '—' }}</dd>
+        <dt class="col-sm-5">Endereço</dt><dd class="col-sm-7">{{ prop.endereco or '—' }}</dd>
+        <dt class="col-sm-5">Telefone</dt><dd class="col-sm-7">{{ prop.telefone or '—' }}</dd>
+        <dt class="col-sm-5">E-mail</dt><dd class="col-sm-7">{{ prop.email or '—' }}</dd>
+      </dl>
+      {% else %}<p class="text-muted small mb-0">Não informado.</p>{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Empreendimento -->
+<div class="col-12">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header section-header"><i class="bi bi-buildings me-2"></i>Empreendimento</div>
+    <div class="card-body">
+      {% if emp %}
+      <div class="row g-2 small">
+        <div class="col-md-6"><strong>Nome:</strong> {{ emp.nome or '—' }}</div>
+        <div class="col-md-6"><strong>Endereço:</strong> {{ emp.endereco or '—' }}</div>
+        <div class="col-md-3"><strong>Bairro:</strong> {{ emp.bairro or '—' }}</div>
+        <div class="col-md-3"><strong>Zoneamento:</strong> {{ emp.zoneamento.codigo if emp.zoneamento else '—' }}</div>
+        <div class="col-md-3"><strong>Uso:</strong> {{ emp.uso_predominante or '—' }}</div>
+        <div class="col-md-3"><strong>Resp. Técnico:</strong> {{ emp.responsavel_tecnico or '—' }}</div>
+      </div>
+      <hr class="my-2">
+      <div class="row g-2 small">
+        <div class="col-md-2"><strong>Terreno:</strong><br>{{ emp.area_terreno|fmt_area if emp.area_terreno else '—' }}</div>
+        <div class="col-md-2"><strong>Área Construída:</strong><br>{{ emp.area_construida|fmt_area if emp.area_construida else '—' }}</div>
+        <div class="col-md-2"><strong>Área Computável:</strong><br>{{ emp.area_computavel|fmt_area if emp.area_computavel else '—' }}</div>
+        <div class="col-md-2"><strong>CAB / CMAX:</strong><br>{{ emp.cab }} / {{ emp.cmax }}</div>
+        <div class="col-md-2"><strong>UH / UC:</strong><br>{{ emp.num_uh or 0 }} / {{ emp.num_uc or 0 }}</div>
+        <div class="col-md-2"><strong>População Total:</strong><br>{{ emp.pop_total or '—' }} hab.</div>
+        <div class="col-md-2"><strong>Pavimentos:</strong><br>{{ emp.num_pavimentos or '—' }}</div>
+        <div class="col-md-2"><strong>Vagas:</strong><br>{{ emp.vagas or '—' }}</div>
+        <div class="col-md-4"><strong>Padrão de Impacto:</strong><br>{{ emp.padrao_impacto or '—' }}</div>
+      </div>
+      {% else %}<p class="text-muted small mb-0">Não informado.</p>{% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Último Cálculo -->
+{% if calc %}
+<div class="col-lg-6">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header section-header"><i class="bi bi-calculator me-2"></i>Compensação Urbana</div>
+    <div class="card-body small">
+      <div class="row g-2">
+        <div class="col-6"><strong>CUB:</strong> {{ calc.cub_valor|brl }}/m² ({{ calc.cub_mes_ref }})</div>
+        <div class="col-6"><strong>População:</strong> {{ calc.populacao or '—' }} hab.</div>
+        <div class="col-6"><strong>Valor-base:</strong> {{ calc.valor_base|brl }}</div>
+        <div class="col-6">
+          <strong>Nível:</strong>
+          {% if calc.nivel_selecionado %}
+            <span class="badge bg-primary">{{ calc.nivel_label }}</span>
+            = {{ calc.valor_compensacao|brl }}
+          {% else %}—{% endif %}
+        </div>
+      </div>
+      <table class="table table-sm mt-2 mb-0">
+        <tr><td>25%</td><td class="text-end">{{ calc.valor_25|brl }}</td></tr>
+        <tr><td>50%</td><td class="text-end">{{ calc.valor_50|brl }}</td></tr>
+        <tr><td>75%</td><td class="text-end">{{ calc.valor_75|brl }}</td></tr>
+        <tr><td>100%</td><td class="text-end">{{ calc.valor_100|brl }}</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+<div class="col-lg-6">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header section-header"><i class="bi bi-layers me-2"></i>Solo Criado</div>
+    <div class="card-body small">
+      <dl class="row mb-0">
+        <dt class="col-7">Área Básica (AB)</dt><dd class="col-5 text-end">{{ calc.area_basica|fmt_area }}</dd>
+        <dt class="col-7">Área Excedente (AE)</dt><dd class="col-5 text-end">{{ calc.area_excedente|fmt_area }}</dd>
+      </dl>
+      <table class="table table-sm mt-2 mb-0">
+        <thead class="table-light"><tr><th>Modalidade</th><th>%</th><th>Área</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Oneroso</td><td>{{ '%.2f'|format(calc.perc_oneroso) }}%</td><td>{{ calc.area_onerosa|fmt_area }}</td><td>{{ calc.valor_oneroso|brl }}</td></tr>
+          <tr><td>Infraestrutura</td><td>{{ '%.2f'|format(calc.perc_infra) }}%</td><td>{{ calc.area_infra|fmt_area }}</td><td>{{ calc.valor_infra|brl }}</td></tr>
+          <tr><td>Captação</td><td>{{ '%.2f'|format(calc.perc_captacao) }}%</td><td>{{ calc.area_captacao|fmt_area }}</td><td>{{ calc.valor_captacao|brl }}</td></tr>
+          <tr class="fw-bold"><td>Total</td><td>{{ '%.2f'|format(calc.perc_total) }}%</td><td>{{ calc.area_total_solo|fmt_area }}</td><td>{{ calc.valor_total_solo|brl }}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Impactos resumo -->
+{% if processo.impactos %}
+<div class="col-12">
+  <div class="card border-0 shadow-sm">
+    <div class="card-header section-header"><i class="bi bi-clipboard-check me-2"></i>Avaliação de Impactos</div>
+    <div class="card-body">
+      <div class="d-flex flex-wrap gap-2">
+        {% for imp in processo.impactos %}
+        <span class="badge bg-{{ imp.badge_cor }} text-dark-emphasis" title="{{ imp.justificativa or '' }}">
+          {{ imp.descricao|truncate(35) }}: {{ imp.classificacao }}
+        </span>
+        {% endfor %}
+      </div>
+      {% if emp and emp.padrao_impacto %}
+      <p class="mt-2 mb-0 small"><strong>Padrão geral:</strong> {{ emp.padrao_impacto }}</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+</div><!-- row -->
+{% endblock %}

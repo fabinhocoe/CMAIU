@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% block title %}Relatório – CMAIU{% endblock %}
+{% block page_title %}Relatório — {{ processo.protocolo_cmaiu or processo.id }}{% endblock %}
+{% block content %}
+{% set emp = processo.empreendimento %}
+{% set prop = processo.proprietario %}
+{% set c = calc %}
+
+<div class="d-flex gap-2 mb-3 mt-2 flex-wrap">
+  <a href="{{ url_for('processos_detail', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  {% if rel %}
+  <a href="{{ url_for('processos_relatorio_pdf', pid=processo.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>Baixar PDF
+  </a>
+  {% endif %}
+</div>
+
+{% if not c %}
+<div class="alert alert-warning">
+  <i class="bi bi-exclamation-triangle me-2"></i>Não há cálculo registrado para este processo. <a href="{{ url_for('processos_calculos', pid=processo.id) }}">Realizar cálculo</a>
+</div>
+{% endif %}
+
+{% if current_user.is_tecnico %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header"><i class="bi bi-pencil-square me-2"></i>Deliberação da CMAIU</div>
+  <div class="card-body">
+    <form method="POST">
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Número do Relatório</label>
+          <input type="text" name="numero_relatorio" class="form-control"
+            value="{{ rel.numero if rel else '' }}" placeholder="Gerado automaticamente">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Data do Relatório</label>
+          <input type="date" name="data_relatorio" class="form-control"
+            value="{{ rel.data.isoformat() if rel and rel.data else '' }}">
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Decisão da CMAIU</label>
+          <textarea name="deliberacao" class="form-control" rows="3">{{ rel.deliberacao if rel else '' }}</textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Medidas Compensatórias</label>
+          <textarea name="medidas" class="form-control" rows="3">{{ rel.medidas if rel else '' }}</textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Observações</label>
+          <textarea name="obs_deliberacao" class="form-control" rows="2">{{ rel.obs_deliberacao if rel else '' }}</textarea>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">
+        <i class="bi bi-file-earmark-check me-2"></i>{% if rel %}Atualizar Relatório{% else %}Gerar Relatório{% endif %}
+      </button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- Preview do Relatório -->
+{% if c %}
+<div class="card border-0 shadow-sm">
+  <div class="card-header section-header"><i class="bi bi-file-earmark-text me-2"></i>Preview do Relatório</div>
+  <div class="card-body report-preview p-4">
+
+    <div class="text-center mb-4">
+      <h5 class="fw-bold text-uppercase">Comissão Municipal de Avaliação de Impacto Urbano</h5>
+      <h6 class="text-uppercase">Prefeitura Municipal de Palhoça – SC</h6>
+      <hr>
+      <h6>RELATÓRIO DE AVALIAÇÃO DE IMPACTO URBANO
+        {% if rel %}Nº {{ rel.numero }}{% endif %}
+      </h6>
+    </div>
+
+    <h6 class="section-title">1 – IDENTIFICAÇÃO</h6>
+    <table class="table table-sm table-bordered small">
+      <tr><th>Protocolo CMAIU</th><td>{{ processo.protocolo_cmaiu or '—' }}</td>
+          <th>Processo Administrativo</th><td>{{ processo.num_processo or '—' }}</td></tr>
+      <tr><th>Protocolo de Aprovação</th><td>{{ processo.protocolo_aprovacao or '—' }}</td>
+          <th>Data de Entrada</th><td>{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</td></tr>
+      <tr><th>Proprietário</th><td colspan="3">{{ prop.nome if prop else '—' }}</td></tr>
+      <tr><th>Empreendimento</th><td colspan="3">{{ emp.nome if emp else '—' }}</td></tr>
+      <tr><th>Endereço</th><td colspan="3">{{ emp.endereco if emp else '—' }}, {{ emp.bairro if emp else '—' }}</td></tr>
+      <tr><th>Zoneamento</th><td>{{ emp.zoneamento.codigo if emp and emp.zoneamento else '—' }}</td>
+          <th>Resp. Técnico</th><td>{{ emp.responsavel_tecnico if emp else '—' }}</td></tr>
+    </table>
+
+    <h6 class="section-title mt-3">2 – DADOS DO EMPREENDIMENTO</h6>
+    <table class="table table-sm table-bordered small">
+      <tr>
+        <th>Área do Terreno</th><td>{{ emp.area_terreno|fmt_area if emp and emp.area_terreno else '—' }}</td>
+        <th>Área Construída</th><td>{{ emp.area_construida|fmt_area if emp and emp.area_construida else '—' }}</td>
+      </tr>
+      <tr>
+        <th>Área Computável</th><td>{{ emp.area_computavel|fmt_area if emp and emp.area_computavel else '—' }}</td>
+        <th>Nº de Pavimentos</th><td>{{ emp.num_pavimentos or '—' }}</td>
+      </tr>
+      <tr>
+        <th>Coef. Básico (CAB)</th><td>{{ emp.cab or '—' }}</td>
+        <th>Coef. do Projeto</th><td>{{ '%.4f'|format(emp.area_computavel / emp.area_terreno) if emp and emp.area_computavel and emp.area_terreno else '—' }}</td>
+      </tr>
+      <tr>
+        <th>Unidades Habitacionais</th><td>{{ emp.num_uh or 0 }}</td>
+        <th>Unidades Comerciais</th><td>{{ emp.num_uc or 0 }}</td>
+      </tr>
+      <tr>
+        <th>Dormitórios</th><td>{{ emp.total_dormitorios or '—' }}</td>
+        <th>Vagas</th><td>{{ emp.vagas or '—' }}</td>
+      </tr>
+      <tr>
+        <th>Pop. Residencial</th><td>{{ emp.pop_residencial or '—' }}</td>
+        <th>Pop. Não Residencial</th><td>{{ emp.pop_nao_residencial or '—' }}</td>
+      </tr>
+      <tr>
+        <th>População Total</th><td>{{ emp.pop_total or '—' }} hab.</td>
+        <th>Padrão de Impacto</th><td>{{ emp.padrao_impacto or '—' }}</td>
+      </tr>
+    </table>
+
+    {% if processo.impactos %}
+    <h6 class="section-title mt-3">3 – AVALIAÇÃO DOS IMPACTOS</h6>
+    <table class="table table-sm table-bordered small">
+      <thead class="table-light"><tr><th>Impacto</th><th>Tipo</th><th>Classificação</th><th>Justificativa</th><th>Medida</th></tr></thead>
+      <tbody>
+        {% for imp in processo.impactos %}
+        <tr>
+          <td>{{ imp.descricao }}</td>
+          <td>{{ 'Social' if imp.tipo == 'social' else 'Viário' }}</td>
+          <td>{{ imp.classificacao }}</td>
+          <td>{{ imp.justificativa or '—' }}</td>
+          <td>{{ imp.medida_proposta or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    <h6 class="section-title mt-3">4 – COMPENSAÇÃO URBANA</h6>
+    <table class="table table-sm table-bordered small">
+      <tr><th>CUB de Referência</th><td>{{ c.cub_valor|brl }}/m² ({{ c.cub_mes_ref }})</td>
+          <th>População Adotada</th><td>{{ c.populacao or '—' }} hab.</td></tr>
+      <tr><th>Fator-base (FC)</th><td>33%</td>
+          <th>Valor-Base</th><td>{{ c.valor_base|brl }}</td></tr>
+      <tr><th>Nível 25%</th><td>{{ c.valor_25|brl }}</td>
+          <th>Nível 50%</th><td>{{ c.valor_50|brl }}</td></tr>
+      <tr><th>Nível 75%</th><td>{{ c.valor_75|brl }}</td>
+          <th>Nível 100%</th><td>{{ c.valor_100|brl }}</td></tr>
+      <tr class="table-primary fw-bold">
+        <th>Nível Aprovado</th>
+        <td>{{ c.nivel_label }}</td>
+        <th>Valor Aprovado</th>
+        <td>{{ c.valor_compensacao|brl }}</td>
+      </tr>
+      {% if c.nivel_selecionado == 'dispensado' and c.justificativa_dispensa %}
+      <tr><th>Justificativa da Dispensa</th><td colspan="3">{{ c.justificativa_dispensa }}</td></tr>
+      {% endif %}
+    </table>
+
+    <h6 class="section-title mt-3">5 – SOLO CRIADO</h6>
+    <table class="table table-sm table-bordered small">
+      <tr><th>Área Básica (AB)</th><td>{{ c.area_basica|fmt_area }}</td>
+          <th>Área Excedente (AE)</th><td>{{ c.area_excedente|fmt_area }}</td></tr>
+      <tr><th>Valor Unitário (VU)</th><td colspan="3">{{ c.valor_unitario|brl }}/m² (CUB × 6%)</td></tr>
+    </table>
+    <table class="table table-sm table-bordered small">
+      <thead class="table-light"><tr><th>Modalidade</th><th>Percentual</th><th>Área</th><th>Valor</th></tr></thead>
+      <tbody>
+        <tr><td>Oneroso (máx. 40%)</td><td>{{ '%.2f'|format(c.perc_oneroso) }}%</td><td>{{ c.area_onerosa|fmt_area }}</td><td>{{ c.valor_oneroso|brl }}</td></tr>
+        <tr><td>Infraestrutura (máx. 5%)</td><td>{{ '%.2f'|format(c.perc_infra) }}%</td><td>{{ c.area_infra|fmt_area }}</td><td>{{ c.valor_infra|brl }}</td></tr>
+        <tr><td>Captação de Águas (máx. 5%)</td><td>{{ '%.2f'|format(c.perc_captacao) }}%</td><td>{{ c.area_captacao|fmt_area }}</td><td>{{ c.valor_captacao|brl }}</td></tr>
+        <tr class="fw-bold table-light"><td>Total (máx. 50%)</td><td>{{ '%.2f'|format(c.perc_total) }}%</td><td>{{ c.area_total_solo|fmt_area }}</td><td>{{ c.valor_total_solo|brl }}</td></tr>
+      </tbody>
+    </table>
+
+    {% if rel %}
+    <h6 class="section-title mt-3">6 – DELIBERAÇÃO DA CMAIU</h6>
+    <p class="small">{{ rel.deliberacao or '—' }}</p>
+    {% if rel.medidas %}<p class="small"><strong>Medidas compensatórias:</strong> {{ rel.medidas }}</p>{% endif %}
+    {% if rel.obs_deliberacao %}<p class="small"><strong>Observações:</strong> {{ rel.obs_deliberacao }}</p>{% endif %}
+    <p class="small text-muted">Palhoça, {{ rel.data.strftime('%d de %B de %Y') if rel.data else '—' }}</p>
+
+    {% if integrantes %}
+    <div class="row mt-4">
+      {% for i in integrantes %}
+      <div class="col-md-4 text-center mb-4">
+        <div style="border-top:1px solid #aaa;margin:0 20px;padding-top:4px" class="small">
+          {{ i.nome }}<br>{{ i.cargo or '' }}<br><span class="text-muted">{{ i.orgao or '' }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% endif %}
+
+  </div>
+</div>
+{% endif %}
+{% endblock %}

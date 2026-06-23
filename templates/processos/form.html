@@ -1,0 +1,267 @@
+{% extends 'base.html' %}
+{% set editing = processo is not none %}
+{% block title %}{% if editing %}Editar Processo{% else %}Novo Processo{% endif %} – CMAIU{% endblock %}
+{% block page_title %}{% if editing %}Editar Processo{% else %}Novo Processo{% endif %}{% endblock %}
+{% block content %}
+<form method="POST" id="processoForm">
+<ul class="nav nav-tabs mt-2 mb-3" id="formTabs">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-processo">1 – Processo</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-prop">2 – Proprietário</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-emp">3 – Empreendimento</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-urban">4 – Dados Urbanísticos</a></li>
+</ul>
+<div class="tab-content">
+
+<!-- TAB 1 – Processo -->
+<div class="tab-pane fade show active" id="tab-processo">
+<div class="card border-0 shadow-sm">
+  <div class="card-header section-header"><i class="bi bi-file-earmark-text me-2"></i>Identificação do Processo</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Nº do Processo Administrativo</label>
+        <input type="text" name="num_processo" class="form-control" value="{{ processo.num_processo if editing else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Protocolo CMAIU</label>
+        <input type="text" name="protocolo_cmaiu" class="form-control" value="{{ processo.protocolo_cmaiu if editing else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Protocolo de Aprovação do Projeto</label>
+        <input type="text" name="protocolo_aprovacao" class="form-control" value="{{ processo.protocolo_aprovacao if editing else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Data de Entrada</label>
+        <input type="date" name="data_entrada" class="form-control" value="{{ processo.data_entrada.isoformat() if editing and processo.data_entrada else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Data da Análise</label>
+        <input type="date" name="data_analise" class="form-control" value="{{ processo.data_analise.isoformat() if editing and processo.data_analise else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Situação</label>
+        <select name="situacao" class="form-select">
+          {% for s in situacoes %}
+          <option value="{{ s }}" {% if editing and processo.situacao == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12">
+        <label class="form-label small fw-semibold">Observações</label>
+        <textarea name="observacoes" class="form-control" rows="2">{{ processo.observacoes if editing else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 2 – Proprietário -->
+<div class="tab-pane fade" id="tab-prop">
+<div class="card border-0 shadow-sm">
+  <div class="card-header section-header"><i class="bi bi-person me-2"></i>Identificação do Proprietário / Empreendedor</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Nome ou Razão Social</label>
+        <input type="text" name="prop_nome" class="form-control" value="{{ prop.nome if prop else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">CPF / CNPJ</label>
+        <input type="text" name="prop_cpf_cnpj" class="form-control" value="{{ prop.cpf_cnpj if prop else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Telefone</label>
+        <input type="text" name="prop_telefone" class="form-control" value="{{ prop.telefone if prop else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Endereço</label>
+        <input type="text" name="prop_endereco" class="form-control" value="{{ prop.endereco if prop else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">E-mail</label>
+        <input type="email" name="prop_email" class="form-control" value="{{ prop.email if prop else '' }}">
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 3 – Empreendimento -->
+<div class="tab-pane fade" id="tab-emp">
+<div class="card border-0 shadow-sm">
+  <div class="card-header section-header"><i class="bi bi-buildings me-2"></i>Identificação do Empreendimento</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Nome do Empreendimento</label>
+        <input type="text" name="emp_nome" class="form-control" value="{{ emp.nome if emp else '' }}">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Endereço do Empreendimento</label>
+        <input type="text" name="emp_endereco" class="form-control" value="{{ emp.endereco if emp else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Bairro</label>
+        <input type="text" name="emp_bairro" class="form-control" value="{{ emp.bairro if emp else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
+        <input type="text" name="emp_inscricao" class="form-control" value="{{ emp.inscricao if emp else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Matrícula</label>
+        <input type="text" name="emp_matricula" class="form-control" value="{{ emp.matricula if emp else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Zoneamento</label>
+        <select name="zoneamento_id" class="form-select" id="zoneamentoSelect">
+          <option value="">Selecione...</option>
+          {% for z in zoneamentos %}
+          <option value="{{ z.id }}"
+            data-cab="{{ z.cab }}" data-cmax="{{ z.cmax }}"
+            data-solo="{{ z.permite_solo_criado|lower }}"
+            {% if emp and emp.zoneamento_id == z.id %}selected{% endif %}>
+            {{ z.codigo }} – {{ z.descricao }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Uso Predominante</label>
+        <select name="emp_uso_predominante" class="form-select">
+          <option value="">Selecione...</option>
+          {% for u in usos %}
+          <option value="{{ u }}" {% if emp and emp.uso_predominante == u %}selected{% endif %}>{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Uso Secundário</label>
+        <select name="emp_uso_secundario" class="form-select">
+          <option value="">—</option>
+          {% for u in usos %}
+          <option value="{{ u }}" {% if emp and emp.uso_secundario == u %}selected{% endif %}>{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label small fw-semibold">Responsável Técnico</label>
+        <input type="text" name="emp_responsavel_tecnico" class="form-control" value="{{ emp.responsavel_tecnico if emp else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Nº do Registro Profissional</label>
+        <input type="text" name="emp_registro_profissional" class="form-control" value="{{ emp.registro_profissional if emp else '' }}">
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- TAB 4 – Dados Urbanísticos -->
+<div class="tab-pane fade" id="tab-urban">
+<div class="card border-0 shadow-sm">
+  <div class="card-header section-header"><i class="bi bi-rulers me-2"></i>Dados Urbanísticos</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Área do Terreno (m²)</label>
+        <input type="number" step="0.01" name="area_terreno" class="form-control" value="{{ emp.area_terreno if emp and emp.area_terreno else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Área Construída Total (m²)</label>
+        <input type="number" step="0.01" name="area_construida" class="form-control" value="{{ emp.area_construida if emp and emp.area_construida else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Área Computável do Projeto (m²)</label>
+        <input type="number" step="0.01" name="area_computavel" id="areaComputavel" class="form-control" value="{{ emp.area_computavel if emp and emp.area_computavel else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Nº de Pavimentos</label>
+        <input type="number" name="num_pavimentos" class="form-control" value="{{ emp.num_pavimentos if emp and emp.num_pavimentos else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Coef. Aproveitamento Básico (CAB)</label>
+        <input type="number" step="0.0001" name="cab" id="cabField" class="form-control" value="{{ emp.cab if emp and emp.cab else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Coef. Máximo Permitido (CMAX)</label>
+        <input type="number" step="0.0001" name="cmax" id="cmaxField" class="form-control" value="{{ emp.cmax if emp and emp.cmax else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Unidades Habitacionais (UH)</label>
+        <input type="number" name="num_uh" class="form-control" value="{{ emp.num_uh if emp and emp.num_uh else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Unidades Comerciais (UC)</label>
+        <input type="number" name="num_uc" class="form-control" value="{{ emp.num_uc if emp and emp.num_uc else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Total de Dormitórios</label>
+        <input type="number" name="total_dormitorios" id="dormitorios" class="form-control" value="{{ emp.total_dormitorios if emp and emp.total_dormitorios else '' }}">
+        <div class="form-text">Residencial: PR = dormitórios × 2</div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">População Residencial</label>
+        <input type="number" name="pop_residencial" id="popRes" class="form-control" value="{{ emp.pop_residencial if emp and emp.pop_residencial else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">População Não Residencial</label>
+        <input type="number" name="pop_nao_residencial" id="popNaoRes" class="form-control" value="{{ emp.pop_nao_residencial if emp and emp.pop_nao_residencial else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">População Total</label>
+        <input type="number" name="pop_total" id="popTotal" class="form-control fw-bold" value="{{ emp.pop_total if emp and emp.pop_total else '' }}" readonly>
+        <div class="form-text">Calculado automaticamente</div>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Nº de Vagas</label>
+        <input type="number" name="vagas" class="form-control" value="{{ emp.vagas if emp and emp.vagas else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Padrão de Impacto</label>
+        <select name="padrao_impacto" class="form-select">
+          <option value="">—</option>
+          {% for pad in padroes %}
+          <option value="{{ pad }}" {% if emp and emp.padrao_impacto == pad %}selected{% endif %}>{{ pad }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+</div><!-- tab-content -->
+
+<div class="d-flex gap-2 mt-3">
+  <button type="submit" class="btn btn-primary">
+    <i class="bi bi-check-circle me-2"></i>{% if editing %}Salvar Alterações{% else %}Cadastrar Processo{% endif %}
+  </button>
+  <a href="{{ url_for('processos_index') }}" class="btn btn-outline-secondary">Cancelar</a>
+</div>
+</form>
+
+{% block scripts %}
+<script>
+// Auto-preencher CAB/CMAX ao selecionar zoneamento
+document.getElementById('zoneamentoSelect')?.addEventListener('change', function() {
+  const opt = this.options[this.selectedIndex];
+  if (opt.value) {
+    document.getElementById('cabField').value = opt.dataset.cab || '';
+    document.getElementById('cmaxField').value = opt.dataset.cmax || '';
+  }
+});
+
+// Calcular população automaticamente
+function calcPop() {
+  const dorms = parseInt(document.getElementById('dormitorios').value) || 0;
+  const popRes = dorms * 2;
+  document.getElementById('popRes').value = popRes || '';
+  const popNaoRes = parseInt(document.getElementById('popNaoRes').value) || 0;
+  document.getElementById('popTotal').value = popRes + popNaoRes;
+}
+document.getElementById('dormitorios')?.addEventListener('input', calcPop);
+document.getElementById('popNaoRes')?.addEventListener('input', calcPop);
+</script>
+{% endblock %}
+{% endblock %}

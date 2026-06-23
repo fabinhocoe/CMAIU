@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Avaliação de Impactos – CMAIU{% endblock %}
+{% block page_title %}Avaliação de Impactos — {{ processo.protocolo_cmaiu or processo.id }}{% endblock %}
+{% block content %}
+<form method="POST">
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('processos_detail', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  <button type="submit" class="btn btn-sm btn-primary">
+    <i class="bi bi-check-circle me-1"></i>Salvar Avaliação
+  </button>
+</div>
+
+<!-- Impactos Sociais -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header"><i class="bi bi-people me-2"></i>Impactos Sociais</div>
+  <div class="card-body p-0">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:30%">Impacto</th>
+          <th style="width:20%">Classificação</th>
+          <th style="width:25%">Justificativa</th>
+          <th style="width:25%">Medida Proposta</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for chave, desc in impactos_sociais %}
+        {% set imp = imp_map.get(chave) %}
+        <tr>
+          <td class="small fw-semibold">{{ desc }}</td>
+          <td>
+            <select name="class_{{ chave }}" class="form-select form-select-sm impact-select">
+              {% for c in classificacoes %}
+              <option value="{{ c }}" {% if imp and imp.classificacao == c %}selected{% elif not imp and c == 'Inexistente' %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><input type="text" name="just_{{ chave }}" class="form-control form-control-sm" value="{{ imp.justificativa if imp else '' }}"></td>
+          <td><input type="text" name="medida_{{ chave }}" class="form-control form-control-sm" value="{{ imp.medida_proposta if imp else '' }}"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Impactos Viários -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header"><i class="bi bi-car-front me-2"></i>Impactos Viários</div>
+  <div class="card-body p-0">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th style="width:30%">Impacto</th>
+          <th style="width:20%">Classificação</th>
+          <th style="width:25%">Justificativa</th>
+          <th style="width:25%">Medida Proposta</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for chave, desc in impactos_viarios %}
+        {% set imp = imp_map.get(chave) %}
+        <tr>
+          <td class="small fw-semibold">{{ desc }}</td>
+          <td>
+            <select name="class_{{ chave }}" class="form-select form-select-sm impact-select">
+              {% for c in classificacoes %}
+              <option value="{{ c }}" {% if imp and imp.classificacao == c %}selected{% elif not imp and c == 'Inexistente' %}selected{% endif %}>{{ c }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td><input type="text" name="just_{{ chave }}" class="form-control form-control-sm" value="{{ imp.justificativa if imp else '' }}"></td>
+          <td><input type="text" name="medida_{{ chave }}" class="form-control form-control-sm" value="{{ imp.medida_proposta if imp else '' }}"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Padrão Geral -->
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header"><i class="bi bi-bar-chart me-2"></i>Resultado Geral</div>
+  <div class="card-body">
+    <div class="alert alert-info small mb-3">
+      <i class="bi bi-info-circle me-1"></i>O padrão geral é definido pela CMAIU e não determina automaticamente o nível da compensação.
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">Padrão Geral do Empreendimento</label>
+      <select name="padrao_geral" class="form-select">
+        <option value="">— Não definido —</option>
+        {% for p in padroes %}
+        {% set emp = processo.empreendimento %}
+        <option value="{{ p }}" {% if emp and emp.padrao_impacto == p %}selected{% endif %}>{{ p }}</option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+</div>
+
+<button type="submit" class="btn btn-primary">
+  <i class="bi bi-check-circle me-2"></i>Salvar Avaliação
+</button>
+</form>
+
+{% block scripts %}
+<script>
+// Colorir selects de classificação
+document.querySelectorAll('.impact-select').forEach(sel => {
+  function updateColor() {
+    const colors = {
+      'Inexistente': 'bg-light', 'Baixo': 'bg-success bg-opacity-25',
+      'Baixo a moderado': 'bg-info bg-opacity-25', 'Moderado': 'bg-warning bg-opacity-25',
+      'Moderado a alto': 'bg-warning bg-opacity-50', 'Alto': 'bg-danger bg-opacity-25',
+      'Não aplicável': 'bg-secondary bg-opacity-10'
+    };
+    sel.className = 'form-select form-select-sm impact-select ' + (colors[sel.value] || '');
+  }
+  sel.addEventListener('change', updateColor);
+  updateColor();
+});
+</script>
+{% endblock %}
+{% endblock %}

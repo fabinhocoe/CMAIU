@@ -1,0 +1,95 @@
+/* CMAIU – Palhoça/SC – Sistema de Cálculo e Relatórios */
+
+:root {
+  --sidebar-width: 220px;
+  --topbar-height: 52px;
+  --color-primary: #1a3a5c;
+  --color-accent: #2060a0;
+}
+
+/* ─── Layout ─────────────────────────────────────────────── */
+body { background: #f4f6f9; font-size: .875rem; }
+
+#wrapper { min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--color-primary);
+  color: #d0e4f7;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  color: #fff !important;
+  background: rgba(0,0,0,.2);
+}
+
+.sidebar-link {
+  color: #b0c8e0;
+  border-radius: 6px;
+  font-size: .82rem;
+  padding: .42rem .7rem;
+  transition: background .15s;
+}
+
+.sidebar-link:hover { background: rgba(255,255,255,.12); color: #fff; }
+.sidebar-link.active { background: var(--color-accent); color: #fff; }
+
+/* Topbar */
+.topbar {
+  background: #fff;
+  min-height: var(--topbar-height);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+/* ─── Cards ──────────────────────────────────────────────── */
+.stat-card { border-radius: 12px; transition: box-shadow .2s; }
+.stat-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,.10) !important; }
+.stat-icon { width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; }
+
+.section-header {
+  background: #f0f4f8;
+  color: var(--color-primary);
+  font-weight: 600;
+  font-size: .82rem;
+  letter-spacing: .03em;
+  border-bottom: 1px solid #dee2e6;
+  padding: .5rem 1rem;
+}
+
+/* ─── Tables ─────────────────────────────────────────────── */
+.table th { font-size: .78rem; font-weight: 600; color: #555; }
+
+/* ─── Login ──────────────────────────────────────────────── */
+.login-body { background: linear-gradient(135deg, #1a3a5c 0%, #2060a0 100%); }
+.login-card { border-radius: 14px; }
+
+/* ─── Report preview ────────────────────────────────────── */
+.report-preview { background: #fff; border: 1px solid #dee2e6; }
+.report-preview .section-title {
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
+  padding-bottom: 2px;
+  text-transform: uppercase;
+  font-size: .8rem;
+  letter-spacing: .05em;
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+
+/* ─── Responsive ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -var(--sidebar-width);
+    z-index: 1050;
+    transition: left .25s;
+  }
+  .sidebar.show { left: 0; }
+}
+
+/* ─── Utils ──────────────────────────────────────────────── */
+code { color: var(--color-accent); }
+.form-control:read-only { background: #f8f9fa; }

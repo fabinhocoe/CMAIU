@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Zoneamentos – CMAIU{% endblock %}
+{% block page_title %}Zoneamentos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-end mb-3 mt-2">
+  {% if current_user.is_admin %}
+  <a href="{{ url_for('zoneamentos_novo') }}" class="btn btn-sm btn-primary">
+    <i class="bi bi-plus-circle me-1"></i>Novo Zoneamento
+  </a>
+  {% endif %}
+</div>
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle small">
+        <thead class="table-light">
+          <tr>
+            <th>Código</th>
+            <th>Descrição</th>
+            <th class="text-center">CAB</th>
+            <th class="text-center">CMAX</th>
+            <th class="text-center">Solo Criado</th>
+            <th class="text-center">Lim. Oneroso</th>
+            <th class="text-center">Lim. Infra</th>
+            <th class="text-center">Lim. Capt.</th>
+            <th class="text-center">Lim. Total</th>
+            <th>Norma</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for z in zoneamentos %}
+          <tr {% if not z.ativo %}class="text-muted"{% endif %}>
+            <td class="fw-bold">{{ z.codigo }}</td>
+            <td>{{ z.descricao }}</td>
+            <td class="text-center">{{ z.cab }}</td>
+            <td class="text-center">{{ z.cmax }}</td>
+            <td class="text-center">
+              {% if z.permite_solo_criado %}
+              <span class="badge bg-success">Sim</span>
+              {% else %}
+              <span class="badge bg-danger">Não</span>
+              {% endif %}
+            </td>
+            <td class="text-center">{{ z.limite_oneroso|int }}%</td>
+            <td class="text-center">{{ z.limite_infra|int }}%</td>
+            <td class="text-center">{{ z.limite_captacao|int }}%</td>
+            <td class="text-center fw-semibold">{{ z.limite_total|int }}%</td>
+            <td class="text-muted">{{ z.norma or '—' }}</td>
+            <td>
+              {% if current_user.is_admin %}
+              <a href="{{ url_for('zoneamentos_editar', zid=z.id) }}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-pencil"></i>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="11" class="text-center text-muted py-4">Nenhum zoneamento cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
