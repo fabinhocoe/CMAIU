@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 *.pyo
 banco_cmaiu.xlsx
+
+instance/
+*.db
