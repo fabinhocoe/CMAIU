@@ -1213,6 +1213,22 @@ def tac_obras(tid):
             db.session.add(obra)
             db.session.commit()
             flash('Obra adicionada.', 'success')
+        elif action == 'edit' and not tac.bloqueado:
+            oid = _int(request.form.get('id'))
+            o = ObraTAC.query.get(oid)
+            if o and o.tac_id == tid:
+                f = request.form
+                o.descricao = f.get('descricao', '').strip()
+                o.endereco = f.get('endereco', '').strip()
+                o.bairro = f.get('bairro', '').strip()
+                o.inscricao_imobiliaria = f.get('inscricao', '').strip()
+                o.grupo = f.get('grupo', o.grupo)
+                o.area_construida = _float(f.get('area_construida')) or o.area_construida
+                o.is_unifamiliar_ate150 = bool(f.get('is_unifamiliar_ate150'))
+                o.data_construcao = _parse_date(f.get('data_construcao'))
+                o.observacoes = f.get('observacoes', '').strip()
+                db.session.commit()
+                flash('Obra atualizada.', 'success')
         elif action == 'delete' and not tac.bloqueado:
             oid = _int(request.form.get('id'))
             o = ObraTAC.query.get(oid)
@@ -1220,7 +1236,9 @@ def tac_obras(tid):
                 db.session.delete(o)
                 db.session.commit()
         return redirect(url_for('tac_obras', tid=tid))
-    return render_template('tac/obras.html', tac=tac, grupos=GRUPOS_OBRA)
+    obra_editar_id = _int(request.args.get('editar'))
+    return render_template('tac/obras.html', tac=tac, grupos=GRUPOS_OBRA,
+                           obra_editar_id=obra_editar_id)
 
 
 @app.route('/tac/<int:tid>/obras/<int:oid>/irregularidades', methods=['GET', 'POST'])

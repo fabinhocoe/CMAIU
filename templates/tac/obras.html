@@ -8,7 +8,9 @@
   </a>
 </div>
 <div class="row g-3">
+
   {% if not tac.bloqueado %}
+  <!-- Formulário de adição -->
   <div class="col-lg-5">
     <div class="card border-0 shadow-sm">
       <div class="card-header section-header"><i class="bi bi-building-add me-2"></i>Adicionar Obra</div>
@@ -16,58 +18,20 @@
         <form method="POST">
           <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
           <input type="hidden" name="action" value="add">
-          <div class="mb-2">
-            <label class="form-label small fw-semibold">Descrição</label>
-            <input type="text" name="descricao" class="form-control form-control-sm" placeholder="Ex: Residência principal">
-          </div>
-          <div class="mb-2">
-            <label class="form-label small fw-semibold">Endereço</label>
-            <input type="text" name="endereco" class="form-control form-control-sm">
-          </div>
-          <div class="mb-2">
-            <label class="form-label small fw-semibold">Bairro</label>
-            <input type="text" name="bairro" class="form-control form-control-sm">
-          </div>
-          <div class="mb-2">
-            <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
-            <input type="text" name="inscricao" class="form-control form-control-sm">
-          </div>
-          <div class="mb-2">
-            <label class="form-label small fw-semibold">Grupo <span class="text-danger">*</span></label>
-            <select name="grupo" class="form-select form-select-sm" required>
-              {% for cod, label in grupos %}
-              <option value="{{ cod }}">{{ label }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="mb-2">
-            <label class="form-label small fw-semibold">Área Construída (m²) <span class="text-danger">*</span></label>
-            <input type="number" step="0.01" name="area_construida" class="form-control form-control-sm" required>
-          </div>
-          <div class="mb-2">
-            <label class="form-label small fw-semibold">Data da Construção</label>
-            <input type="date" name="data_construcao" class="form-control form-control-sm">
-            <div class="form-text">Determina os fatores de acréscimo e redução</div>
-          </div>
-          <div class="mb-3 form-check">
-            <input type="checkbox" class="form-check-input" name="is_unifamiliar_ate150" id="uniChk">
-            <label class="form-check-label small" for="uniChk">Unifamiliar ≤ 150 m² (fator 0,50)</label>
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-semibold">Observações</label>
-            <textarea name="observacoes" class="form-control form-control-sm" rows="2"></textarea>
-          </div>
-          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>Adicionar</button>
+          {% include 'tac/_obra_campos.html' with context %}
+          <button type="submit" class="btn btn-sm btn-primary mt-2"><i class="bi bi-plus-circle me-1"></i>Adicionar</button>
         </form>
       </div>
     </div>
   </div>
   {% endif %}
+
+  <!-- Lista de obras -->
   <div class="col-lg-7">
     <div class="card border-0 shadow-sm">
       <div class="card-header section-header"><i class="bi bi-buildings me-2"></i>Obras Cadastradas</div>
       <div class="card-body p-0">
-        <table class="table table-sm mb-0">
+        <table class="table table-sm mb-0 align-middle">
           <thead class="table-light">
             <tr><th>Descrição</th><th>Grupo</th><th>Área (m²)</th><th>Data Constr.</th><th>Irr.</th><th></th></tr>
           </thead>
@@ -84,18 +48,49 @@
                   {{ o.irregularidades|length }} irr.
                 </a>
               </td>
-              <td>
+              <td class="text-nowrap">
                 {% if not tac.bloqueado %}
+                <a href="{{ url_for('tac_obras', tid=tac.id) }}?editar={{ o.id }}"
+                   class="btn btn-sm btn-outline-primary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
                 <form method="POST" class="d-inline">
                   <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="{{ o.id }}">
                   <button type="submit" class="btn btn-sm btn-outline-danger"
-                    onclick="return confirm('Excluir obra?')"><i class="bi bi-trash"></i></button>
+                    onclick="return confirm('Excluir obra e todas as suas irregularidades?')">
+                    <i class="bi bi-trash"></i>
+                  </button>
                 </form>
                 {% endif %}
               </td>
             </tr>
+
+            <!-- Formulário de edição inline (expande ao clicar em Editar) -->
+            {% if not tac.bloqueado and obra_editar_id == o.id %}
+            <tr class="table-primary">
+              <td colspan="6" class="p-3">
+                <div class="fw-semibold small mb-2"><i class="bi bi-pencil-square me-1"></i>Editando: {{ o.descricao or o.endereco or 'Obra #' ~ o.id }}</div>
+                <form method="POST">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="action" value="edit">
+                  <input type="hidden" name="id" value="{{ o.id }}">
+                  {% set obra_edit = o %}
+                  {% include 'tac/_obra_campos.html' with context %}
+                  <div class="d-flex gap-2 mt-2">
+                    <button type="submit" class="btn btn-sm btn-success">
+                      <i class="bi bi-check-circle me-1"></i>Salvar
+                    </button>
+                    <a href="{{ url_for('tac_obras', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
+                      Cancelar
+                    </a>
+                  </div>
+                </form>
+              </td>
+            </tr>
+            {% endif %}
+
             {% else %}
             <tr><td colspan="6" class="text-center text-muted py-3 small">Nenhuma obra cadastrada.</td></tr>
             {% endfor %}

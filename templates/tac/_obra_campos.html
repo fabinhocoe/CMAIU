@@ -1,0 +1,56 @@
+{% set o = obra_edit if obra_edit is defined else none %}
+<div class="row g-2">
+  <div class="col-md-6">
+    <label class="form-label small fw-semibold">Descrição</label>
+    <input type="text" name="descricao" class="form-control form-control-sm"
+      value="{{ o.descricao or '' if o else '' }}" placeholder="Ex: Residência principal">
+  </div>
+  <div class="col-md-6">
+    <label class="form-label small fw-semibold">Endereço</label>
+    <input type="text" name="endereco" class="form-control form-control-sm"
+      value="{{ o.endereco or '' if o else '' }}">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label small fw-semibold">Bairro</label>
+    <input type="text" name="bairro" class="form-control form-control-sm"
+      value="{{ o.bairro or '' if o else '' }}">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
+    <input type="text" name="inscricao" class="form-control form-control-sm"
+      value="{{ o.inscricao_imobiliaria or '' if o else '' }}">
+  </div>
+  <div class="col-md-4">
+    <label class="form-label small fw-semibold">Grupo <span class="text-danger">*</span></label>
+    <select name="grupo" class="form-select form-select-sm" required>
+      {% for cod, label in grupos %}
+      <option value="{{ cod }}" {% if o and o.grupo == cod %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label small fw-semibold">Área Construída (m²) <span class="text-danger">*</span></label>
+    <input type="number" step="0.01" name="area_construida" class="form-control form-control-sm"
+      value="{{ o.area_construida or '' if o else '' }}" required>
+  </div>
+  <div class="col-md-4">
+    <label class="form-label small fw-semibold">Data da Construção</label>
+    <input type="date" name="data_construcao" class="form-control form-control-sm"
+      value="{{ o.data_construcao.isoformat() if o and o.data_construcao else '' }}">
+    <div class="form-text">Determina FA e FR</div>
+  </div>
+  <div class="col-md-4 d-flex align-items-end pb-1">
+    <div class="form-check">
+      <input type="checkbox" class="form-check-input" name="is_unifamiliar_ate150"
+        id="uniChk_{{ o.id if o else 'new' }}"
+        {% if o and o.is_unifamiliar_ate150 %}checked{% endif %}>
+      <label class="form-check-label small" for="uniChk_{{ o.id if o else 'new' }}">
+        Unifamiliar ≤ 150 m² (fator 0,50)
+      </label>
+    </div>
+  </div>
+  <div class="col-12">
+    <label class="form-label small fw-semibold">Observações</label>
+    <textarea name="observacoes" class="form-control form-control-sm" rows="2">{{ o.observacoes or '' if o else '' }}</textarea>
+  </div>
+</div>
