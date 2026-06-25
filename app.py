@@ -1213,7 +1213,7 @@ def tac_obras(tid):
             db.session.add(obra)
             db.session.commit()
             flash('Obra adicionada.', 'success')
-        elif action == 'edit' and not tac.bloqueado:
+        elif action == 'edit':
             oid = _int(request.form.get('id'))
             o = ObraTAC.query.get(oid)
             if o and o.tac_id == tid:
