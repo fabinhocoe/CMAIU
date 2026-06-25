@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if pessoa else 'Nova' }} Pessoa{% endblock %}
+{% block page_title %}{{ 'Editar Pessoa' if pessoa else 'Nova Pessoa' }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('pessoas_index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header">
+        <i class="bi bi-person me-2"></i>{{ 'Editar Pessoa' if pessoa else 'Cadastrar Nova Pessoa' }}
+      </div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <div class="row g-3">
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Nome completo / Razão social <span class="text-danger">*</span></label>
+              <input type="text" name="nome" class="form-control form-control-sm"
+                value="{{ pessoa.nome if pessoa else '' }}" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Tipo</label>
+              <select name="tipo" class="form-select form-select-sm">
+                <option value="Pessoa Física"  {% if not pessoa or pessoa.tipo == 'Pessoa Física' %}selected{% endif %}>Pessoa Física</option>
+                <option value="Pessoa Jurídica"{% if pessoa and pessoa.tipo == 'Pessoa Jurídica' %}selected{% endif %}>Pessoa Jurídica</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">CPF / CNPJ</label>
+              <input type="text" name="cpf_cnpj" class="form-control form-control-sm"
+                value="{{ pessoa.cpf_cnpj if pessoa else '' }}" placeholder="000.000.000-00">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Telefone</label>
+              <input type="text" name="telefone" class="form-control form-control-sm"
+                value="{{ pessoa.telefone if pessoa else '' }}" placeholder="(48) 99999-9999">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">E-mail</label>
+              <input type="email" name="email" class="form-control form-control-sm"
+                value="{{ pessoa.email if pessoa else '' }}">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Endereço</label>
+              <input type="text" name="endereco" class="form-control form-control-sm"
+                value="{{ pessoa.endereco if pessoa else '' }}" placeholder="Rua, número, bairro, cidade">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Observações</label>
+              <textarea name="observacoes" class="form-control form-control-sm" rows="2">{{ pessoa.observacoes if pessoa else '' }}</textarea>
+            </div>
+          </div>
+          <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-sm btn-primary">
+              <i class="bi bi-check-circle me-1"></i>{{ 'Salvar alterações' if pessoa else 'Cadastrar' }}
+            </button>
+            <a href="{{ url_for('pessoas_index') }}" class="btn btn-sm btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+
+        {% if pessoa %}
+        <!-- Vínculos existentes -->
+        <hr class="my-3">
+        <div class="row g-3">
+          {% if pessoa.vinculos_tac %}
+          <div class="col-md-6">
+            <p class="small fw-semibold mb-1"><i class="bi bi-file-earmark-ruled me-1"></i>TACs vinculados</p>
+            <ul class="list-group list-group-flush small">
+              {% for v in pessoa.vinculos_tac %}
+              <li class="list-group-item px-0 py-1 d-flex justify-content-between">
+                <a href="{{ url_for('tac_detail', tid=v.tac_id) }}">TAC {{ v.tac.numero or '#'~v.tac_id }}</a>
+                <span class="badge bg-secondary">{{ v.papel }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+          {% if pessoa.vinculos_processo %}
+          <div class="col-md-6">
+            <p class="small fw-semibold mb-1"><i class="bi bi-folder2-open me-1"></i>Processos vinculados</p>
+            <ul class="list-group list-group-flush small">
+              {% for v in pessoa.vinculos_processo %}
+              <li class="list-group-item px-0 py-1 d-flex justify-content-between">
+                <a href="{{ url_for('processo_detail', pid=v.processo_id) }}">{{ v.processo.num_processo or 'Processo #'~v.processo_id }}</a>
+                <span class="badge bg-secondary">{{ v.papel }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

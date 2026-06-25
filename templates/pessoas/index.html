@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% block title %}Cadastro de Pessoas{% endblock %}
+{% block page_title %}Cadastro de Pessoas{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2 flex-wrap align-items-center">
+  <form class="d-flex gap-2" method="GET">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Buscar por nome ou CPF/CNPJ..." style="min-width:260px">
+    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-search"></i></button>
+  </form>
+  {% if current_user.is_tecnico %}
+  <a href="{{ url_for('pessoas_nova') }}" class="btn btn-sm btn-primary ms-auto">
+    <i class="bi bi-person-plus me-1"></i>Nova Pessoa
+  </a>
+  {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>CPF / CNPJ</th>
+          <th>Telefone</th>
+          <th>E-mail</th>
+          <th>TACs</th>
+          <th>Processos</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pessoas %}
+        <tr>
+          <td class="fw-semibold small">{{ p.nome }}</td>
+          <td class="small"><span class="badge bg-secondary">{{ p.tipo }}</span></td>
+          <td class="small">{{ p.doc_formatado }}</td>
+          <td class="small">{{ p.telefone or '—' }}</td>
+          <td class="small">{{ p.email or '—' }}</td>
+          <td class="small text-center">
+            {% if p.vinculos_tac %}
+            <span class="badge bg-info text-dark">{{ p.vinculos_tac|length }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="small text-center">
+            {% if p.vinculos_processo %}
+            <span class="badge bg-primary">{{ p.vinculos_processo|length }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td class="text-nowrap">
+            {% if current_user.is_tecnico %}
+            <a href="{{ url_for('pessoas_editar', pid=p.id) }}" class="btn btn-sm btn-outline-primary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="POST" action="{{ url_for('pessoas_excluir', pid=p.id) }}" class="d-inline">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-danger" title="Excluir"
+                onclick="return confirm('Excluir {{ p.nome }}?')">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="text-center text-muted py-4">
+          {% if q %}Nenhuma pessoa encontrada para "{{ q }}".{% else %}Nenhuma pessoa cadastrada.{% endif %}
+        </td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

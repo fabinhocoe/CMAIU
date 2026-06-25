@@ -12,12 +12,14 @@ import json
 from models import (db, Usuario, Zoneamento, CUB, Parametro, HistoricoParametro,
                     Integrante, Processo, Proprietario, Empreendimento,
                     Impacto, Calculo, Relatorio,
+                    Pessoa, ProcessoPessoa, TACPessoa,
                     SITUACOES_PROCESSO, USOS, PADROES_IMPACTO,
                     CLASSIFICACOES_IMPACTO, IMPACTOS_SOCIAIS, IMPACTOS_VIARIOS,
                     NIVEIS_COMPENSACAO, PARAMS_INICIAIS, MESES,
                     TAC, CompromissarioTAC, ObraTAC, IrregularidadeTAC,
                     VagasTAC, CalculoTAC,
-                    SITUACOES_TAC, GRUPOS_OBRA, TIPOS_IRREGULARIDADE, PERC_TAC)
+                    SITUACOES_TAC, GRUPOS_OBRA, TIPOS_IRREGULARIDADE, PERC_TAC,
+                    PAPEIS_PROCESSO, PAPEIS_TAC)
 
 app = Flask(__name__)
 
@@ -1093,6 +1095,167 @@ def _safe_int(v):
         return int(v)
     except Exception:
         return None
+
+
+# ─── Cadastro de Pessoas ─────────────────────────────────────────────────────
+
+@app.route('/pessoas')
+@login_required
+def pessoas_index():
+    q = request.args.get('q', '').strip()
+    query = Pessoa.query.order_by(Pessoa.nome)
+    if q:
+        query = query.filter(
+            db.or_(Pessoa.nome.ilike(f'%{q}%'), Pessoa.cpf_cnpj.ilike(f'%{q}%'))
+        )
+    pessoas = query.all()
+    return render_template('pessoas/index.html', pessoas=pessoas, q=q)
+
+
+@app.route('/pessoas/nova', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def pessoas_nova():
+    if request.method == 'POST':
+        f = request.form
+        p = Pessoa(
+            nome=f.get('nome', '').strip(),
+            cpf_cnpj=f.get('cpf_cnpj', '').strip(),
+            tipo=f.get('tipo', 'Pessoa Física'),
+            endereco=f.get('endereco', '').strip(),
+            telefone=f.get('telefone', '').strip(),
+            email=f.get('email', '').strip(),
+            observacoes=f.get('observacoes', '').strip(),
+        )
+        db.session.add(p)
+        db.session.commit()
+        flash('Pessoa cadastrada com sucesso.', 'success')
+        next_url = request.args.get('next')
+        if next_url:
+            return redirect(next_url)
+        return redirect(url_for('pessoas_index'))
+    return render_template('pessoas/form.html', pessoa=None)
+
+
+@app.route('/pessoas/<int:pid>/editar', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def pessoas_editar(pid):
+    p = Pessoa.query.get_or_404(pid)
+    if request.method == 'POST':
+        f = request.form
+        p.nome        = f.get('nome', '').strip()
+        p.cpf_cnpj    = f.get('cpf_cnpj', '').strip()
+        p.tipo        = f.get('tipo', p.tipo)
+        p.endereco    = f.get('endereco', '').strip()
+        p.telefone    = f.get('telefone', '').strip()
+        p.email       = f.get('email', '').strip()
+        p.observacoes = f.get('observacoes', '').strip()
+        db.session.commit()
+        flash('Dados atualizados.', 'success')
+        return redirect(url_for('pessoas_index'))
+    return render_template('pessoas/form.html', pessoa=p)
+
+
+@app.route('/pessoas/<int:pid>/excluir', methods=['POST'])
+@login_required
+@tecnico_required
+def pessoas_excluir(pid):
+    p = Pessoa.query.get_or_404(pid)
+    if p.vinculos_processo or p.vinculos_tac:
+        flash('Não é possível excluir: pessoa vinculada a processos ou TACs.', 'danger')
+        return redirect(url_for('pessoas_index'))
+    db.session.delete(p)
+    db.session.commit()
+    flash('Pessoa excluída.', 'success')
+    return redirect(url_for('pessoas_index'))
+
+
+@app.route('/api/pessoas/buscar')
+@login_required
+def api_pessoas_buscar():
+    q = request.args.get('q', '').strip()
+    if len(q) < 2:
+        return {'results': []}
+    pessoas = Pessoa.query.filter(
+        db.or_(Pessoa.nome.ilike(f'%{q}%'), Pessoa.cpf_cnpj.ilike(f'%{q}%'))
+    ).order_by(Pessoa.nome).limit(10).all()
+    return {'results': [{'id': p.id, 'text': f'{p.nome} ({p.doc_formatado})', 'nome': p.nome,
+                         'cpf_cnpj': p.cpf_cnpj or '', 'endereco': p.endereco or '',
+                         'telefone': p.telefone or '', 'email': p.email or '',
+                         'tipo': p.tipo} for p in pessoas]}
+
+
+# ─── TAC – Vínculos de Pessoas ────────────────────────────────────────────────
+
+@app.route('/tac/<int:tid>/pessoas', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def tac_pessoas(tid):
+    tac = TAC.query.get_or_404(tid)
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'vincular':
+            pessoa_id = _int(request.form.get('pessoa_id'))
+            papel     = request.form.get('papel', 'Compromissário')
+            if pessoa_id and not TACPessoa.query.filter_by(tac_id=tid, pessoa_id=pessoa_id).first():
+                db.session.add(TACPessoa(tac_id=tid, pessoa_id=pessoa_id, papel=papel))
+                db.session.commit()
+                flash('Pessoa vinculada ao TAC.', 'success')
+            else:
+                flash('Pessoa já vinculada ou não encontrada.', 'warning')
+        elif action == 'desvincular':
+            vid = _int(request.form.get('vinculo_id'))
+            v = TACPessoa.query.get(vid)
+            if v and v.tac_id == tid:
+                db.session.delete(v)
+                db.session.commit()
+                flash('Vínculo removido.', 'success')
+        elif action == 'alterar_papel':
+            vid = _int(request.form.get('vinculo_id'))
+            v = TACPessoa.query.get(vid)
+            if v and v.tac_id == tid:
+                v.papel = request.form.get('papel', v.papel)
+                db.session.commit()
+                flash('Papel atualizado.', 'success')
+        return redirect(url_for('tac_pessoas', tid=tid))
+    return render_template('tac/pessoas.html', tac=tac, papeis=PAPEIS_TAC)
+
+
+# ─── Processo – Vínculos de Pessoas ──────────────────────────────────────────
+
+@app.route('/processos/<int:pid>/pessoas', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def processo_pessoas(pid):
+    p = Processo.query.get_or_404(pid)
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'vincular':
+            pessoa_id = _int(request.form.get('pessoa_id'))
+            papel     = request.form.get('papel', 'Proprietário')
+            if pessoa_id and not ProcessoPessoa.query.filter_by(processo_id=pid, pessoa_id=pessoa_id).first():
+                db.session.add(ProcessoPessoa(processo_id=pid, pessoa_id=pessoa_id, papel=papel))
+                db.session.commit()
+                flash('Pessoa vinculada ao processo.', 'success')
+            else:
+                flash('Pessoa já vinculada ou não encontrada.', 'warning')
+        elif action == 'desvincular':
+            vid = _int(request.form.get('vinculo_id'))
+            v = ProcessoPessoa.query.get(vid)
+            if v and v.processo_id == pid:
+                db.session.delete(v)
+                db.session.commit()
+                flash('Vínculo removido.', 'success')
+        elif action == 'alterar_papel':
+            vid = _int(request.form.get('vinculo_id'))
+            v = ProcessoPessoa.query.get(vid)
+            if v and v.processo_id == pid:
+                v.papel = request.form.get('papel', v.papel)
+                db.session.commit()
+                flash('Papel atualizado.', 'success')
+        return redirect(url_for('processo_pessoas', pid=pid))
+    return render_template('processos/pessoas.html', processo=p, papeis=PAPEIS_PROCESSO)
 
 
 # ─── TAC – Termo de Ajustamento de Conduta ───────────────────────────────────

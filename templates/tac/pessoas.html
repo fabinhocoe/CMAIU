@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block title %}Compromissários – TAC {{ tac.numero or tac.id }}{% endblock %}
+{% block page_title %}Compromissários / Pessoas – TAC {{ tac.numero or '#' ~ tac.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('tac_detail', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+<div class="row g-3">
+
+  <!-- Vincular pessoa -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-person-plus me-2"></i>Vincular Pessoa</div>
+      <div class="card-body">
+        <form method="POST" id="formVincular">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="vincular">
+          <input type="hidden" name="pessoa_id" id="pessoaIdInput">
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Buscar pessoa cadastrada</label>
+            <div class="input-group input-group-sm">
+              <input type="text" id="buscaPessoa" class="form-control" placeholder="Digite nome ou CPF/CNPJ...">
+              <button type="button" class="btn btn-outline-secondary" onclick="buscarPessoa()">
+                <i class="bi bi-search"></i>
+              </button>
+            </div>
+            <div id="resultadosBusca" class="list-group mt-1 small"></div>
+          </div>
+
+          <div id="pessoaSelecionada" class="alert alert-info py-2 small d-none">
+            <strong id="pessoaNome"></strong><br>
+            <span id="pessoaDoc" class="text-muted"></span>
+          </div>
+
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Papel no TAC</label>
+            <select name="papel" class="form-select form-select-sm">
+              {% for p in papeis %}
+              <option value="{{ p }}">{{ p }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="d-flex gap-2 align-items-center">
+            <button type="submit" class="btn btn-sm btn-primary" id="btnVincular" disabled>
+              <i class="bi bi-link-45deg me-1"></i>Vincular
+            </button>
+            <a href="{{ url_for('pessoas_nova') }}?next={{ url_for('tac_pessoas', tid=tac.id) }}"
+               class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-person-plus me-1"></i>Cadastrar nova pessoa
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lista de vínculos -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-people me-2"></i>Pessoas Vinculadas</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0 align-middle">
+          <thead class="table-light">
+            <tr><th>Nome</th><th>CPF/CNPJ</th><th>Papel</th><th>Contato</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for v in tac.pessoas_vinculadas %}
+            <tr>
+              <td class="small fw-semibold">
+                <a href="{{ url_for('pessoas_editar', pid=v.pessoa_id) }}">{{ v.pessoa.nome }}</a>
+              </td>
+              <td class="small">{{ v.pessoa.doc_formatado }}</td>
+              <td>
+                <form method="POST" class="d-inline">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="action" value="alterar_papel">
+                  <input type="hidden" name="vinculo_id" value="{{ v.id }}">
+                  <select name="papel" class="form-select form-select-sm d-inline w-auto"
+                    onchange="this.form.submit()">
+                    {% for p in papeis %}
+                    <option value="{{ p }}" {% if v.papel == p %}selected{% endif %}>{{ p }}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+              </td>
+              <td class="small text-muted">
+                {% if v.pessoa.telefone %}{{ v.pessoa.telefone }}<br>{% endif %}
+                {{ v.pessoa.email or '' }}
+              </td>
+              <td>
+                <form method="POST" class="d-inline">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="action" value="desvincular">
+                  <input type="hidden" name="vinculo_id" value="{{ v.id }}">
+                  <button class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Remover {{ v.pessoa.nome }} deste TAC?')">
+                    <i class="bi bi-x-lg"></i>
+                  </button>
+                </form>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-3 small">Nenhuma pessoa vinculada.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+async function buscarPessoa() {
+  const q = document.getElementById('buscaPessoa').value.trim();
+  if (q.length < 2) return;
+  const res = await fetch(`/api/pessoas/buscar?q=${encodeURIComponent(q)}`);
+  const data = await res.json();
+  const div = document.getElementById('resultadosBusca');
+  div.innerHTML = '';
+  if (!data.results.length) {
+    div.innerHTML = '<div class="list-group-item text-muted small">Nenhum resultado.</div>';
+    return;
+  }
+  data.results.forEach(p => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'list-group-item list-group-item-action small py-1';
+    btn.textContent = p.text;
+    btn.onclick = () => selecionarPessoa(p);
+    div.appendChild(btn);
+  });
+}
+
+function selecionarPessoa(p) {
+  document.getElementById('pessoaIdInput').value = p.id;
+  document.getElementById('pessoaNome').textContent = p.nome;
+  document.getElementById('pessoaDoc').textContent = p.cpf_cnpj;
+  document.getElementById('pessoaSelecionada').classList.remove('d-none');
+  document.getElementById('btnVincular').disabled = false;
+  document.getElementById('resultadosBusca').innerHTML = '';
+  document.getElementById('buscaPessoa').value = p.nome;
+}
+
+document.getElementById('buscaPessoa').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); buscarPessoa(); }
+});
+</script>
+{% endblock %}

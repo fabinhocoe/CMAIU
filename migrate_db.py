@@ -21,14 +21,136 @@ MIGRATIONS = [
     ("vagas_tac", "data_calculo",               "ALTER TABLE vagas_tac ADD COLUMN data_calculo DATETIME"),
 ]
 
+CREATE_TABLES = [
+    # Cadastro unificado de pessoas
+    """CREATE TABLE IF NOT EXISTS pessoas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome VARCHAR(300) NOT NULL,
+        cpf_cnpj VARCHAR(30),
+        tipo VARCHAR(20) DEFAULT 'Pessoa Física',
+        endereco VARCHAR(400),
+        telefone VARCHAR(50),
+        email VARCHAR(200),
+        observacoes TEXT,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
+    )""",
+    # Vínculo Processo ↔ Pessoa
+    """CREATE TABLE IF NOT EXISTS processo_pessoas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        processo_id INTEGER NOT NULL REFERENCES processos(id),
+        pessoa_id   INTEGER NOT NULL REFERENCES pessoas(id),
+        papel VARCHAR(60) DEFAULT 'Proprietário'
+    )""",
+    # Vínculo TAC ↔ Pessoa
+    """CREATE TABLE IF NOT EXISTS tac_pessoas (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tac_id    INTEGER NOT NULL REFERENCES tacs(id),
+        pessoa_id INTEGER NOT NULL REFERENCES pessoas(id),
+        papel VARCHAR(60) DEFAULT 'Compromissário'
+    )""",
+]
+
+
 def get_columns(conn, table):
     result = conn.execute(sa.text(f"PRAGMA table_info({table})"))
     return {row[1] for row in result}
+
+
+def get_tables(conn):
+    result = conn.execute(sa.text("SELECT name FROM sqlite_master WHERE type='table'"))
+    return {row[0] for row in result}
+
+
+def migrate_compromissarios(conn):
+    """Migra CompromissarioTAC existentes para Pessoa + TACPessoa."""
+    tables = get_tables(conn)
+    if 'compromissarios_tac' not in tables or 'tac_pessoas' not in tables:
+        return
+    rows = conn.execute(sa.text(
+        "SELECT c.tac_id, c.nome, c.cpf_cnpj, c.endereco, c.telefone, c.email, c.tipo "
+        "FROM compromissarios_tac c "
+        "WHERE NOT EXISTS (SELECT 1 FROM tac_pessoas tp WHERE tp.tac_id = c.tac_id "
+        "  AND tp.pessoa_id IN (SELECT id FROM pessoas WHERE nome = c.nome))"
+    )).fetchall()
+    count = 0
+    for row in rows:
+        tac_id, nome, cpf_cnpj, endereco, telefone, email, tipo = row
+        # Verificar se já existe pessoa com mesmo CPF/CNPJ
+        if cpf_cnpj:
+            p = conn.execute(sa.text("SELECT id FROM pessoas WHERE cpf_cnpj = :c"), {'c': cpf_cnpj}).fetchone()
+        else:
+            p = conn.execute(sa.text("SELECT id FROM pessoas WHERE nome = :n"), {'n': nome}).fetchone()
+        if p:
+            pid = p[0]
+        else:
+            conn.execute(sa.text(
+                "INSERT INTO pessoas (nome, cpf_cnpj, tipo, endereco, telefone, email) "
+                "VALUES (:nome, :cpf, :tipo, :end, :tel, :email)"
+            ), {'nome': nome, 'cpf': cpf_cnpj, 'tipo': tipo or 'Pessoa Física',
+                'end': endereco, 'tel': telefone, 'email': email})
+            pid = conn.execute(sa.text("SELECT last_insert_rowid()")).scalar()
+        conn.execute(sa.text(
+            "INSERT INTO tac_pessoas (tac_id, pessoa_id, papel) VALUES (:tid, :pid, 'Compromissário')"
+        ), {'tid': tac_id, 'pid': pid})
+        count += 1
+    conn.commit()
+    if count:
+        print(f"  → {count} compromissário(s) migrado(s) para cadastro unificado.")
+
+
+def migrate_proprietarios(conn):
+    """Migra Proprietario existentes para Pessoa + ProcessoPessoa."""
+    tables = get_tables(conn)
+    if 'proprietarios' not in tables or 'processo_pessoas' not in tables:
+        return
+    rows = conn.execute(sa.text(
+        "SELECT p.processo_id, p.nome, p.cpf_cnpj, p.endereco, p.telefone, p.email "
+        "FROM proprietarios p "
+        "WHERE p.nome IS NOT NULL AND NOT EXISTS "
+        "(SELECT 1 FROM processo_pessoas pp WHERE pp.processo_id = p.processo_id)"
+    )).fetchall()
+    count = 0
+    for row in rows:
+        processo_id, nome, cpf_cnpj, endereco, telefone, email = row
+        if not nome:
+            continue
+        if cpf_cnpj:
+            p = conn.execute(sa.text("SELECT id FROM pessoas WHERE cpf_cnpj = :c"), {'c': cpf_cnpj}).fetchone()
+        else:
+            p = conn.execute(sa.text("SELECT id FROM pessoas WHERE nome = :n"), {'n': nome}).fetchone()
+        if p:
+            pid = p[0]
+        else:
+            conn.execute(sa.text(
+                "INSERT INTO pessoas (nome, cpf_cnpj, tipo, endereco, telefone, email) "
+                "VALUES (:nome, :cpf, 'Pessoa Física', :end, :tel, :email)"
+            ), {'nome': nome, 'cpf': cpf_cnpj, 'end': endereco, 'tel': telefone, 'email': email})
+            pid = conn.execute(sa.text("SELECT last_insert_rowid()")).scalar()
+        conn.execute(sa.text(
+            "INSERT INTO processo_pessoas (processo_id, pessoa_id, papel) VALUES (:pid_proc, :pid, 'Proprietário')"
+        ), {'pid_proc': processo_id, 'pid': pid})
+        count += 1
+    conn.commit()
+    if count:
+        print(f"  → {count} proprietário(s) migrado(s) para cadastro unificado.")
+
 
 def run():
     with app.app_context():
         conn = db.engine.connect()
         ok = skipped = errors = 0
+
+        # 1. Criar novas tabelas
+        print("Criando tabelas...")
+        for sql in CREATE_TABLES:
+            try:
+                conn.execute(sa.text(sql))
+                conn.commit()
+            except Exception as e:
+                print(f"  ERRO ao criar tabela: {e}")
+
+        # 2. Adicionar colunas faltantes
+        print("Adicionando colunas...")
         for table, col, sql in MIGRATIONS:
             existing = get_columns(conn, table)
             if col in existing:
@@ -42,8 +164,15 @@ def run():
             except Exception as e:
                 print(f"  ERRO {table}.{col}: {e}")
                 errors += 1
+
+        # 3. Migrar dados legados
+        print("Migrando dados existentes...")
+        migrate_compromissarios(conn)
+        migrate_proprietarios(conn)
+
         conn.close()
-        print(f"\nMigração concluída: {ok} adicionadas, {skipped} já existiam, {errors} erros.")
+        print(f"\nMigração concluída: {ok} colunas adicionadas, {skipped} já existiam, {errors} erros.")
+
 
 if __name__ == '__main__':
     print("Executando migrações...")

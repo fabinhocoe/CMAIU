@@ -184,6 +184,69 @@ class Integrante(db.Model):
     ativo = db.Column(db.Boolean, default=True)
 
 
+# ---------------------------------------------------------------------------
+# Cadastro unificado de pessoas (proprietários / compromissários)
+# ---------------------------------------------------------------------------
+
+PAPEIS_PROCESSO = ['Proprietário', 'Responsável Técnico', 'Representante Legal', 'Outro']
+PAPEIS_TAC      = ['Compromissário', 'Responsável Técnico', 'Representante Legal', 'Outro']
+
+
+class Pessoa(db.Model):
+    """Cadastro único de pessoas físicas/jurídicas reutilizável em TACs e Processos."""
+    __tablename__ = 'pessoas'
+    id          = db.Column(db.Integer, primary_key=True)
+    nome        = db.Column(db.String(300), nullable=False)
+    cpf_cnpj    = db.Column(db.String(30), index=True)
+    tipo        = db.Column(db.String(20), default='Pessoa Física')  # Pessoa Física / Pessoa Jurídica
+    endereco    = db.Column(db.String(400))
+    telefone    = db.Column(db.String(50))
+    email       = db.Column(db.String(200))
+    observacoes = db.Column(db.Text)
+    criado_em   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    vinculos_processo = db.relationship('ProcessoPessoa', back_populates='pessoa', cascade='all, delete-orphan')
+    vinculos_tac      = db.relationship('TACPessoa',      back_populates='pessoa', cascade='all, delete-orphan')
+
+    @property
+    def doc_formatado(self):
+        d = (self.cpf_cnpj or '').replace('.','').replace('-','').replace('/','').replace(' ','')
+        if len(d) == 11:
+            return f'{d[:3]}.{d[3:6]}.{d[6:9]}-{d[9:]}'
+        if len(d) == 14:
+            return f'{d[:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:]}'
+        return self.cpf_cnpj or '—'
+
+    def __repr__(self):
+        return f'<Pessoa {self.nome}>'
+
+
+class ProcessoPessoa(db.Model):
+    """Vínculo entre Pessoa e Processo (many-to-many com papel)."""
+    __tablename__ = 'processo_pessoas'
+    id          = db.Column(db.Integer, primary_key=True)
+    processo_id = db.Column(db.Integer, db.ForeignKey('processos.id'), nullable=False)
+    pessoa_id   = db.Column(db.Integer, db.ForeignKey('pessoas.id'),   nullable=False)
+    papel       = db.Column(db.String(60), default='Proprietário')
+
+    processo = db.relationship('Processo', back_populates='pessoas_vinculadas')
+    pessoa   = db.relationship('Pessoa',   back_populates='vinculos_processo')
+
+
+class TACPessoa(db.Model):
+    """Vínculo entre Pessoa e TAC (many-to-many com papel)."""
+    __tablename__ = 'tac_pessoas'
+    id       = db.Column(db.Integer, primary_key=True)
+    tac_id   = db.Column(db.Integer, db.ForeignKey('tacs.id'),    nullable=False)
+    pessoa_id= db.Column(db.Integer, db.ForeignKey('pessoas.id'), nullable=False)
+    papel    = db.Column(db.String(60), default='Compromissário')
+
+    tac    = db.relationship('TAC',    back_populates='pessoas_vinculadas')
+    pessoa = db.relationship('Pessoa', back_populates='vinculos_tac')
+
+
+# ---------------------------------------------------------------------------
+
 class Processo(db.Model):
     __tablename__ = 'processos'
     id = db.Column(db.Integer, primary_key=True)
@@ -200,6 +263,7 @@ class Processo(db.Model):
 
     usuario = db.relationship('Usuario', backref='processos')
     proprietario = db.relationship('Proprietario', uselist=False, back_populates='processo', cascade='all, delete-orphan')
+    pessoas_vinculadas = db.relationship('ProcessoPessoa', back_populates='processo', cascade='all, delete-orphan')
     empreendimento = db.relationship('Empreendimento', uselist=False, back_populates='processo', cascade='all, delete-orphan')
     impactos = db.relationship('Impacto', back_populates='processo', cascade='all, delete-orphan')
     calculos = db.relationship('Calculo', back_populates='processo', cascade='all, delete-orphan', order_by='Calculo.data_calculo.desc()')
@@ -227,6 +291,7 @@ class Processo(db.Model):
 
 
 class Proprietario(db.Model):
+    """Mantido para compatibilidade com dados legados. Novos vínculos usam ProcessoPessoa."""
     __tablename__ = 'proprietarios'
     id = db.Column(db.Integer, primary_key=True)
     processo_id = db.Column(db.Integer, db.ForeignKey('processos.id'), unique=True)
@@ -468,6 +533,8 @@ class TAC(db.Model):
     usuario = db.relationship('Usuario', backref='tacs')
     compromissarios = db.relationship('CompromissarioTAC', back_populates='tac',
                                       cascade='all, delete-orphan')
+    pessoas_vinculadas = db.relationship('TACPessoa', back_populates='tac',
+                                         cascade='all, delete-orphan')
     obras = db.relationship('ObraTAC', back_populates='tac',
                             cascade='all, delete-orphan')
     calculo = db.relationship('CalculoTAC', uselist=False, back_populates='tac',
