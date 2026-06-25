@@ -28,39 +28,39 @@
         </a>
       </li>
       <li class="nav-item">
-        <a href="{{ url_for('processos_index') }}" class="nav-link sidebar-link {% if 'processos' in request.endpoint %}active{% endif %}">
+        <a href="{{ url_for('processos_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'processos' in request.endpoint %}active{% endif %}">
           <i class="bi bi-folder2-open me-2"></i>Processos
         </a>
       </li>
       <li class="nav-item">
-        <a href="{{ url_for('tac_index') }}" class="nav-link sidebar-link {% if 'tac' in request.endpoint %}active{% endif %}">
+        <a href="{{ url_for('tac_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'tac' in request.endpoint %}active{% endif %}">
           <i class="bi bi-file-earmark-ruled me-2"></i>TAC
         </a>
       </li>
       <li class="nav-item">
-        <a href="{{ url_for('cub_index') }}" class="nav-link sidebar-link {% if 'cub' in request.endpoint %}active{% endif %}">
+        <a href="{{ url_for('cub_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'cub' in request.endpoint %}active{% endif %}">
           <i class="bi bi-currency-dollar me-2"></i>CUB
         </a>
       </li>
       <li class="nav-item">
-        <a href="{{ url_for('zoneamentos_index') }}" class="nav-link sidebar-link {% if 'zoneamentos' in request.endpoint %}active{% endif %}">
+        <a href="{{ url_for('zoneamentos_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'zoneamentos' in request.endpoint %}active{% endif %}">
           <i class="bi bi-map me-2"></i>Zoneamentos
         </a>
       </li>
       {% if current_user.is_admin %}
       <li><hr class="border-secondary my-1"></li>
       <li class="nav-item">
-        <a href="{{ url_for('admin_usuarios') }}" class="nav-link sidebar-link {% if 'usuarios' in request.endpoint %}active{% endif %}">
+        <a href="{{ url_for('admin_usuarios') }}" class="nav-link sidebar-link {% if request.endpoint and 'usuarios' in request.endpoint %}active{% endif %}">
           <i class="bi bi-people me-2"></i>Usuários
         </a>
       </li>
       <li class="nav-item">
-        <a href="{{ url_for('admin_integrantes') }}" class="nav-link sidebar-link {% if 'integrantes' in request.endpoint %}active{% endif %}">
+        <a href="{{ url_for('admin_integrantes') }}" class="nav-link sidebar-link {% if request.endpoint and 'integrantes' in request.endpoint %}active{% endif %}">
           <i class="bi bi-person-badge me-2"></i>Integrantes
         </a>
       </li>
       <li class="nav-item">
-        <a href="{{ url_for('admin_parametros') }}" class="nav-link sidebar-link {% if 'parametros' in request.endpoint %}active{% endif %}">
+        <a href="{{ url_for('admin_parametros') }}" class="nav-link sidebar-link {% if request.endpoint and 'parametros' in request.endpoint %}active{% endif %}">
           <i class="bi bi-sliders me-2"></i>Parâmetros
         </a>
       </li>
