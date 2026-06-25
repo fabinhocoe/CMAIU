@@ -10,15 +10,24 @@
 
 <div class="alert alert-info small py-2 mb-3">
   <strong>Grupo:</strong> {{ obra.grupo_label }} &nbsp;|&nbsp;
-  <strong>Área:</strong> {{ obra.area_construida|fmt_area }} &nbsp;|&nbsp;
-  <strong>CUB:</strong> {{ tac.cub.mes_ano_str ~ ' = R$ ' ~ '%.2f'|format(tac.cub.valor) ~ '/m²' if tac.cub else '—' }}
+  <strong>Área construída:</strong> {{ obra.area_construida|fmt_area }} &nbsp;|&nbsp;
+  <strong>CUB:</strong> {{ tac.cub.mes_ano_str ~ ' = ' ~ tac.cub.valor|brl ~ '/m²' if tac.cub else '—' }}
   <br>
-  Valor de cada irregularidade = Área × CUB × percentual (Lei 5.031/2021, Art. 8º)
+  Irregularidades percentuais = Área × CUB × % &nbsp;|&nbsp;
+  Vagas = QVF × CUB × fator <strong>(sem área)</strong> — Lei 5.031/2021 com redação da Lei 5.410/2024
 </div>
 
+<ul class="nav nav-tabs mb-3" id="irrTabs">
+  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-irr">Irregularidades Urbanísticas</a></li>
+  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-vagas">Vagas de Estacionamento</a></li>
+</ul>
+
+<div class="tab-content">
+
+<!-- TAB 1 – Irregularidades percentuais -->
+<div class="tab-pane fade show active" id="tab-irr">
 <div class="row g-3">
   {% if not tac.bloqueado %}
-  <!-- Adicionar irregularidade -->
   <div class="col-lg-5">
     <div class="card border-0 shadow-sm">
       <div class="card-header section-header"><i class="bi bi-exclamation-triangle me-2"></i>Adicionar Irregularidade</div>
@@ -36,49 +45,24 @@
           </div>
           <div class="mb-2" id="qtyDiv">
             <label class="form-label small fw-semibold">Quantidade</label>
-            <input type="number" name="quantidade" class="form-control form-control-sm" value="1" min="1">
-            <div class="form-text" id="qtyHelp">Para gabarito: nº de pavimentos excedentes (máx. 2). Para demais: nº de itens.</div>
+            <input type="number" name="quantidade" class="form-control form-control-sm" value="1" min="1" id="qtyInput">
+            <div class="form-text">Gabarito: nº de pavimentos excedentes (máx. 2). Demais: nº de itens.</div>
           </div>
-          <div class="mb-2 text-muted small" id="percPreview"></div>
+          <div class="mb-2 small text-muted" id="percPreview"></div>
           <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-plus-circle me-1"></i>Adicionar</button>
-        </form>
-      </div>
-    </div>
-
-    <!-- Vagas -->
-    <div class="card border-0 shadow-sm mt-3">
-      <div class="card-header section-header"><i class="bi bi-p-square me-2"></i>Vagas de Estacionamento</div>
-      <div class="card-body">
-        <form method="POST">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-          <input type="hidden" name="action" value="save_vagas">
-          <div class="mb-2">
-            <label class="form-label small fw-semibold">Vagas Faltantes</label>
-            <input type="number" name="vagas_faltantes" class="form-control form-control-sm"
-              value="{{ obra.vagas.vagas_faltantes if obra.vagas else 0 }}" min="0">
-            <div class="form-text">≤ 5: fator 1,0 × CUB | > 5: fator 1,5 × CUB</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label small fw-semibold">Vagas com Dimensão Irregular</label>
-            <input type="number" name="vagas_dimensao" class="form-control form-control-sm"
-              value="{{ obra.vagas.vagas_dimensao if obra.vagas else 0 }}" min="0">
-            <div class="form-text">Fator 0,5 × CUB por vaga</div>
-          </div>
-          <button type="submit" class="btn btn-sm btn-secondary"><i class="bi bi-floppy me-1"></i>Salvar Vagas</button>
         </form>
       </div>
     </div>
   </div>
   {% endif %}
 
-  <!-- Lista de irregularidades cadastradas -->
   <div class="col-lg-7">
     <div class="card border-0 shadow-sm">
       <div class="card-header section-header"><i class="bi bi-list-check me-2"></i>Irregularidades Cadastradas</div>
       <div class="card-body p-0">
         <table class="table table-sm mb-0">
           <thead class="table-light">
-            <tr><th>Irregularidade</th><th>Qtd</th><th>% (G{{ obra.grupo[1] }})</th><th>Subtotal</th><th></th></tr>
+            <tr><th>Irregularidade</th><th>Qtd</th><th>% ({{ obra.grupo }})</th><th>Subtotal</th><th></th></tr>
           </thead>
           <tbody>
             {% for irr in obra.irregularidades %}
@@ -104,40 +88,188 @@
               </td>
             </tr>
             {% else %}
-            <tr><td colspan="5" class="text-center text-muted py-2 small">Nenhuma irregularidade.</td></tr>
+            <tr><td colspan="5" class="text-center text-muted py-2 small">Nenhuma irregularidade percentual cadastrada.</td></tr>
             {% endfor %}
           </tbody>
-          {% if obra.vagas and (obra.vagas.vagas_faltantes or obra.vagas.vagas_dimensao) %}
-          <tfoot class="table-light">
-            {% set cub_v = tac.cub.valor if tac.cub else 0 %}
-            {% set falt = obra.vagas.vagas_faltantes or 0 %}
-            {% set fator_v = 1.5 if falt > 5 else 1.0 %}
-            {% set sv_f = falt * cub_v * fator_v %}
-            {% set sv_d = (obra.vagas.vagas_dimensao or 0) * cub_v * 0.5 %}
-            {% if falt > 0 %}
-            <tr>
-              <td class="small">Vagas faltantes (×{{ '%.1f'|format(fator_v) }})</td>
-              <td>{{ falt }}</td><td>—</td>
-              <td class="small fw-semibold">{{ sv_f|brl }}</td><td></td>
-            </tr>
-            {% endif %}
-            {% if obra.vagas.vagas_dimensao %}
-            <tr>
-              <td class="small">Vagas dimensão irregular (×0,5)</td>
-              <td>{{ obra.vagas.vagas_dimensao }}</td><td>—</td>
-              <td class="small fw-semibold">{{ sv_d|brl }}</td><td></td>
-            </tr>
-            {% endif %}
-          </tfoot>
-          {% endif %}
         </table>
       </div>
     </div>
   </div>
 </div>
+</div>
+
+<!-- TAB 2 – Vagas de estacionamento -->
+<div class="tab-pane fade" id="tab-vagas">
+{% set v = obra.vagas %}
+
+<div class="alert alert-warning small py-2">
+  <i class="bi bi-info-circle me-1"></i>
+  <strong>Atenção:</strong> O cálculo das vagas usa exclusivamente o CUB (sem área construída), conforme Lei 5.410/2024.
+  Uma vaga não pode ser classificada simultaneamente como <em>faltante</em> e como <em>irregular</em>.
+</div>
+
+{% if not tac.bloqueado %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header"><i class="bi bi-p-square me-2"></i>Dados das Vagas</div>
+  <div class="card-body">
+    <form method="POST" id="vagasForm">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="save_vagas">
+
+      <h6 class="fw-semibold small text-uppercase text-muted mb-2">Quantidades</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Vagas exigidas (Plano Diretor) <span class="text-danger">*</span></label>
+          <input type="number" name="vagas_exigidas" id="vExigidas" class="form-control form-control-sm"
+            value="{{ v.vagas_exigidas if v else 0 }}" min="0" required>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Vagas regulares executadas</label>
+          <input type="number" name="vagas_regulares_executadas" id="vRegulares" class="form-control form-control-sm"
+            value="{{ v.vagas_regulares_executadas if v else 0 }}" min="0">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Vagas computáveis (VC)</label>
+          <input type="number" name="vagas_computaveis" id="vComputaveis" class="form-control form-control-sm"
+            value="{{ v.vagas_computaveis if v else 0 }}" min="0">
+          <div class="form-text">Padrão = vagas regulares. Ajuste se necessário.</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">QVF calculado</label>
+          <input type="text" id="qvfCalc" class="form-control form-control-sm bg-light fw-bold" readonly
+            value="{{ v.qvf_calculado if v else 0 }}">
+          <div class="form-text">max(0, exigidas − computáveis)</div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Vagas dim. irregular (QVD)</label>
+          <input type="number" name="vagas_dimensao_irregular" id="vDimIrr" class="form-control form-control-sm"
+            value="{{ v.vagas_dimensao_irregular if v else 0 }}" min="0">
+          <div class="form-text">Vagas executadas, mas com dim. inferior.</div>
+        </div>
+      </div>
+
+      <hr class="my-2">
+      <h6 class="fw-semibold small text-uppercase text-muted mb-2">Substituição manual de QVF (opcional)</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">QVF manual</label>
+          <input type="number" name="vagas_faltantes_manual" class="form-control form-control-sm"
+            value="{{ v.vagas_faltantes if v and v.justificativa_tecnica else '' }}" min="0"
+            placeholder="Deixe vazio para usar o calculado">
+        </div>
+        <div class="col-md-9">
+          <label class="form-label small fw-semibold">Justificativa técnica (obrigatória para QVF manual)</label>
+          <input type="text" name="justificativa_tecnica" class="form-control form-control-sm"
+            value="{{ v.justificativa_tecnica or '' }}"
+            placeholder="Ex: Vaga com dimensão irregular não reconhecida como computável">
+        </div>
+      </div>
+
+      <hr class="my-2">
+      <h6 class="fw-semibold small text-uppercase text-muted mb-2">Dimensões das vagas irregulares</h6>
+      <div class="row g-3 mb-3">
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Largura exigida (m)</label>
+          <input type="number" step="0.01" name="largura_exigida" class="form-control form-control-sm"
+            value="{{ v.largura_exigida or '' if v else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Comprimento exigido (m)</label>
+          <input type="number" step="0.01" name="comprimento_exigido" class="form-control form-control-sm"
+            value="{{ v.comprimento_exigido or '' if v else '' }}">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Largura executada (m)</label>
+          <input type="number" step="0.01" name="largura_executada" id="largExec" class="form-control form-control-sm"
+            value="{{ v.largura_executada or '' if v else '' }}">
+          <div class="form-text" id="largAlert"></div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Comprimento executado (m)</label>
+          <input type="number" step="0.01" name="comprimento_executado" id="compExec" class="form-control form-control-sm"
+            value="{{ v.comprimento_executado or '' if v else '' }}">
+          <div class="form-text" id="compAlert"></div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-floppy me-1"></i>Salvar Vagas</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<!-- Preview do cálculo de vagas -->
+{% set cub_v = tac.cub.valor if tac.cub else 0 %}
+{% if v %}
+{% set qvf = v.qvf_calculado if not v.justificativa_tecnica else v.vagas_faltantes %}
+{% set fator_f = 1.5 if qvf > 5 else (1.0 if qvf > 0 else 0.0) %}
+{% set mvf = qvf * cub_v * fator_f %}
+{% set mvd = (v.vagas_dimensao_irregular or 0) * cub_v * 0.5 %}
+{% set mtv = mvf + mvd %}
+<div class="card border-0 shadow-sm">
+  <div class="card-header section-header"><i class="bi bi-calculator me-2"></i>Memória de Cálculo – Vagas</div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0 small">
+      <thead class="table-light">
+        <tr><th>Grandeza</th><th>Valor</th><th>Fundamento</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Vagas exigidas (VE)</td><td>{{ v.vagas_exigidas or 0 }}</td><td>Plano Diretor</td></tr>
+        <tr><td>Vagas regulares executadas</td><td>{{ v.vagas_regulares_executadas or 0 }}</td><td>—</td></tr>
+        <tr><td>Vagas computáveis (VC)</td><td>{{ v.vagas_computaveis or 0 }}</td><td>—</td></tr>
+        <tr><td><strong>QVF = max(0, VE − VC)</strong></td><td><strong>{{ qvf }}</strong></td>
+            <td>{% if v.justificativa_tecnica %}<span class="text-warning">Manual: {{ v.justificativa_tecnica }}</span>{% else %}Calculado{% endif %}</td></tr>
+        <tr><td>QVD (dim. irregular)</td><td>{{ v.vagas_dimensao_irregular or 0 }}</td><td>—</td></tr>
+        {% if v.largura_exigida and v.largura_executada %}
+        <tr><td>Largura: exigida × executada</td>
+            <td>{{ v.largura_exigida }}m × {{ v.largura_executada }}m
+              {% if v.largura_executada < v.largura_exigida %}
+              <span class="badge bg-danger ms-1">IRREGULAR</span>{% endif %}
+            </td><td>—</td></tr>
+        {% endif %}
+        {% if v.comprimento_exigido and v.comprimento_executado %}
+        <tr><td>Comprimento: exigido × executado</td>
+            <td>{{ v.comprimento_exigido }}m × {{ v.comprimento_executado }}m
+              {% if v.comprimento_executado < v.comprimento_exigido %}
+              <span class="badge bg-danger ms-1">IRREGULAR</span>{% endif %}
+            </td><td>—</td></tr>
+        {% endif %}
+        <tr class="table-light">
+          <td>CUB de referência</td>
+          <td>{{ tac.cub.mes_ano_str ~ ' = ' ~ cub_v|brl ~ '/m²' if tac.cub else '—' }}</td>
+          <td>Lei 5.410/2024 – CUB Res. Médio</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td><strong>MVF = QVF × CUB × {{ '1,5' if fator_f == 1.5 else '1,0' }}</strong></td>
+          <td class="fw-bold">{{ mvf|brl }}</td>
+          <td class="text-muted small">{% if qvf > 5 %}QVF > 5 → fator 1,5 sobre todas{% elif qvf > 0 %}QVF 1–5 → fator 1,0{% else %}Sem vagas faltantes{% endif %}</td>
+        </tr>
+        <tr>
+          <td><strong>MVD = QVD × CUB × 0,5</strong></td>
+          <td class="fw-bold">{{ mvd|brl }}</td>
+          <td class="text-muted small">0,5 CUB por vaga irregular</td>
+        </tr>
+        <tr class="table-success fw-bold">
+          <td><strong>MTV = MVF + MVD</strong></td>
+          <td>{{ mtv|brl }}</td>
+          <td class="text-muted small">Integra o subtotal bruto do TAC</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-secondary small">Preencha e salve os dados de vagas para ver a memória de cálculo.</div>
+{% endif %}
+
+</div><!-- tab-vagas -->
+</div><!-- tab-content -->
 
 {% block scripts %}
 <script>
+// Irregularidades percentuais – preview
 const percMap = {};
 {% for (tipo, grupo), perc in perc_tac.items() %}percMap["{{ tipo }},{{ grupo }}"] = {{ perc }};
 {% endfor %}
@@ -149,23 +281,74 @@ function fmtBrl(v) {
   return 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 }
 
-document.getElementById('tipoSelect')?.addEventListener('change', updatePreview);
-document.querySelector('[name=quantidade]')?.addEventListener('input', updatePreview);
+const tipoSel = document.getElementById('tipoSelect');
+const qtyInput = document.getElementById('qtyInput');
 
 function updatePreview() {
-  const tipo = document.getElementById('tipoSelect').value;
-  const qty = parseInt(document.querySelector('[name=quantidade]').value) || 1;
-  const key = tipo + ',' + grupo;
-  const perc = percMap[key] || 0;
+  if (!tipoSel) return;
+  const tipo = tipoSel.value;
+  const qty = parseInt(qtyInput?.value) || 1;
   const isGabarito = tipo === 'gabarito';
   const isDemais = tipo === 'demais';
+  document.getElementById('qtyDiv').style.display = (isGabarito || isDemais) ? '' : 'none';
+  const key = tipo + ',' + grupo;
+  const perc = percMap[key] || 0;
   const realQty = isGabarito ? Math.min(qty, 2) : qty;
   const sub = area * cub * perc * realQty;
-  document.getElementById('qtyDiv').style.display = (isGabarito || isDemais) ? '' : 'none';
   document.getElementById('percPreview').textContent =
     perc > 0 ? `Percentual: ${(perc*100).toFixed(1)}% → Subtotal: ${fmtBrl(sub)}` : '';
 }
+tipoSel?.addEventListener('change', updatePreview);
+qtyInput?.addEventListener('input', updatePreview);
 updatePreview();
+
+// Vagas – cálculo automático de QVF
+const vExig = document.getElementById('vExigidas');
+const vComp = document.getElementById('vComputaveis');
+const vReg  = document.getElementById('vRegulares');
+const qvfCalc = document.getElementById('qvfCalc');
+
+function calcQVF() {
+  const exig = parseInt(vExig?.value) || 0;
+  const comp = parseInt(vComp?.value) || (parseInt(vReg?.value) || 0);
+  const qvf = Math.max(0, exig - comp);
+  if (qvfCalc) qvfCalc.value = qvf;
+
+  // Preview da multa
+  const qvd = parseInt(document.getElementById('vDimIrr')?.value) || 0;
+  const fator = qvf > 5 ? 1.5 : (qvf > 0 ? 1.0 : 0.0);
+  const mvf = qvf * cub * fator;
+  const mvd = qvd * cub * 0.5;
+}
+
+// Sincronizar computáveis com regulares como padrão
+vReg?.addEventListener('input', function() {
+  if (!vComp.dataset.manual) vComp.value = this.value;
+  calcQVF();
+});
+vComp?.addEventListener('input', function() {
+  vComp.dataset.manual = '1';
+  calcQVF();
+});
+vExig?.addEventListener('input', calcQVF);
+document.getElementById('vDimIrr')?.addEventListener('input', calcQVF);
+
+// Alerta de dimensão inferior
+const largExig = {{ (obra.vagas.largura_exigida or 0) if obra.vagas else 0 }};
+const compExig = {{ (obra.vagas.comprimento_exigido or 0) if obra.vagas else 0 }};
+
+document.getElementById('largExec')?.addEventListener('input', function() {
+  const exig = parseFloat(document.querySelector('[name=largura_exigida]')?.value) || largExig;
+  const exec = parseFloat(this.value) || 0;
+  document.getElementById('largAlert').textContent =
+    (exec > 0 && exig > 0 && exec < exig) ? '⚠ Inferior ao exigido – vaga IRREGULAR' : '';
+});
+document.getElementById('compExec')?.addEventListener('input', function() {
+  const exig = parseFloat(document.querySelector('[name=comprimento_exigido]')?.value) || compExig;
+  const exec = parseFloat(this.value) || 0;
+  document.getElementById('compAlert').textContent =
+    (exec > 0 && exig > 0 && exec < exig) ? '⚠ Inferior ao exigido – vaga IRREGULAR' : '';
+});
 </script>
 {% endblock %}
 {% endblock %}

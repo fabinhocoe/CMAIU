@@ -1253,8 +1253,44 @@ def tac_irregularidades(tid, oid):
                 db.session.add(v)
             else:
                 v = obra.vagas
-            v.vagas_faltantes = _int(f.get('vagas_faltantes')) or 0
-            v.vagas_dimensao = _int(f.get('vagas_dimensao')) or 0
+
+            exigidas = max(0, _int(f.get('vagas_exigidas')) or 0)
+            regulares = max(0, _int(f.get('vagas_regulares_executadas')) or 0)
+            qvd = max(0, _int(f.get('vagas_dimensao_irregular')) or 0)
+
+            # Vagas computáveis = regulares executadas (podendo ser ajustado manualmente)
+            computaveis = max(0, _int(f.get('vagas_computaveis')) or regulares)
+            # QVF automático, podendo ser substituído pelo campo manual + justificativa
+            qvf_manual = f.get('vagas_faltantes_manual', '').strip()
+            just = f.get('justificativa_tecnica', '').strip()
+            if qvf_manual and just:
+                qvf = max(0, _int(qvf_manual) or 0)
+            else:
+                qvf = max(0, exigidas - computaveis)
+
+            # Validações anti-duplicidade (seção 9)
+            erros = []
+            if exigidas <= 0:
+                erros.append('Informe o número de vagas exigidas.')
+            if regulares < 0 or qvd < 0:
+                erros.append('Quantidades não podem ser negativas.')
+            if erros:
+                for e in erros:
+                    flash(e, 'danger')
+                return redirect(url_for('tac_irregularidades', tid=tid, oid=oid))
+
+            v.vagas_exigidas = exigidas
+            v.vagas_regulares_executadas = regulares
+            v.vagas_computaveis = computaveis
+            v.vagas_faltantes = qvf
+            v.vagas_dimensao_irregular = qvd
+            v.largura_exigida = _float(f.get('largura_exigida'))
+            v.comprimento_exigido = _float(f.get('comprimento_exigido'))
+            v.largura_executada = _float(f.get('largura_executada'))
+            v.comprimento_executado = _float(f.get('comprimento_executado'))
+            v.justificativa_tecnica = just or None
+            v.usuario_id = current_user.id
+            v.data_calculo = datetime.utcnow()
             db.session.commit()
             flash('Vagas atualizadas.', 'success')
         return redirect(url_for('tac_irregularidades', tid=tid, oid=oid))

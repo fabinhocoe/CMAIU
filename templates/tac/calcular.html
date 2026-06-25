@@ -41,16 +41,36 @@
           <td class="text-end">{{ it.subtotal|brl }}</td>
         </tr>
         {% endfor %}
-        {% if r.sv_faltantes > 0 %}
-        <tr><td>Vagas faltantes</td><td class="text-end">—</td><td class="text-end">—</td><td class="text-end">{{ r.sv_faltantes|brl }}</td></tr>
-        {% endif %}
-        {% if r.sv_dim > 0 %}
-        <tr><td>Vagas dim. irregular</td><td class="text-end">—</td><td class="text-end">—</td><td class="text-end">{{ r.sv_dim|brl }}</td></tr>
-        {% endif %}
       </tbody>
+      {% if r.vagas %}
+      <tr class="table-warning">
+        <td colspan="4" class="fw-semibold small">Vagas de Estacionamento (Lei 5.410/2024 — sem área)</td>
+      </tr>
+      {% set vg = r.vagas %}
+      {% if r.sv_faltantes > 0 %}
+      <tr>
+        <td class="small">Vagas faltantes (QVF={{ vg.qvf }}, fator={{ '1,5' if vg.fator_faltantes == 1.5 else '1,0' }})</td>
+        <td class="text-end">{{ vg.qvf }}</td>
+        <td class="text-end">×CUB×{{ '1,5' if vg.fator_faltantes == 1.5 else '1,0' }}</td>
+        <td class="text-end">{{ r.sv_faltantes|brl }}</td>
+      </tr>
+      {% endif %}
+      {% if r.sv_dim > 0 %}
+      <tr>
+        <td class="small">Vagas dim. irregular (QVD={{ vg.qvd }}, fator=0,5)</td>
+        <td class="text-end">{{ vg.qvd }}</td>
+        <td class="text-end">×CUB×0,5</td>
+        <td class="text-end">{{ r.sv_dim|brl }}</td>
+      </tr>
+      {% endif %}
+      <tr class="table-warning fw-semibold">
+        <td colspan="3">MTV (multa total vagas)</td>
+        <td class="text-end">{{ r.mtv|brl }}</td>
+      </tr>
+      {% endif %}
       <tfoot class="fw-bold">
         <tr class="table-light">
-          <td colspan="3">Soma das Bases (SB)</td>
+          <td colspan="3">Subtotal bruto (irr. perc. + vagas)</td>
           <td class="text-end">{{ r.sb|brl }}</td>
         </tr>
         <tr>

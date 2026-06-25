@@ -529,11 +529,19 @@ class ObraTAC(db.Model):
         return dict(GRUPOS_OBRA).get(self.grupo, self.grupo)
 
     def calcular(self, cub_valor, data_tac):
-        """Retorna dict com todos os valores calculados para esta obra."""
+        """Retorna dict com todos os valores calculados para esta obra.
+
+        Vagas (Lei 5.031/2021 com redação da Lei 5.410/2024):
+          - Calculadas exclusivamente por QVF × CUB × fator — sem área.
+          - QVF = max(0, exigidas − computáveis)
+          - QVF 1–5 → fator 1,0; QVF > 5 → fator 1,5 sobre TODAS as faltantes.
+          - Vagas dim. irregular: QVD × CUB × 0,5 (sem área).
+          - MTV integra o subtotal bruto; teto legal aplica-se ao consolidado.
+        """
         area = self.area_construida or 0.0
         g = self.grupo or 'G1'
 
-        # Soma das bases de irregularidades
+        # Irregularidades percentuais (sb_ireg usa área conforme lei)
         sb_ireg = 0.0
         itens = []
         for irr in self.irregularidades:
@@ -544,25 +552,42 @@ class ObraTAC(db.Model):
             itens.append({'tipo': irr.tipo, 'descricao': DICT_IREG.get(irr.tipo, irr.tipo),
                           'perc': perc * 100, 'qty': qty, 'subtotal': subtotal})
 
-        # Vagas
-        sb_vagas = 0.0
+        # Vagas — Lei 5.410/2024: SÓ CUB, sem área
+        mtv = sv_faltantes = sv_dim = 0.0
+        vagas_info = {}
         if self.vagas:
             v = self.vagas
-            falt = v.vagas_faltantes or 0
-            fator_vaga = 1.5 if falt > 5 else 1.0
-            sv_faltantes = falt * cub_valor * fator_vaga
-            sv_dim = (v.vagas_dimensao or 0) * cub_valor * 0.5
-            sb_vagas = sv_faltantes + sv_dim
-        else:
-            sv_faltantes = sv_dim = 0.0
+            qvf = max(0, v.vagas_faltantes or 0)
+            qvd = v.vagas_dimensao_irregular or 0
+            fator_faltantes = 1.5 if qvf > 5 else (1.0 if qvf > 0 else 0.0)
+            sv_faltantes = qvf * cub_valor * fator_faltantes
+            sv_dim = qvd * cub_valor * 0.5
+            mtv = sv_faltantes + sv_dim
+            vagas_info = {
+                'exigidas': v.vagas_exigidas or 0,
+                'regulares_executadas': v.vagas_regulares_executadas or 0,
+                'computaveis': v.vagas_computaveis or 0,
+                'qvf': qvf,
+                'qvd': qvd,
+                'fator_faltantes': fator_faltantes,
+                'sv_faltantes': sv_faltantes,
+                'sv_dim': sv_dim,
+                'mtv': mtv,
+                'largura_exigida': v.largura_exigida,
+                'comprimento_exigido': v.comprimento_exigido,
+                'largura_executada': v.largura_executada,
+                'comprimento_executado': v.comprimento_executado,
+                'justificativa': v.justificativa_tecnica,
+            }
 
-        sb = sb_ireg + sb_vagas
+        # Subtotal bruto = irregularidades percentuais + multa total vagas
+        sb = sb_ireg + mtv
 
-        # Teto legal: CUB × área × 5%
+        # Teto legal: CUB × área × 5% (aplica-se ao consolidado)
         tl = cub_valor * area * 0.05
         vba = min(sb, tl)
 
-        # Fator de acréscimo (FA): < 5 anos → 1.20, caso contrário 1.00
+        # Fator de acréscimo (FA)
         fa = 1.0
         if data_tac and self.data_construcao:
             anos = (data_tac - self.data_construcao).days / 365.25
@@ -590,8 +615,9 @@ class ObraTAC(db.Model):
         return {
             'area': area, 'cub': cub_valor, 'grupo': g,
             'itens_ireg': itens,
-            'sb_ireg': sb_ireg, 'sb_vagas': sb_vagas,
-            'sv_faltantes': sv_faltantes, 'sv_dim': sv_dim,
+            'sb_ireg': sb_ireg,
+            'vagas': vagas_info,
+            'sv_faltantes': sv_faltantes, 'sv_dim': sv_dim, 'mtv': mtv,
             'sb': sb, 'tl': tl, 'vba': vba,
             'fa': fa, 'fr': fr, 'f_uni': f_uni, 'vf': vf,
         }
@@ -612,13 +638,38 @@ class IrregularidadeTAC(db.Model):
 
 
 class VagasTAC(db.Model):
+    """Vagas de estacionamento — Lei 5.031/2021, redação Lei 5.410/2024.
+    Cálculo: SÓ CUB, sem área construída."""
     __tablename__ = 'vagas_tac'
     id = db.Column(db.Integer, primary_key=True)
     obra_id = db.Column(db.Integer, db.ForeignKey('obras_tac.id'), unique=True)
-    vagas_faltantes = db.Column(db.Integer, default=0)
-    vagas_dimensao = db.Column(db.Integer, default=0)
+
+    # Quantidades (seção 15 da instrução)
+    vagas_exigidas = db.Column(db.Integer, default=0)
+    vagas_regulares_executadas = db.Column(db.Integer, default=0)
+    vagas_computaveis = db.Column(db.Integer, default=0)
+    vagas_faltantes = db.Column(db.Integer, default=0)       # max(0, exigidas - computaveis)
+    vagas_dimensao_irregular = db.Column(db.Integer, default=0)
+
+    # Dimensões
+    largura_exigida = db.Column(db.Float)
+    comprimento_exigido = db.Column(db.Float)
+    largura_executada = db.Column(db.Float)
+    comprimento_executado = db.Column(db.Float)
+
+    # Justificativa para preenchimento manual de QVF
+    justificativa_tecnica = db.Column(db.Text)
+
+    # Auditoria
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'))
+    data_calculo = db.Column(db.DateTime)
 
     obra = db.relationship('ObraTAC', back_populates='vagas')
+    usuario = db.relationship('Usuario', backref='vagas_tac')
+
+    @property
+    def qvf_calculado(self):
+        return max(0, (self.vagas_exigidas or 0) - (self.vagas_computaveis or 0))
 
 
 class CalculoTAC(db.Model):
