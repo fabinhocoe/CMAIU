@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% set editing = tac is not none %}
+{% block title %}{% if editing %}Editar TAC{% else %}Novo TAC{% endif %} – CMAIU{% endblock %}
+{% block page_title %}{% if editing %}Editar TAC{% else %}Novo TAC{% endif %}{% endblock %}
+{% block content %}
+<form method="POST">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+<div class="card border-0 shadow-sm mt-2">
+  <div class="card-header section-header"><i class="bi bi-file-earmark-ruled me-2"></i>Identificação do TAC</div>
+  <div class="card-body">
+    <div class="row g-3">
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Nº do TAC</label>
+        <input type="text" name="numero" class="form-control" placeholder="Gerado após assinatura"
+          value="{{ tac.numero if editing else '' }}">
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Nº do Processo Administrativo</label>
+        <input type="text" name="num_processo_adm" class="form-control"
+          value="{{ tac.num_processo_adm if editing else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Data de Abertura</label>
+        <input type="date" name="data_abertura" class="form-control"
+          value="{{ tac.data_abertura.isoformat() if editing and tac.data_abertura else '' }}">
+      </div>
+      {% if editing %}
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Data de Assinatura</label>
+        <input type="date" name="data_assinatura" class="form-control"
+          value="{{ tac.data_assinatura.isoformat() if tac.data_assinatura else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Data de Publicação</label>
+        <input type="date" name="data_publicacao" class="form-control"
+          value="{{ tac.data_publicacao.isoformat() if tac.data_publicacao else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Situação</label>
+        <select name="situacao" class="form-select">
+          {% for s in ['Rascunho','Em análise','Cálculo concluído','Aguardando parecer jurídico','Pronto para assinatura','Assinado','Publicado','Cancelado'] %}
+          <option value="{{ s }}" {% if tac.situacao == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">CUB de Referência <span class="text-danger">*</span></label>
+        <select name="cub_id" class="form-select" required>
+          <option value="">Selecione...</option>
+          {% for cu in cubs %}
+          <option value="{{ cu.id }}" {% if editing and tac.cub_id == cu.id %}selected{% endif %}>
+            {{ cu.mes_ano_str }} – R$ {{ '%.2f'|format(cu.valor) }}/m²
+          </option>
+          {% endfor %}
+        </select>
+        <div class="form-text">CUB vigente no mês da celebração do TAC (Lei 5.031/2021)</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label small fw-semibold">Observações</label>
+        <textarea name="observacoes" class="form-control" rows="2">{{ tac.observacoes if editing else '' }}</textarea>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="d-flex gap-2 mt-3">
+  <button type="submit" class="btn btn-primary">
+    <i class="bi bi-check-circle me-1"></i>{% if editing %}Salvar{% else %}Criar TAC{% endif %}
+  </button>
+  <a href="{{ url_for('tac_index') if not editing else url_for('tac_detail', tid=tac.id) }}"
+     class="btn btn-outline-secondary">Cancelar</a>
+</div>
+</form>
+{% endblock %}

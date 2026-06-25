@@ -394,3 +394,245 @@ class Relatorio(db.Model):
 
     processo = db.relationship('Processo', back_populates='relatorios')
     usuario = db.relationship('Usuario', backref='relatorios')
+
+
+# ─── TAC – Termo de Ajustamento de Conduta (Lei Municipal 5.031/2021) ────────
+
+SITUACOES_TAC = [
+    'Rascunho', 'Em análise', 'Cálculo concluído',
+    'Aguardando parecer jurídico', 'Pronto para assinatura',
+    'Assinado', 'Publicado', 'Cancelado',
+]
+
+GRUPOS_OBRA = [
+    ('G1', 'Grupo 1 – Unifamiliar'),
+    ('G2', 'Grupo 2 – Multifamiliar / Comercial / Industrial'),
+]
+
+TIPOS_IRREGULARIDADE = [
+    ('afastamento_lateral_fundos',    'Afastamentos laterais/fundos'),
+    ('recuo_frontal_ate50',           'Recuo frontal – desconformidade ≤ 50%'),
+    ('recuo_frontal_acima50',         'Recuo frontal – desconformidade > 50%'),
+    ('dimensoes_ambientes',           'Dimensões de ambientes'),
+    ('taxa_ocupacao_ate50',           'Taxa de ocupação em excesso ≤ 50%'),
+    ('taxa_ocupacao_acima50',         'Taxa de ocupação em excesso > 50%'),
+    ('indice_aproveitamento_ate50',   'Índice de aproveitamento em excesso ≤ 50%'),
+    ('indice_aproveitamento_acima50', 'Índice de aproveitamento em excesso > 50%'),
+    ('gabarito',                      'Gabarito – pav. excedente (máx. 2)'),
+    ('demais',                        'Demais irregularidades (por item)'),
+]
+
+PERC_TAC = {
+    ('afastamento_lateral_fundos',    'G1'): 0.005,
+    ('afastamento_lateral_fundos',    'G2'): 0.010,
+    ('recuo_frontal_ate50',           'G1'): 0.010,
+    ('recuo_frontal_ate50',           'G2'): 0.020,
+    ('recuo_frontal_acima50',         'G1'): 0.015,
+    ('recuo_frontal_acima50',         'G2'): 0.025,
+    ('dimensoes_ambientes',           'G1'): 0.005,
+    ('dimensoes_ambientes',           'G2'): 0.010,
+    ('taxa_ocupacao_ate50',           'G1'): 0.005,
+    ('taxa_ocupacao_ate50',           'G2'): 0.010,
+    ('taxa_ocupacao_acima50',         'G1'): 0.010,
+    ('taxa_ocupacao_acima50',         'G2'): 0.020,
+    ('indice_aproveitamento_ate50',   'G1'): 0.005,
+    ('indice_aproveitamento_ate50',   'G2'): 0.010,
+    ('indice_aproveitamento_acima50', 'G1'): 0.010,
+    ('indice_aproveitamento_acima50', 'G2'): 0.020,
+    ('gabarito',                      'G1'): 0.025,
+    ('gabarito',                      'G2'): 0.025,
+    ('demais',                        'G1'): 0.010,
+    ('demais',                        'G2'): 0.010,
+}
+
+DICT_IREG = dict(TIPOS_IRREGULARIDADE)
+
+
+class TAC(db.Model):
+    __tablename__ = 'tacs'
+    id = db.Column(db.Integer, primary_key=True)
+    numero = db.Column(db.String(50))
+    versao = db.Column(db.Integer, default=1)
+    situacao = db.Column(db.String(60), default='Rascunho')
+    num_processo_adm = db.Column(db.String(100))
+    data_abertura = db.Column(db.Date, default=date.today)
+    data_assinatura = db.Column(db.Date)
+    data_publicacao = db.Column(db.Date)
+    cub_id = db.Column(db.Integer, db.ForeignKey('cub.id'))
+    observacoes = db.Column(db.Text)
+    criado_por = db.Column(db.Integer, db.ForeignKey('usuarios.id'))
+    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    atualizado_em = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    cub = db.relationship('CUB', backref='tacs')
+    usuario = db.relationship('Usuario', backref='tacs')
+    compromissarios = db.relationship('CompromissarioTAC', back_populates='tac',
+                                      cascade='all, delete-orphan')
+    obras = db.relationship('ObraTAC', back_populates='tac',
+                            cascade='all, delete-orphan')
+    calculo = db.relationship('CalculoTAC', uselist=False, back_populates='tac',
+                              cascade='all, delete-orphan')
+
+    @property
+    def situacao_badge(self):
+        cores = {
+            'Rascunho': 'secondary', 'Em análise': 'warning',
+            'Cálculo concluído': 'info',
+            'Aguardando parecer jurídico': 'primary',
+            'Pronto para assinatura': 'success',
+            'Assinado': 'success', 'Publicado': 'dark',
+            'Cancelado': 'danger',
+        }
+        return cores.get(self.situacao, 'secondary')
+
+    @property
+    def bloqueado(self):
+        return self.situacao in ('Assinado', 'Publicado')
+
+
+class CompromissarioTAC(db.Model):
+    __tablename__ = 'compromissarios_tac'
+    id = db.Column(db.Integer, primary_key=True)
+    tac_id = db.Column(db.Integer, db.ForeignKey('tacs.id'))
+    nome = db.Column(db.String(300), nullable=False)
+    cpf_cnpj = db.Column(db.String(30))
+    endereco = db.Column(db.String(400))
+    telefone = db.Column(db.String(50))
+    email = db.Column(db.String(200))
+    tipo = db.Column(db.String(60), default='Proprietário')
+
+    tac = db.relationship('TAC', back_populates='compromissarios')
+
+
+class ObraTAC(db.Model):
+    __tablename__ = 'obras_tac'
+    id = db.Column(db.Integer, primary_key=True)
+    tac_id = db.Column(db.Integer, db.ForeignKey('tacs.id'))
+    descricao = db.Column(db.String(300))
+    endereco = db.Column(db.String(400))
+    bairro = db.Column(db.String(200))
+    inscricao_imobiliaria = db.Column(db.String(100))
+    grupo = db.Column(db.String(5), default='G1')
+    area_construida = db.Column(db.Float, default=0.0)
+    is_unifamiliar_ate150 = db.Column(db.Boolean, default=False)
+    data_construcao = db.Column(db.Date)
+    observacoes = db.Column(db.Text)
+
+    tac = db.relationship('TAC', back_populates='obras')
+    irregularidades = db.relationship('IrregularidadeTAC', back_populates='obra',
+                                      cascade='all, delete-orphan')
+    vagas = db.relationship('VagasTAC', uselist=False, back_populates='obra',
+                            cascade='all, delete-orphan')
+
+    @property
+    def grupo_label(self):
+        return dict(GRUPOS_OBRA).get(self.grupo, self.grupo)
+
+    def calcular(self, cub_valor, data_tac):
+        """Retorna dict com todos os valores calculados para esta obra."""
+        area = self.area_construida or 0.0
+        g = self.grupo or 'G1'
+
+        # Soma das bases de irregularidades
+        sb_ireg = 0.0
+        itens = []
+        for irr in self.irregularidades:
+            perc = PERC_TAC.get((irr.tipo, g), 0.0)
+            qty = min(irr.quantidade, 2) if irr.tipo == 'gabarito' else irr.quantidade
+            subtotal = area * cub_valor * perc * qty
+            sb_ireg += subtotal
+            itens.append({'tipo': irr.tipo, 'descricao': DICT_IREG.get(irr.tipo, irr.tipo),
+                          'perc': perc * 100, 'qty': qty, 'subtotal': subtotal})
+
+        # Vagas
+        sb_vagas = 0.0
+        if self.vagas:
+            v = self.vagas
+            falt = v.vagas_faltantes or 0
+            fator_vaga = 1.5 if falt > 5 else 1.0
+            sv_faltantes = falt * cub_valor * fator_vaga
+            sv_dim = (v.vagas_dimensao or 0) * cub_valor * 0.5
+            sb_vagas = sv_faltantes + sv_dim
+        else:
+            sv_faltantes = sv_dim = 0.0
+
+        sb = sb_ireg + sb_vagas
+
+        # Teto legal: CUB × área × 5%
+        tl = cub_valor * area * 0.05
+        vba = min(sb, tl)
+
+        # Fator de acréscimo (FA): < 5 anos → 1.20, caso contrário 1.00
+        fa = 1.0
+        if data_tac and self.data_construcao:
+            anos = (data_tac - self.data_construcao).days / 365.25
+            if anos < 5:
+                fa = 1.20
+
+        # Fator de redução por idade (FR)
+        fr = 1.0
+        data_corte = date(1993, 4, 7)
+        if self.data_construcao:
+            if self.data_construcao <= data_corte:
+                fr = 0.0
+            elif data_tac:
+                anos = (data_tac - self.data_construcao).days / 365.25
+                if anos >= 15:
+                    fr = 0.60
+                elif anos > 10:
+                    fr = 0.70
+
+        # Fator unifamiliar ≤150 m²
+        f_uni = 0.5 if (g == 'G1' and area <= 150 and self.is_unifamiliar_ate150) else 1.0
+
+        vf = vba * fa * fr * f_uni
+
+        return {
+            'area': area, 'cub': cub_valor, 'grupo': g,
+            'itens_ireg': itens,
+            'sb_ireg': sb_ireg, 'sb_vagas': sb_vagas,
+            'sv_faltantes': sv_faltantes, 'sv_dim': sv_dim,
+            'sb': sb, 'tl': tl, 'vba': vba,
+            'fa': fa, 'fr': fr, 'f_uni': f_uni, 'vf': vf,
+        }
+
+
+class IrregularidadeTAC(db.Model):
+    __tablename__ = 'irregularidades_tac'
+    id = db.Column(db.Integer, primary_key=True)
+    obra_id = db.Column(db.Integer, db.ForeignKey('obras_tac.id'))
+    tipo = db.Column(db.String(60), nullable=False)
+    quantidade = db.Column(db.Integer, default=1)
+
+    obra = db.relationship('ObraTAC', back_populates='irregularidades')
+
+    @property
+    def descricao(self):
+        return DICT_IREG.get(self.tipo, self.tipo)
+
+
+class VagasTAC(db.Model):
+    __tablename__ = 'vagas_tac'
+    id = db.Column(db.Integer, primary_key=True)
+    obra_id = db.Column(db.Integer, db.ForeignKey('obras_tac.id'), unique=True)
+    vagas_faltantes = db.Column(db.Integer, default=0)
+    vagas_dimensao = db.Column(db.Integer, default=0)
+
+    obra = db.relationship('ObraTAC', back_populates='vagas')
+
+
+class CalculoTAC(db.Model):
+    __tablename__ = 'calculos_tac'
+    id = db.Column(db.Integer, primary_key=True)
+    tac_id = db.Column(db.Integer, db.ForeignKey('tacs.id'), unique=True)
+    cub_valor = db.Column(db.Float)
+    cub_mes_ref = db.Column(db.String(20))
+    vf_total = db.Column(db.Float, default=0.0)
+    num_parcelas = db.Column(db.Integer, default=1)
+    valor_parcela = db.Column(db.Float, default=0.0)
+    resultado_json = db.Column(db.Text)  # JSON serializado por obra
+    data_calculo = db.Column(db.DateTime, default=datetime.utcnow)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'))
+
+    tac = db.relationship('TAC', back_populates='calculo')
+    usuario = db.relationship('Usuario', backref='calculos_tac')

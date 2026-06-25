@@ -8,12 +8,16 @@ from functools import wraps
 from flask import (Flask, render_template, request, redirect, url_for,
                    flash, jsonify, send_file, abort, session, g)
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+import json
 from models import (db, Usuario, Zoneamento, CUB, Parametro, HistoricoParametro,
                     Integrante, Processo, Proprietario, Empreendimento,
                     Impacto, Calculo, Relatorio,
                     SITUACOES_PROCESSO, USOS, PADROES_IMPACTO,
                     CLASSIFICACOES_IMPACTO, IMPACTOS_SOCIAIS, IMPACTOS_VIARIOS,
-                    NIVEIS_COMPENSACAO, PARAMS_INICIAIS, MESES)
+                    NIVEIS_COMPENSACAO, PARAMS_INICIAIS, MESES,
+                    TAC, CompromissarioTAC, ObraTAC, IrregularidadeTAC,
+                    VagasTAC, CalculoTAC,
+                    SITUACOES_TAC, GRUPOS_OBRA, TIPOS_IRREGULARIDADE, PERC_TAC)
 
 app = Flask(__name__)
 
@@ -1089,6 +1093,302 @@ def _safe_int(v):
         return int(v)
     except Exception:
         return None
+
+
+# ─── TAC – Termo de Ajustamento de Conduta ───────────────────────────────────
+
+@app.route('/tac')
+@login_required
+def tac_index():
+    tacs = TAC.query.order_by(TAC.criado_em.desc()).all()
+    return render_template('tac/index.html', tacs=tacs)
+
+
+@app.route('/tac/novo', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def tac_novo():
+    cubs = CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).all()
+    if request.method == 'POST':
+        f = request.form
+        tac = TAC(
+            numero=f.get('numero', '').strip() or None,
+            num_processo_adm=f.get('num_processo_adm', '').strip(),
+            data_abertura=_parse_date(f.get('data_abertura')) or date.today(),
+            cub_id=_int(f.get('cub_id')) or None,
+            observacoes=f.get('observacoes', '').strip(),
+            criado_por=current_user.id,
+        )
+        db.session.add(tac)
+        db.session.commit()
+        flash('TAC criado. Cadastre os compromissários e obras.', 'success')
+        return redirect(url_for('tac_detail', tid=tac.id))
+    return render_template('tac/form.html', tac=None, cubs=cubs)
+
+
+@app.route('/tac/<int:tid>')
+@login_required
+def tac_detail(tid):
+    tac = TAC.query.get_or_404(tid)
+    return render_template('tac/detail.html', tac=tac)
+
+
+@app.route('/tac/<int:tid>/editar', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def tac_editar(tid):
+    tac = TAC.query.get_or_404(tid)
+    if tac.bloqueado:
+        flash('TAC assinado/publicado não pode ser editado. Crie uma nova versão.', 'danger')
+        return redirect(url_for('tac_detail', tid=tid))
+    cubs = CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).all()
+    if request.method == 'POST':
+        f = request.form
+        tac.numero = f.get('numero', '').strip() or tac.numero
+        tac.num_processo_adm = f.get('num_processo_adm', '').strip()
+        tac.data_abertura = _parse_date(f.get('data_abertura')) or tac.data_abertura
+        tac.data_assinatura = _parse_date(f.get('data_assinatura'))
+        tac.data_publicacao = _parse_date(f.get('data_publicacao'))
+        tac.cub_id = _int(f.get('cub_id')) or tac.cub_id
+        tac.situacao = f.get('situacao', tac.situacao)
+        tac.observacoes = f.get('observacoes', '').strip()
+        db.session.commit()
+        flash('TAC atualizado.', 'success')
+        return redirect(url_for('tac_detail', tid=tid))
+    return render_template('tac/form.html', tac=tac, cubs=cubs)
+
+
+@app.route('/tac/<int:tid>/compromissarios', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def tac_compromissarios(tid):
+    tac = TAC.query.get_or_404(tid)
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'add' and not tac.bloqueado:
+            f = request.form
+            c = CompromissarioTAC(
+                tac_id=tid,
+                nome=f.get('nome', '').strip(),
+                cpf_cnpj=f.get('cpf_cnpj', '').strip(),
+                endereco=f.get('endereco', '').strip(),
+                telefone=f.get('telefone', '').strip(),
+                email=f.get('email', '').strip(),
+                tipo=f.get('tipo', 'Proprietário'),
+            )
+            db.session.add(c)
+            db.session.commit()
+            flash('Compromissário adicionado.', 'success')
+        elif action == 'delete' and not tac.bloqueado:
+            cid = _int(request.form.get('id'))
+            c = CompromissarioTAC.query.get(cid)
+            if c and c.tac_id == tid:
+                db.session.delete(c)
+                db.session.commit()
+        return redirect(url_for('tac_compromissarios', tid=tid))
+    return render_template('tac/compromissarios.html', tac=tac)
+
+
+@app.route('/tac/<int:tid>/obras', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def tac_obras(tid):
+    tac = TAC.query.get_or_404(tid)
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'add' and not tac.bloqueado:
+            f = request.form
+            obra = ObraTAC(
+                tac_id=tid,
+                descricao=f.get('descricao', '').strip(),
+                endereco=f.get('endereco', '').strip(),
+                bairro=f.get('bairro', '').strip(),
+                inscricao_imobiliaria=f.get('inscricao', '').strip(),
+                grupo=f.get('grupo', 'G1'),
+                area_construida=_float(f.get('area_construida')) or 0.0,
+                is_unifamiliar_ate150=bool(f.get('is_unifamiliar_ate150')),
+                data_construcao=_parse_date(f.get('data_construcao')),
+                observacoes=f.get('observacoes', '').strip(),
+            )
+            db.session.add(obra)
+            db.session.commit()
+            flash('Obra adicionada.', 'success')
+        elif action == 'delete' and not tac.bloqueado:
+            oid = _int(request.form.get('id'))
+            o = ObraTAC.query.get(oid)
+            if o and o.tac_id == tid:
+                db.session.delete(o)
+                db.session.commit()
+        return redirect(url_for('tac_obras', tid=tid))
+    return render_template('tac/obras.html', tac=tac, grupos=GRUPOS_OBRA)
+
+
+@app.route('/tac/<int:tid>/obras/<int:oid>/irregularidades', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def tac_irregularidades(tid, oid):
+    tac = TAC.query.get_or_404(tid)
+    obra = ObraTAC.query.get_or_404(oid)
+    if obra.tac_id != tid:
+        abort(404)
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'add_ireg' and not tac.bloqueado:
+            tipo = request.form.get('tipo', '').strip()
+            qty = max(1, _int(request.form.get('quantidade')) or 1)
+            irr = IrregularidadeTAC(obra_id=oid, tipo=tipo, quantidade=qty)
+            db.session.add(irr)
+            db.session.commit()
+            flash('Irregularidade adicionada.', 'success')
+        elif action == 'del_ireg' and not tac.bloqueado:
+            iid = _int(request.form.get('id'))
+            irr = IrregularidadeTAC.query.get(iid)
+            if irr and irr.obra_id == oid:
+                db.session.delete(irr)
+                db.session.commit()
+        elif action == 'save_vagas' and not tac.bloqueado:
+            f = request.form
+            if not obra.vagas:
+                v = VagasTAC(obra_id=oid)
+                db.session.add(v)
+            else:
+                v = obra.vagas
+            v.vagas_faltantes = _int(f.get('vagas_faltantes')) or 0
+            v.vagas_dimensao = _int(f.get('vagas_dimensao')) or 0
+            db.session.commit()
+            flash('Vagas atualizadas.', 'success')
+        return redirect(url_for('tac_irregularidades', tid=tid, oid=oid))
+    tipos = TIPOS_IRREGULARIDADE
+    perc_tac = PERC_TAC
+    return render_template('tac/irregularidades.html',
+                           tac=tac, obra=obra, tipos=tipos, perc_tac=perc_tac)
+
+
+@app.route('/tac/<int:tid>/calcular', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def tac_calcular(tid):
+    tac = TAC.query.get_or_404(tid)
+    if tac.bloqueado:
+        flash('TAC assinado/publicado. Não é possível recalcular.', 'danger')
+        return redirect(url_for('tac_detail', tid=tid))
+    if not tac.cub_id:
+        flash('Selecione o CUB antes de calcular.', 'warning')
+        return redirect(url_for('tac_editar', tid=tid))
+    cubs = CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).all()
+
+    cub_val = tac.cub.valor
+    data_ref = tac.data_assinatura or tac.data_abertura or date.today()
+
+    resultados = []
+    vf_total = 0.0
+    for obra in tac.obras:
+        r = obra.calcular(cub_val, data_ref)
+        r['obra_id'] = obra.id
+        r['obra_desc'] = obra.descricao or obra.endereco or f'Obra {obra.id}'
+        resultados.append(r)
+        vf_total += r['vf']
+
+    if request.method == 'POST':
+        num_parcelas = max(1, min(6, _int(request.form.get('num_parcelas')) or 1))
+        valor_parcela = vf_total / num_parcelas if num_parcelas else 0
+
+        if tac.calculo:
+            c = tac.calculo
+        else:
+            c = CalculoTAC(tac_id=tid)
+            db.session.add(c)
+
+        c.cub_valor = cub_val
+        c.cub_mes_ref = tac.cub.mes_ano_str
+        c.vf_total = vf_total
+        c.num_parcelas = num_parcelas
+        c.valor_parcela = valor_parcela
+        c.resultado_json = json.dumps(resultados, ensure_ascii=False)
+        c.data_calculo = datetime.utcnow()
+        c.usuario_id = current_user.id
+
+        if tac.situacao == 'Rascunho' or tac.situacao == 'Em análise':
+            tac.situacao = 'Cálculo concluído'
+
+        db.session.commit()
+        flash('Cálculo concluído.', 'success')
+        return redirect(url_for('tac_relatorio', tid=tid))
+
+    return render_template('tac/calcular.html',
+                           tac=tac, resultados=resultados,
+                           vf_total=vf_total, cubs=cubs)
+
+
+@app.route('/tac/<int:tid>/relatorio')
+@login_required
+def tac_relatorio(tid):
+    tac = TAC.query.get_or_404(tid)
+    c = tac.calculo
+    resultados = json.loads(c.resultado_json) if c and c.resultado_json else []
+    integrantes = Integrante.query.filter_by(ativo=True).all()
+    return render_template('tac/relatorio.html',
+                           tac=tac, c=c, resultados=resultados,
+                           integrantes=integrantes)
+
+
+@app.route('/tac/<int:tid>/relatorio/pdf')
+@login_required
+def tac_relatorio_pdf(tid):
+    tac = TAC.query.get_or_404(tid)
+    c = tac.calculo
+    if not c:
+        flash('Realize o cálculo antes de gerar PDF.', 'warning')
+        return redirect(url_for('tac_relatorio', tid=tid))
+    resultados = json.loads(c.resultado_json) if c.resultado_json else []
+    integrantes = Integrante.query.filter_by(ativo=True).all()
+    html = render_template('tac/relatorio_pdf.html',
+                           tac=tac, c=c, resultados=resultados,
+                           integrantes=integrantes)
+    from xhtml2pdf import pisa
+    buf = io.BytesIO()
+    pisa.CreatePDF(html, dest=buf)
+    buf.seek(0)
+    nome = f"TAC_{tac.numero or tac.id}_Relatorio.pdf"
+    return send_file(buf, mimetype='application/pdf', download_name=nome)
+
+
+@app.route('/tac/<int:tid>/termo/pdf')
+@login_required
+def tac_termo_pdf(tid):
+    tac = TAC.query.get_or_404(tid)
+    c = tac.calculo
+    if not c:
+        flash('Realize o cálculo antes de gerar o Termo.', 'warning')
+        return redirect(url_for('tac_relatorio', tid=tid))
+    resultados = json.loads(c.resultado_json) if c.resultado_json else []
+    integrantes = Integrante.query.filter_by(ativo=True).all()
+    html = render_template('tac/termo_pdf.html',
+                           tac=tac, c=c, resultados=resultados,
+                           integrantes=integrantes)
+    from xhtml2pdf import pisa
+    buf = io.BytesIO()
+    pisa.CreatePDF(html, dest=buf)
+    buf.seek(0)
+    nome = f"TAC_{tac.numero or tac.id}_Termo.pdf"
+    return send_file(buf, mimetype='application/pdf', download_name=nome)
+
+
+@app.route('/tac/<int:tid>/extrato/pdf')
+@login_required
+def tac_extrato_pdf(tid):
+    tac = TAC.query.get_or_404(tid)
+    c = tac.calculo
+    if not c:
+        flash('Realize o cálculo antes de gerar o Extrato.', 'warning')
+        return redirect(url_for('tac_relatorio', tid=tid))
+    html = render_template('tac/extrato_pdf.html', tac=tac, c=c)
+    from xhtml2pdf import pisa
+    buf = io.BytesIO()
+    pisa.CreatePDF(html, dest=buf)
+    buf.seek(0)
+    nome = f"TAC_{tac.numero or tac.id}_Extrato.pdf"
+    return send_file(buf, mimetype='application/pdf', download_name=nome)
 
 
 # ─── Cabeçalhos de segurança HTTP ────────────────────────────────────────────

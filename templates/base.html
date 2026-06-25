@@ -33,6 +33,11 @@
         </a>
       </li>
       <li class="nav-item">
+        <a href="{{ url_for('tac_index') }}" class="nav-link sidebar-link {% if 'tac' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-file-earmark-ruled me-2"></i>TAC
+        </a>
+      </li>
+      <li class="nav-item">
         <a href="{{ url_for('cub_index') }}" class="nav-link sidebar-link {% if 'cub' in request.endpoint %}active{% endif %}">
           <i class="bi bi-currency-dollar me-2"></i>CUB
         </a>

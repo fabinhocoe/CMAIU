@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Relatório TAC {{ tac.numero or tac.id }}{% endblock %}
+{% block page_title %}Relatório de Cálculo – TAC {{ tac.numero or '#' ~ tac.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2 flex-wrap">
+  <a href="{{ url_for('tac_detail', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  {% if c %}
+  <a href="{{ url_for('tac_relatorio_pdf', tid=tac.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>Relatório PDF
+  </a>
+  <a href="{{ url_for('tac_termo_pdf', tid=tac.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>Instrumento TAC PDF
+  </a>
+  <a href="{{ url_for('tac_extrato_pdf', tid=tac.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>Extrato PDF
+  </a>
+  {% endif %}
+</div>
+
+{% if not c %}
+<div class="alert alert-warning">
+  Não há cálculo registrado. <a href="{{ url_for('tac_calcular', tid=tac.id) }}">Realizar cálculo</a>
+</div>
+{% else %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body report-preview p-4">
+
+    <div class="text-center mb-4">
+      <h5 class="fw-bold text-uppercase">Comissão Municipal de Avaliação de Impacto Urbano</h5>
+      <h6 class="text-uppercase">Prefeitura Municipal de Palhoça – SC</h6>
+      <hr>
+      <h6>RELATÓRIO DE CÁLCULO – TERMO DE AJUSTAMENTO DE CONDUTA
+        {% if tac.numero %}Nº {{ tac.numero }}{% endif %}
+      </h6>
+      <p class="small text-muted">Lei Municipal nº 5.031/2021</p>
+    </div>
+
+    <h6 class="section-title">1 – IDENTIFICAÇÃO</h6>
+    <table class="table table-sm table-bordered small">
+      <tr><th>Nº do TAC</th><td>{{ tac.numero or '—' }}</td>
+          <th>Processo Adm.</th><td>{{ tac.num_processo_adm or '—' }}</td></tr>
+      <tr><th>Data de Abertura</th><td>{{ tac.data_abertura.strftime('%d/%m/%Y') if tac.data_abertura else '—' }}</td>
+          <th>Situação</th><td>{{ tac.situacao }}</td></tr>
+      <tr><th>CUB de Referência</th><td>{{ c.cub_mes_ref }} = {{ c.cub_valor|brl }}/m²</td>
+          <th>Data do Cálculo</th><td>{{ c.data_calculo.strftime('%d/%m/%Y') if c.data_calculo else '—' }}</td></tr>
+    </table>
+
+    <h6 class="section-title mt-3">2 – COMPROMISSÁRIOS</h6>
+    <table class="table table-sm table-bordered small">
+      <thead class="table-light"><tr><th>Nome</th><th>Tipo</th><th>CPF/CNPJ</th><th>Endereço</th></tr></thead>
+      <tbody>
+        {% for comp in tac.compromissarios %}
+        <tr><td>{{ comp.nome }}</td><td>{{ comp.tipo }}</td>
+            <td>{{ comp.cpf_cnpj or '—' }}</td><td>{{ comp.endereco or '—' }}</td></tr>
+        {% else %}
+        <tr><td colspan="4" class="text-muted text-center">—</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <h6 class="section-title mt-3">3 – OBRAS / CONSTRUÇÕES E CÁLCULO</h6>
+    {% for r in resultados %}
+    <p class="fw-semibold mb-1 small">Obra: {{ r.obra_desc }}</p>
+    <table class="table table-sm table-bordered small mb-3">
+      <tr><th>Grupo</th><td>{{ r.grupo }}</td>
+          <th>Área Construída</th><td>{{ r.area|fmt_area }}</td></tr>
+      <tbody>
+        {% for it in r.itens_ireg %}
+        <tr><td colspan="2">{{ it.descricao }}</td>
+            <td>{{ '%.1f'|format(it.perc) }}% × {{ it.qty }}</td>
+            <td>{{ it.subtotal|brl }}</td></tr>
+        {% endfor %}
+        {% if r.sv_faltantes > 0 %}
+        <tr><td colspan="2">Vagas faltantes</td><td>—</td><td>{{ r.sv_faltantes|brl }}</td></tr>
+        {% endif %}
+        {% if r.sv_dim > 0 %}
+        <tr><td colspan="2">Vagas dim. irregular</td><td>—</td><td>{{ r.sv_dim|brl }}</td></tr>
+        {% endif %}
+      </tbody>
+      <tr class="table-light fw-bold"><th colspan="3">Soma das Bases (SB)</th><td>{{ r.sb|brl }}</td></tr>
+      <tr><th colspan="3">Teto Legal (TL = CUB × área × 5%)</th><td>{{ r.tl|brl }}</td></tr>
+      <tr class="table-info"><th colspan="3">Valor-Base Ajustado (VBA)</th><td>{{ r.vba|brl }}</td></tr>
+      <tr><th colspan="3">FA {{ '= 1,20 (obra < 5 anos)' if r.fa == 1.2 else '= 1,00 (obra ≥ 5 anos)' }}</th><td>{{ '%.2f'|format(r.fa) }}</td></tr>
+      <tr><th colspan="3">FR (redução por idade)</th><td>{{ '%.2f'|format(r.fr) }}</td></tr>
+      {% if r.f_uni < 1 %}<tr><th colspan="3">Fator unifamiliar ≤ 150 m²</th><td>{{ '%.2f'|format(r.f_uni) }}</td></tr>{% endif %}
+      <tr class="table-success fw-bold"><th colspan="3">VF</th><td>{{ r.vf|brl }}</td></tr>
+    </table>
+    {% endfor %}
+
+    <h6 class="section-title mt-3">4 – CONSOLIDAÇÃO E PARCELAMENTO</h6>
+    <table class="table table-sm table-bordered small">
+      <tr class="table-success fw-bold">
+        <th>VALOR FINAL TOTAL (VF)</th>
+        <td colspan="3" class="fs-5">{{ c.vf_total|brl }}</td>
+      </tr>
+      <tr>
+        <th>Número de Parcelas</th><td>{{ c.num_parcelas }}</td>
+        <th>Valor por Parcela</th><td>{{ c.valor_parcela|brl }}</td>
+      </tr>
+    </table>
+
+    {% if integrantes %}
+    <div class="row mt-5">
+      {% for i in integrantes %}
+      <div class="col-md-4 text-center mb-4">
+        <div style="border-top:1px solid #aaa;margin:0 20px;padding-top:4px" class="small">
+          {{ i.nome }}<br>{{ i.cargo or '' }}<br><span class="text-muted">{{ i.orgao or '' }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+{% endif %}
+{% endblock %}

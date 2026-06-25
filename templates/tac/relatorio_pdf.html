@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10pt; color: #000; }
+  h1, h2, h3, h4, h5, h6 { margin: 4pt 0; }
+  table { border-collapse: collapse; width: 100%; margin-bottom: 8pt; font-size: 9pt; }
+  th, td { border: 1px solid #888; padding: 3pt 5pt; text-align: left; }
+  th { background: #e8e8e8; }
+  .text-center { text-align: center; }
+  .title-block { text-align: center; margin-bottom: 12pt; }
+  .section-title { background: #e0e0e0; padding: 3pt 5pt; font-weight: bold;
+                   font-size: 9pt; text-transform: uppercase; margin: 10pt 0 4pt 0; }
+  .highlight { background: #c8e6c9; font-weight: bold; }
+  .sign-area { margin-top: 30pt; }
+  .sign-col { display: inline-block; width: 30%; text-align: center;
+              border-top: 1px solid #888; padding-top: 3pt; margin: 0 1%; font-size: 8pt; }
+</style>
+</head>
+<body>
+<div class="title-block">
+  <h4>COMISSÃO MUNICIPAL DE AVALIAÇÃO DE IMPACTO URBANO – CMAIU</h4>
+  <h5>PREFEITURA MUNICIPAL DE PALHOÇA – SC</h5>
+  <hr>
+  <h5>RELATÓRIO DE CÁLCULO – TERMO DE AJUSTAMENTO DE CONDUTA
+    {% if tac.numero %}Nº {{ tac.numero }}{% endif %}
+  </h5>
+  <p style="font-size:8pt">Lei Municipal nº 5.031/2021 | Palhoça/SC, {{ tac.data_abertura.strftime('%d de %B de %Y') if tac.data_abertura else '' }}</p>
+</div>
+
+<div class="section-title">1 – Identificação</div>
+<table>
+  <tr><th>Nº TAC</th><td>{{ tac.numero or '—' }}</td>
+      <th>Processo Adm.</th><td>{{ tac.num_processo_adm or '—' }}</td></tr>
+  <tr><th>Abertura</th><td>{{ tac.data_abertura.strftime('%d/%m/%Y') if tac.data_abertura else '—' }}</td>
+      <th>CUB</th><td>{{ c.cub_mes_ref }} = R$ {{ '%.2f'|format(c.cub_valor) }}/m²</td></tr>
+</table>
+
+<div class="section-title">2 – Compromissários</div>
+<table>
+  <thead><tr><th>Nome</th><th>Tipo</th><th>CPF/CNPJ</th><th>Endereço</th></tr></thead>
+  <tbody>
+    {% for comp in tac.compromissarios %}
+    <tr><td>{{ comp.nome }}</td><td>{{ comp.tipo }}</td>
+        <td>{{ comp.cpf_cnpj or '—' }}</td><td>{{ comp.endereco or '—' }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="section-title">3 – Cálculo por Obra</div>
+{% for r in resultados %}
+<p><strong>Obra:</strong> {{ r.obra_desc }} &nbsp; <strong>Grupo:</strong> {{ r.grupo }} &nbsp; <strong>Área:</strong> {{ '%.2f'|format(r.area) }} m²</p>
+<table>
+  <thead><tr><th>Irregularidade</th><th>%</th><th>Qtd</th><th>Subtotal</th></tr></thead>
+  <tbody>
+    {% for it in r.itens_ireg %}
+    <tr><td>{{ it.descricao }}</td><td>{{ '%.1f'|format(it.perc) }}%</td>
+        <td>{{ it.qty }}</td><td>R$ {{ '%.2f'|format(it.subtotal) }}</td></tr>
+    {% endfor %}
+    {% if r.sv_faltantes > 0 %}
+    <tr><td>Vagas faltantes</td><td>—</td><td>—</td><td>R$ {{ '%.2f'|format(r.sv_faltantes) }}</td></tr>
+    {% endif %}
+    {% if r.sv_dim > 0 %}
+    <tr><td>Vagas dim. irregular</td><td>—</td><td>—</td><td>R$ {{ '%.2f'|format(r.sv_dim) }}</td></tr>
+    {% endif %}
+  </tbody>
+  <tr><th colspan="3">Soma das Bases (SB)</th><td>R$ {{ '%.2f'|format(r.sb) }}</td></tr>
+  <tr><th colspan="3">Teto Legal (TL = CUB × área × 5%)</th><td>R$ {{ '%.2f'|format(r.tl) }}</td></tr>
+  <tr class="highlight"><th colspan="3">VBA = min(SB, TL)</th><td>R$ {{ '%.2f'|format(r.vba) }}</td></tr>
+  <tr><th colspan="3">FA ({{ '1,20 – < 5 anos' if r.fa == 1.2 else '1,00 – ≥ 5 anos' }})</th><td>{{ '%.2f'|format(r.fa) }}</td></tr>
+  <tr><th colspan="3">FR ({{ '0,00 – anterior a 07/04/1993' if r.fr == 0 else ('0,60 – ≥ 15 anos' if r.fr == 0.6 else ('0,70 – > 10 e < 15 anos' if r.fr == 0.7 else '1,00')) }})</th><td>{{ '%.2f'|format(r.fr) }}</td></tr>
+  {% if r.f_uni < 1 %}<tr><th colspan="3">Fator unifamiliar ≤ 150 m²</th><td>{{ '%.2f'|format(r.f_uni) }}</td></tr>{% endif %}
+  <tr class="highlight"><th colspan="3">VF desta obra</th><td>R$ {{ '%.2f'|format(r.vf) }}</td></tr>
+</table>
+{% endfor %}
+
+<div class="section-title">4 – Consolidação</div>
+<table>
+  <tr class="highlight"><th>VALOR FINAL TOTAL (VF)</th><td><strong>R$ {{ '%.2f'|format(c.vf_total) }}</strong></td></tr>
+  <tr><th>Parcelas</th><td>{{ c.num_parcelas }}× R$ {{ '%.2f'|format(c.valor_parcela) }}</td></tr>
+</table>
+
+<div class="sign-area">
+  <p style="font-size:9pt">Palhoça/SC, {{ tac.data_assinatura.strftime('%d de %B de %Y') if tac.data_assinatura else '__________ de _____________ de _____' }}</p>
+  {% if integrantes %}
+  <br>
+  {% for i in integrantes %}
+  <div class="sign-col">{{ i.nome }}<br>{{ i.cargo or '' }}<br>{{ i.orgao or '' }}</div>
+  {% endfor %}
+  {% endif %}
+</div>
+</body>
+</html>

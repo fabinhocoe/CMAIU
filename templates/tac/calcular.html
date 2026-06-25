@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Calcular TAC {{ tac.numero or tac.id }}{% endblock %}
+{% block page_title %}Cálculo do TAC – {{ tac.numero or '#' ~ tac.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('tac_detail', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+{% if not tac.obras %}
+<div class="alert alert-warning">Cadastre ao menos uma obra antes de calcular.</div>
+{% else %}
+
+<div class="alert alert-info small py-2">
+  <strong>CUB:</strong> {{ tac.cub.mes_ano_str }} = {{ tac.cub.valor|brl }}/m²
+  &nbsp;|&nbsp;
+  <strong>Data de referência:</strong>
+  {{ (tac.data_assinatura or tac.data_abertura).strftime('%d/%m/%Y') if (tac.data_assinatura or tac.data_abertura) else '—' }}
+  (usada para cálculo de FA e FR)
+</div>
+
+{% for r in resultados %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header fw-semibold">
+    <i class="bi bi-building me-2"></i>{{ r.obra_desc }}
+    &nbsp;<span class="badge bg-secondary">Grupo {{ r.grupo }}</span>
+    &nbsp;<span class="badge bg-light text-dark">{{ r.area|fmt_area }}</span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-sm mb-0 small">
+      <thead class="table-light">
+        <tr><th>Irregularidade</th><th class="text-end">%</th><th class="text-end">Qtd</th><th class="text-end">Subtotal</th></tr>
+      </thead>
+      <tbody>
+        {% for it in r.itens_ireg %}
+        <tr>
+          <td>{{ it.descricao }}</td>
+          <td class="text-end">{{ '%.1f'|format(it.perc) }}%</td>
+          <td class="text-end">{{ it.qty }}</td>
+          <td class="text-end">{{ it.subtotal|brl }}</td>
+        </tr>
+        {% endfor %}
+        {% if r.sv_faltantes > 0 %}
+        <tr><td>Vagas faltantes</td><td class="text-end">—</td><td class="text-end">—</td><td class="text-end">{{ r.sv_faltantes|brl }}</td></tr>
+        {% endif %}
+        {% if r.sv_dim > 0 %}
+        <tr><td>Vagas dim. irregular</td><td class="text-end">—</td><td class="text-end">—</td><td class="text-end">{{ r.sv_dim|brl }}</td></tr>
+        {% endif %}
+      </tbody>
+      <tfoot class="fw-bold">
+        <tr class="table-light">
+          <td colspan="3">Soma das Bases (SB)</td>
+          <td class="text-end">{{ r.sb|brl }}</td>
+        </tr>
+        <tr>
+          <td colspan="3">Teto Legal (TL = CUB × área × 5%)</td>
+          <td class="text-end">{{ r.tl|brl }}</td>
+        </tr>
+        <tr class="table-info">
+          <td colspan="3">Valor-Base Ajustado (VBA = min(SB, TL))</td>
+          <td class="text-end">{{ r.vba|brl }}</td>
+        </tr>
+        <tr>
+          <td colspan="3">Fator de Acréscimo (FA{% if r.fa == 1.2 %} – obra < 5 anos{% else %} – obra ≥ 5 anos{% endif %})</td>
+          <td class="text-end">{{ '%.2f'|format(r.fa) }}</td>
+        </tr>
+        <tr>
+          <td colspan="3">Fator de Redução por Idade (FR{% if r.fr == 0 %} – anterior a 07/04/1993{% elif r.fr == 0.6 %} – ≥ 15 anos{% elif r.fr == 0.7 %} – > 10 e < 15 anos{% else %} – ≤ 10 anos{% endif %})</td>
+          <td class="text-end">{{ '%.2f'|format(r.fr) }}</td>
+        </tr>
+        {% if r.f_uni < 1 %}
+        <tr>
+          <td colspan="3">Fator Unifamiliar ≤ 150 m²</td>
+          <td class="text-end">{{ '%.2f'|format(r.f_uni) }}</td>
+        </tr>
+        {% endif %}
+        <tr class="table-success">
+          <td colspan="3"><strong>VF = VBA × FA × FR {{ '× Fator Uni.' if r.f_uni < 1 else '' }}</strong></td>
+          <td class="text-end fw-bold">{{ r.vf|brl }}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header fw-semibold"><i class="bi bi-sigma me-2"></i>Total e Parcelamento</div>
+  <div class="card-body">
+    <div class="row g-3 align-items-end">
+      <div class="col-md-4">
+        <div class="p-3 bg-success text-white rounded text-center">
+          <div class="small">Valor Final Total (VF)</div>
+          <div class="fw-bold fs-4">{{ vf_total|brl }}</div>
+        </div>
+      </div>
+      <div class="col-md-8">
+        <form method="POST">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <div class="row g-2 align-items-end">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Número de Parcelas (1–6)</label>
+              <select name="num_parcelas" class="form-select" id="parcelasSelect">
+                {% for n in range(1, 7) %}
+                <option value="{{ n }}" {% if tac.calculo and tac.calculo.num_parcelas == n %}selected{% endif %}>{{ n }}×</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Valor por Parcela</label>
+              <input class="form-control fw-bold" id="valorParcela" readonly
+                value="{{ (tac.calculo.valor_parcela)|brl if tac.calculo else (vf_total|brl) }}">
+            </div>
+            <div class="col-md-4">
+              <button type="submit" class="btn btn-primary w-100">
+                <i class="bi bi-check-circle me-1"></i>Confirmar Cálculo
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endif %}
+
+{% block scripts %}
+<script>
+const vfTotal = {{ vf_total }};
+function fmtBrl(v) {
+  return 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+document.getElementById('parcelasSelect')?.addEventListener('change', function() {
+  const n = parseInt(this.value) || 1;
+  document.getElementById('valorParcela').value = fmtBrl(vfTotal / n);
+});
+</script>
+{% endblock %}
+{% endblock %}

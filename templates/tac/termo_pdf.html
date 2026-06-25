@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10pt; color: #000; line-height: 1.5; }
+  h1,h2,h3,h4,h5,h6 { margin: 6pt 0 4pt; }
+  .title-block { text-align: center; margin-bottom: 16pt; }
+  .clause { text-align: justify; margin-bottom: 8pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; font-size: 9pt; }
+  th, td { border: 1px solid #888; padding: 3pt 5pt; }
+  th { background: #e8e8e8; }
+  .highlight { background: #c8e6c9; font-weight: bold; }
+  .sign-col { display: inline-block; width: 30%; text-align: center;
+              border-top: 1px solid #888; padding-top: 3pt; margin: 0 1%; font-size: 9pt; }
+  .sign-area { margin-top: 40pt; }
+</style>
+</head>
+<body>
+<div class="title-block">
+  <h4>PREFEITURA MUNICIPAL DE PALHOÇA – ESTADO DE SANTA CATARINA</h4>
+  <h4>COMISSÃO MUNICIPAL DE AVALIAÇÃO DE IMPACTO URBANO – CMAIU</h4>
+  <hr>
+  <h4>TERMO DE AJUSTAMENTO DE CONDUTA – TAC Nº {{ tac.numero or '______' }}/{{ tac.data_abertura.year if tac.data_abertura else '____' }}</h4>
+  <p style="font-size:9pt">Nos termos da Lei Municipal nº 5.031/2021</p>
+</div>
+
+<p class="clause">
+O <strong>MUNICÍPIO DE PALHOÇA</strong>, pessoa jurídica de direito público interno, por intermédio da
+<strong>Comissão Municipal de Avaliação de Impacto Urbano – CMAIU</strong>,
+e do(s) COMPROMISSÁRIO(S) abaixo qualificado(s), celebram o presente
+<strong>Termo de Ajustamento de Conduta – TAC</strong>, na forma da Lei Municipal nº 5.031/2021,
+mediante as seguintes cláusulas e condições:
+</p>
+
+<h5>CLÁUSULA PRIMEIRA – DAS PARTES</h5>
+<table>
+  <thead><tr><th>Nome / Razão Social</th><th>Tipo</th><th>CPF/CNPJ</th><th>Endereço</th></tr></thead>
+  <tbody>
+    {% for comp in tac.compromissarios %}
+    <tr><td>{{ comp.nome }}</td><td>{{ comp.tipo }}</td>
+        <td>{{ comp.cpf_cnpj or '—' }}</td><td>{{ comp.endereco or '—' }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h5>CLÁUSULA SEGUNDA – DO OBJETO</h5>
+<p class="clause">
+O presente TAC tem por objeto o ajustamento de conduta referente às irregularidades
+urbanísticas constatadas nas obras/edificações identificadas abaixo, com a regularização
+mediante o pagamento da compensação financeira calculada conforme a Lei Municipal
+nº 5.031/2021:
+</p>
+{% for obra in tac.obras %}
+<p class="clause" style="margin-left: 12pt;">
+  <strong>Obra {{ loop.index }}:</strong> {{ obra.descricao or obra.endereco or 'Edificação' }} –
+  Localizada em {{ obra.endereco or '—' }}, {{ obra.bairro or '' }}, Palhoça/SC.
+  Inscrição Imobiliária: {{ obra.inscricao_imobiliaria or '—' }}.
+  Grupo: {{ obra.grupo_label }}. Área construída: {{ '%.2f'|format(obra.area_construida or 0) }} m².
+</p>
+{% endfor %}
+
+<h5>CLÁUSULA TERCEIRA – DO VALOR E FORMA DE PAGAMENTO</h5>
+<table>
+  <tr class="highlight"><th>Valor Total da Compensação</th><td><strong>R$ {{ '%.2f'|format(c.vf_total) }}</strong></td></tr>
+  <tr><th>Forma de Pagamento</th><td>{{ c.num_parcelas }} parcela(s) de R$ {{ '%.2f'|format(c.valor_parcela) }}</td></tr>
+  <tr><th>CUB de Referência</th><td>{{ c.cub_mes_ref }} = R$ {{ '%.2f'|format(c.cub_valor) }}/m²</td></tr>
+</table>
+<p class="clause">
+O pagamento deverá ser realizado junto à Tesouraria do Município ou por boleto bancário a ser
+emitido pelo setor competente, nos prazos estipulados neste termo.
+</p>
+
+<h5>CLÁUSULA QUARTA – DAS OBRIGAÇÕES DO COMPROMISSÁRIO</h5>
+<p class="clause">
+O(s) compromissário(s) obriga(m)-se a:
+(a) efetuar o pagamento tempestivo das parcelas pactuadas;
+(b) não agravar as irregularidades objeto deste Termo;
+(c) colaborar com a Administração Municipal na regularização urbanística do imóvel;
+(d) cumprir todas as demais condicionantes estabelecidas pela CMAIU.
+</p>
+
+<h5>CLÁUSULA QUINTA – DO INADIMPLEMENTO</h5>
+<p class="clause">
+O inadimplemento de qualquer obrigação prevista neste Termo implicará a perda do benefício
+da regularização e a adoção das medidas administrativas e judiciais cabíveis, incluindo a
+execução do crédito com os acréscimos legais.
+</p>
+
+<h5>CLÁUSULA SEXTA – DO FORO</h5>
+<p class="clause">
+Fica eleito o foro da Comarca de Palhoça/SC para dirimir eventuais litígios decorrentes
+deste instrumento.
+</p>
+
+<p class="clause" style="margin-top: 16pt;">
+Palhoça/SC, {{ tac.data_assinatura.strftime('%d de %B de %Y') if tac.data_assinatura else '_____ de _________________ de _______' }}.
+</p>
+
+<div class="sign-area">
+  <p><strong>Pelo Município de Palhoça / CMAIU:</strong></p>
+  {% for i in integrantes %}
+  <div class="sign-col">
+    _________________________<br>{{ i.nome }}<br>{{ i.cargo or '' }}<br>{{ i.orgao or '' }}
+  </div>
+  {% endfor %}
+  <br><br>
+  <p><strong>Pelo(s) Compromissário(s):</strong></p>
+  {% for comp in tac.compromissarios %}
+  <div class="sign-col">
+    _________________________<br>{{ comp.nome }}<br>{{ comp.tipo }}<br>CPF/CNPJ: {{ comp.cpf_cnpj or '—' }}
+  </div>
+  {% endfor %}
+</div>
+</body>
+</html>

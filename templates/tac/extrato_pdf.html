@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<style>
+  body { font-family: Arial, sans-serif; font-size: 10pt; color: #000; line-height: 1.5; }
+  .title-block { text-align: center; margin-bottom: 12pt; }
+  .clause { text-align: justify; margin-bottom: 6pt; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9pt; }
+  th, td { border: 1px solid #888; padding: 3pt 5pt; }
+  th { background: #e8e8e8; }
+  .highlight { background: #c8e6c9; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="title-block">
+  <h5>EXTRATO DO TERMO DE AJUSTAMENTO DE CONDUTA</h5>
+  <h6>PREFEITURA MUNICIPAL DE PALHOÇA – DIÁRIO OFICIAL DO MUNICÍPIO</h6>
+</div>
+
+<p class="clause">
+<strong>TAC Nº {{ tac.numero or '______' }}/{{ tac.data_abertura.year if tac.data_abertura else '____' }}</strong>
+– Processo Administrativo: {{ tac.num_processo_adm or '—' }}.
+Celebrado entre o <strong>Município de Palhoça</strong>, por intermédio da
+<strong>Comissão Municipal de Avaliação de Impacto Urbano – CMAIU</strong>, com fundamento na
+Lei Municipal nº 5.031/2021, e o(s) compromissário(s):
+{% for comp in tac.compromissarios %}{{ comp.nome }}{% if comp.cpf_cnpj %} (CPF/CNPJ: {{ comp.cpf_cnpj }}){% endif %}{% if not loop.last %}; {% endif %}{% endfor %}.
+</p>
+
+<p class="clause">
+<strong>Objeto:</strong> regularização de irregularidades urbanísticas nas edificações situadas em:
+{% for obra in tac.obras %}{{ obra.endereco or obra.descricao or 'Obra ' ~ loop.index }}, {{ obra.bairro or '' }}{% if not loop.last %}; {% endif %}{% endfor %}.
+</p>
+
+<table>
+  <tr class="highlight">
+    <th>Valor Total da Compensação Financeira</th>
+    <td><strong>R$ {{ '%.2f'|format(c.vf_total) }}</strong></td>
+  </tr>
+  <tr>
+    <th>Forma de Pagamento</th>
+    <td>{{ c.num_parcelas }} parcela(s) de R$ {{ '%.2f'|format(c.valor_parcela) }}</td>
+  </tr>
+  <tr>
+    <th>CUB de Referência</th>
+    <td>{{ c.cub_mes_ref }} = R$ {{ '%.2f'|format(c.cub_valor) }}/m²</td>
+  </tr>
+  <tr>
+    <th>Data da Celebração</th>
+    <td>{{ tac.data_assinatura.strftime('%d/%m/%Y') if tac.data_assinatura else '—' }}</td>
+  </tr>
+</table>
+
+<p class="clause" style="font-size:9pt; color: #555;">
+Publicado nos termos da Lei Municipal nº 5.031/2021 e normas pertinentes.
+Palhoça/SC, {{ tac.data_publicacao.strftime('%d de %B de %Y') if tac.data_publicacao else tac.data_assinatura.strftime('%d de %B de %Y') if tac.data_assinatura else '—' }}.
+</p>
+</body>
+</html>

@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Compromissários – TAC {{ tac.numero or tac.id }}{% endblock %}
+{% block page_title %}Compromissários – TAC {{ tac.numero or '#' ~ tac.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('tac_detail', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+<div class="row g-3">
+  {% if not tac.bloqueado %}
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-person-plus me-2"></i>Adicionar Compromissário</div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="add">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Nome / Razão Social <span class="text-danger">*</span></label>
+            <input type="text" name="nome" class="form-control form-control-sm" required>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Tipo</label>
+            <select name="tipo" class="form-select form-select-sm">
+              <option>Proprietário</option>
+              <option>Empreendedor</option>
+              <option>Responsável Técnico</option>
+              <option>Representante Legal</option>
+            </select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">CPF / CNPJ</label>
+            <input type="text" name="cpf_cnpj" class="form-control form-control-sm">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Endereço</label>
+            <input type="text" name="endereco" class="form-control form-control-sm">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Telefone</label>
+            <input type="text" name="telefone" class="form-control form-control-sm">
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">E-mail</label>
+            <input type="email" name="email" class="form-control form-control-sm">
+          </div>
+          <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-plus-circle me-1"></i>Adicionar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-people me-2"></i>Compromissários Cadastrados</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Nome</th><th>Tipo</th><th>CPF/CNPJ</th><th>Contato</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for comp in tac.compromissarios %}
+            <tr>
+              <td class="fw-semibold small">{{ comp.nome }}</td>
+              <td class="small">{{ comp.tipo }}</td>
+              <td class="small">{{ comp.cpf_cnpj or '—' }}</td>
+              <td class="small">{{ comp.telefone or comp.email or '—' }}</td>
+              <td>
+                {% if not tac.bloqueado %}
+                <form method="POST" class="d-inline">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="action" value="delete">
+                  <input type="hidden" name="id" value="{{ comp.id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Excluir?')"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-3 small">Nenhum compromissário.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

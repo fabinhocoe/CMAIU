@@ -1,0 +1,171 @@
+{% extends 'base.html' %}
+{% block title %}Irregularidades – Obra {{ obra.id }}{% endblock %}
+{% block page_title %}Irregularidades – {{ obra.descricao or obra.endereco or 'Obra #' ~ obra.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('tac_obras', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar às Obras
+  </a>
+</div>
+
+<div class="alert alert-info small py-2 mb-3">
+  <strong>Grupo:</strong> {{ obra.grupo_label }} &nbsp;|&nbsp;
+  <strong>Área:</strong> {{ obra.area_construida|fmt_area }} &nbsp;|&nbsp;
+  <strong>CUB:</strong> {{ tac.cub.mes_ano_str ~ ' = R$ ' ~ '%.2f'|format(tac.cub.valor) ~ '/m²' if tac.cub else '—' }}
+  <br>
+  Valor de cada irregularidade = Área × CUB × percentual (Lei 5.031/2021, Art. 8º)
+</div>
+
+<div class="row g-3">
+  {% if not tac.bloqueado %}
+  <!-- Adicionar irregularidade -->
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-exclamation-triangle me-2"></i>Adicionar Irregularidade</div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="add_ireg">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Tipo de Irregularidade</label>
+            <select name="tipo" class="form-select form-select-sm" id="tipoSelect">
+              {% for cod, label in tipos %}
+              <option value="{{ cod }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-2" id="qtyDiv">
+            <label class="form-label small fw-semibold">Quantidade</label>
+            <input type="number" name="quantidade" class="form-control form-control-sm" value="1" min="1">
+            <div class="form-text" id="qtyHelp">Para gabarito: nº de pavimentos excedentes (máx. 2). Para demais: nº de itens.</div>
+          </div>
+          <div class="mb-2 text-muted small" id="percPreview"></div>
+          <button type="submit" class="btn btn-sm btn-warning"><i class="bi bi-plus-circle me-1"></i>Adicionar</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Vagas -->
+    <div class="card border-0 shadow-sm mt-3">
+      <div class="card-header section-header"><i class="bi bi-p-square me-2"></i>Vagas de Estacionamento</div>
+      <div class="card-body">
+        <form method="POST">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <input type="hidden" name="action" value="save_vagas">
+          <div class="mb-2">
+            <label class="form-label small fw-semibold">Vagas Faltantes</label>
+            <input type="number" name="vagas_faltantes" class="form-control form-control-sm"
+              value="{{ obra.vagas.vagas_faltantes if obra.vagas else 0 }}" min="0">
+            <div class="form-text">≤ 5: fator 1,0 × CUB | > 5: fator 1,5 × CUB</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-semibold">Vagas com Dimensão Irregular</label>
+            <input type="number" name="vagas_dimensao" class="form-control form-control-sm"
+              value="{{ obra.vagas.vagas_dimensao if obra.vagas else 0 }}" min="0">
+            <div class="form-text">Fator 0,5 × CUB por vaga</div>
+          </div>
+          <button type="submit" class="btn btn-sm btn-secondary"><i class="bi bi-floppy me-1"></i>Salvar Vagas</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Lista de irregularidades cadastradas -->
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-list-check me-2"></i>Irregularidades Cadastradas</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Irregularidade</th><th>Qtd</th><th>% (G{{ obra.grupo[1] }})</th><th>Subtotal</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for irr in obra.irregularidades %}
+            {% set g = obra.grupo %}
+            {% set perc = perc_tac.get((irr.tipo, g), 0) %}
+            {% set qty = [irr.quantidade, 2]|min if irr.tipo == 'gabarito' else irr.quantidade %}
+            {% set sub = (obra.area_construida or 0) * (tac.cub.valor if tac.cub else 0) * perc * qty %}
+            <tr>
+              <td class="small">{{ irr.descricao }}</td>
+              <td class="small">{{ qty }}</td>
+              <td class="small">{{ '%.1f'|format(perc * 100) }}%</td>
+              <td class="small fw-semibold">{{ sub|brl }}</td>
+              <td>
+                {% if not tac.bloqueado %}
+                <form method="POST" class="d-inline">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="action" value="del_ireg">
+                  <input type="hidden" name="id" value="{{ irr.id }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger"
+                    onclick="return confirm('Excluir?')"><i class="bi bi-trash"></i></button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="text-center text-muted py-2 small">Nenhuma irregularidade.</td></tr>
+            {% endfor %}
+          </tbody>
+          {% if obra.vagas and (obra.vagas.vagas_faltantes or obra.vagas.vagas_dimensao) %}
+          <tfoot class="table-light">
+            {% set cub_v = tac.cub.valor if tac.cub else 0 %}
+            {% set falt = obra.vagas.vagas_faltantes or 0 %}
+            {% set fator_v = 1.5 if falt > 5 else 1.0 %}
+            {% set sv_f = falt * cub_v * fator_v %}
+            {% set sv_d = (obra.vagas.vagas_dimensao or 0) * cub_v * 0.5 %}
+            {% if falt > 0 %}
+            <tr>
+              <td class="small">Vagas faltantes (×{{ '%.1f'|format(fator_v) }})</td>
+              <td>{{ falt }}</td><td>—</td>
+              <td class="small fw-semibold">{{ sv_f|brl }}</td><td></td>
+            </tr>
+            {% endif %}
+            {% if obra.vagas.vagas_dimensao %}
+            <tr>
+              <td class="small">Vagas dimensão irregular (×0,5)</td>
+              <td>{{ obra.vagas.vagas_dimensao }}</td><td>—</td>
+              <td class="small fw-semibold">{{ sv_d|brl }}</td><td></td>
+            </tr>
+            {% endif %}
+          </tfoot>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% block scripts %}
+<script>
+const percMap = {};
+{% for (tipo, grupo), perc in perc_tac.items() %}percMap["{{ tipo }},{{ grupo }}"] = {{ perc }};
+{% endfor %}
+const grupo = '{{ obra.grupo }}';
+const area = {{ obra.area_construida or 0 }};
+const cub = {{ tac.cub.valor if tac.cub else 0 }};
+
+function fmtBrl(v) {
+  return 'R$ ' + v.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+document.getElementById('tipoSelect')?.addEventListener('change', updatePreview);
+document.querySelector('[name=quantidade]')?.addEventListener('input', updatePreview);
+
+function updatePreview() {
+  const tipo = document.getElementById('tipoSelect').value;
+  const qty = parseInt(document.querySelector('[name=quantidade]').value) || 1;
+  const key = tipo + ',' + grupo;
+  const perc = percMap[key] || 0;
+  const isGabarito = tipo === 'gabarito';
+  const isDemais = tipo === 'demais';
+  const realQty = isGabarito ? Math.min(qty, 2) : qty;
+  const sub = area * cub * perc * realQty;
+  document.getElementById('qtyDiv').style.display = (isGabarito || isDemais) ? '' : 'none';
+  document.getElementById('percPreview').textContent =
+    perc > 0 ? `Percentual: ${(perc*100).toFixed(1)}% → Subtotal: ${fmtBrl(sub)}` : '';
+}
+updatePreview();
+</script>
+{% endblock %}
+{% endblock %}

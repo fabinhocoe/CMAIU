@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}TAC {{ tac.numero or tac.id }} – CMAIU{% endblock %}
+{% block page_title %}TAC – {{ tac.numero or 'Rascunho #' ~ tac.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2 flex-wrap">
+  <a href="{{ url_for('tac_index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  {% if current_user.is_tecnico and not tac.bloqueado %}
+  <a href="{{ url_for('tac_editar', tid=tac.id) }}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-pencil me-1"></i>Editar
+  </a>
+  <a href="{{ url_for('tac_compromissarios', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-person-plus me-1"></i>Compromissários
+  </a>
+  <a href="{{ url_for('tac_obras', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-building me-1"></i>Obras
+  </a>
+  <a href="{{ url_for('tac_calcular', tid=tac.id) }}" class="btn btn-sm btn-success">
+    <i class="bi bi-calculator me-1"></i>Calcular
+  </a>
+  {% endif %}
+  {% if tac.calculo %}
+  <a href="{{ url_for('tac_relatorio', tid=tac.id) }}" class="btn btn-sm btn-info">
+    <i class="bi bi-file-text me-1"></i>Relatório
+  </a>
+  <a href="{{ url_for('tac_relatorio_pdf', tid=tac.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>Rel. PDF
+  </a>
+  <a href="{{ url_for('tac_termo_pdf', tid=tac.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>Termo PDF
+  </a>
+  <a href="{{ url_for('tac_extrato_pdf', tid=tac.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>Extrato PDF
+  </a>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <!-- Identificação -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header section-header"><i class="bi bi-info-circle me-2"></i>Identificação</div>
+      <div class="card-body small">
+        <table class="table table-sm mb-0">
+          <tr><th>Nº TAC</th><td>{{ tac.numero or '—' }}</td></tr>
+          <tr><th>Processo Adm.</th><td>{{ tac.num_processo_adm or '—' }}</td></tr>
+          <tr><th>Abertura</th><td>{{ tac.data_abertura.strftime('%d/%m/%Y') if tac.data_abertura else '—' }}</td></tr>
+          <tr><th>Assinatura</th><td>{{ tac.data_assinatura.strftime('%d/%m/%Y') if tac.data_assinatura else '—' }}</td></tr>
+          <tr><th>Publicação</th><td>{{ tac.data_publicacao.strftime('%d/%m/%Y') if tac.data_publicacao else '—' }}</td></tr>
+          <tr><th>CUB</th><td>{{ tac.cub.mes_ano_str ~ ' – R$ ' ~ '%.2f'|format(tac.cub.valor) ~ '/m²' if tac.cub else '—' }}</td></tr>
+          <tr><th>Situação</th><td><span class="badge bg-{{ tac.situacao_badge }}">{{ tac.situacao }}</span></td></tr>
+        </table>
+        {% if tac.observacoes %}<p class="text-muted mt-2 mb-0">{{ tac.observacoes }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Compromissários -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header section-header"><i class="bi bi-people me-2"></i>Compromissários</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light"><tr><th>Nome</th><th>Tipo</th><th>CPF/CNPJ</th></tr></thead>
+          <tbody>
+            {% for comp in tac.compromissarios %}
+            <tr><td class="small fw-semibold">{{ comp.nome }}</td>
+                <td class="small">{{ comp.tipo }}</td>
+                <td class="small">{{ comp.cpf_cnpj or '—' }}</td></tr>
+            {% else %}
+            <tr><td colspan="3" class="text-center text-muted py-2 small">Nenhum compromissário.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Obras -->
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-building me-2"></i>Obras / Construções</div>
+      <div class="card-body p-0">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Descrição</th><th>Endereço</th><th>Grupo</th><th>Área</th><th>Data Constr.</th><th>Irregularidades</th><th></th></tr>
+          </thead>
+          <tbody>
+            {% for o in tac.obras %}
+            <tr>
+              <td class="small fw-semibold">{{ o.descricao or '—' }}</td>
+              <td class="small">{{ o.endereco or '—' }}</td>
+              <td class="small">{{ o.grupo_label }}</td>
+              <td class="small">{{ o.area_construida|fmt_area }}</td>
+              <td class="small">{{ o.data_construcao.strftime('%d/%m/%Y') if o.data_construcao else '—' }}</td>
+              <td class="small">{{ o.irregularidades|length }} irr. {% if o.vagas %}+ vagas{% endif %}</td>
+              <td>
+                {% if current_user.is_tecnico and not tac.bloqueado %}
+                <a href="{{ url_for('tac_irregularidades', tid=tac.id, oid=o.id) }}"
+                   class="btn btn-xs btn-outline-warning" title="Irregularidades">
+                  <i class="bi bi-exclamation-triangle"></i>
+                </a>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7" class="text-center text-muted py-2 small">Nenhuma obra cadastrada.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cálculo -->
+  {% if tac.calculo %}
+  {% set c = tac.calculo %}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-calculator me-2"></i>Resultado do Cálculo</div>
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded text-center">
+              <div class="small text-muted">CUB utilizado</div>
+              <div class="fw-bold">{{ c.cub_mes_ref }}</div>
+              <div class="small">{{ c.cub_valor|brl }}/m²</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-success text-white rounded text-center">
+              <div class="small">Valor Total (VF)</div>
+              <div class="fw-bold fs-5">{{ c.vf_total|brl }}</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded text-center">
+              <div class="small text-muted">Parcelas</div>
+              <div class="fw-bold">{{ c.num_parcelas }}×</div>
+              <div class="small">{{ c.valor_parcela|brl }}</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded text-center">
+              <div class="small text-muted">Calculado em</div>
+              <div class="small fw-semibold">{{ c.data_calculo.strftime('%d/%m/%Y %H:%M') if c.data_calculo else '—' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
