@@ -1635,8 +1635,6 @@ def sc_index():
 @tecnico_required
 def sc_novo():
     if request.method == 'POST':
-        if not csrf_ok():
-            abort(403)
         sc = SoloCriado()
         _sc_fill(sc, request.form)
         sc.criado_por = current_user.id
@@ -1665,8 +1663,6 @@ def sc_detail(sid):
 def sc_editar(sid):
     sc = SoloCriado.query.get_or_404(sid)
     if request.method == 'POST':
-        if not csrf_ok():
-            abort(403)
         _sc_fill(sc, request.form)
         db.session.commit()
         flash('Registro atualizado.', 'success')
@@ -1686,8 +1682,6 @@ def sc_calcular(sid):
     sc = SoloCriado.query.get_or_404(sid)
     erros, alertas = [], []
     if request.method == 'POST':
-        if not csrf_ok():
-            abort(403)
         # Update percentuais from form
         sc.pon = _float(request.form.get('pon', sc.pon))
         sc.pin = _float(request.form.get('pin', sc.pin))
