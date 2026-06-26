@@ -183,29 +183,67 @@
     <!-- Áreas de outorga -->
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm">
-        <div class="card-header section-header"><i class="bi bi-rulers me-2"></i>Áreas de Outorga (m²)</div>
+        <div class="card-header section-header"><i class="bi bi-rulers me-2"></i>Áreas de Outorga</div>
         <div class="card-body">
-          <div class="row g-2">
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Área Onerosa (m²) <span class="text-danger">*</span></label>
-              <input type="number" step="0.01" min="0" name="aon" class="form-control form-control-sm"
+          <div id="avisoSemABP" class="alert alert-warning py-2 small mb-2 d-none">
+            Selecione o zoneamento e informe a área do terreno para ver os percentuais.
+          </div>
+          <div class="row g-2 align-items-end">
+            <!-- Onerosa -->
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">
+                Área Onerosa (m²) <span class="text-danger">*</span>
+              </label>
+              <input type="number" step="0.01" min="0" name="aon" id="inputAon"
+                     class="form-control form-control-sm"
                      value="{{ '%.2f'|format(sc.aon) if sc and sc.aon else '' }}"
-                     placeholder="Área a adquirir na modalidade onerosa — máx 40% da ABP">
+                     oninput="atualizarPercs()">
             </div>
-            <div class="col-12">
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Área Onerosa (%)</label>
+              <input type="text" id="percAon" class="form-control form-control-sm bg-light text-center"
+                     readonly placeholder="—">
+            </div>
+            <div class="col-md-3">
+              <small id="limiteAon" class="text-muted d-block pt-1"></small>
+            </div>
+            <!-- Infraestrutura -->
+            <div class="col-md-6">
               <label class="form-label small fw-semibold">Área de Infraestrutura (m²)</label>
-              <input type="number" step="0.01" min="0" name="ain" class="form-control form-control-sm"
+              <input type="number" step="0.01" min="0" name="ain" id="inputAin"
+                     class="form-control form-control-sm"
                      value="{{ '%.2f'|format(sc.ain) if sc and sc.ain else '' }}"
-                     placeholder="Área a adquirir via obra de infraestrutura — máx 5% da ABP">
+                     oninput="atualizarPercs()">
             </div>
-            <div class="col-12">
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Área de Infraestrutura (%)</label>
+              <input type="text" id="percAin" class="form-control form-control-sm bg-light text-center"
+                     readonly placeholder="—">
+            </div>
+            <div class="col-md-3">
+              <small id="limiteAin" class="text-muted d-block pt-1"></small>
+            </div>
+            <!-- Águas -->
+            <div class="col-md-6">
               <label class="form-label small fw-semibold">Área de Águas Pluviais (m²)</label>
-              <input type="number" step="0.01" min="0" name="aag" class="form-control form-control-sm"
+              <input type="number" step="0.01" min="0" name="aag" id="inputAag"
+                     class="form-control form-control-sm"
                      value="{{ '%.2f'|format(sc.aag) if sc and sc.aag else '' }}"
-                     placeholder="Área a adquirir via sistema de águas — máx 5% da ABP">
+                     oninput="atualizarPercs()">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Área de Águas Pluviais (%)</label>
+              <input type="text" id="percAag" class="form-control form-control-sm bg-light text-center"
+                     readonly placeholder="—">
+            </div>
+            <div class="col-md-3">
+              <small id="limiteAag" class="text-muted d-block pt-1"></small>
+            </div>
+            <!-- Total -->
+            <div class="col-12">
+              <div id="totalOutorga" class="alert alert-secondary py-2 small mb-0 d-none"></div>
             </div>
           </div>
-          <small class="text-muted mt-2 d-block">Os percentuais são calculados automaticamente em relação à ABP. Limite total: 50% da ABP.</small>
         </div>
       </div>
     </div>
@@ -323,6 +361,63 @@
 
 {% block scripts %}
 <script>
+let _abp = 0;
+
+function getABP() {
+  const at  = parseFloat(document.getElementById('area_terreno')?.value) || 0;
+  const iab = parseFloat(document.getElementById('inputIab')?.value) || 0;
+  return at * iab;
+}
+
+function fmtPerc(v) {
+  return v.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%';
+}
+
+function atualizarPercs() {
+  const abp = getABP();
+  const aon = parseFloat(document.getElementById('inputAon').value) || 0;
+  const ain = parseFloat(document.getElementById('inputAin').value) || 0;
+  const aag = parseFloat(document.getElementById('inputAag').value) || 0;
+  const tot = aon + ain + aag;
+
+  function setPerc(inputId, limiteId, area, limite) {
+    const el    = document.getElementById(inputId);
+    const elLim = document.getElementById(limiteId);
+    if (!abp || !area) {
+      el.value = '—';
+      el.className = 'form-control form-control-sm bg-light text-center';
+      if (elLim) elLim.textContent = '';
+      return;
+    }
+    const perc = area / abp * 100;
+    const ok   = perc <= limite;
+    el.value = fmtPerc(perc);
+    el.className = 'form-control form-control-sm text-center fw-bold ' +
+                   (ok ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger');
+    if (elLim) elLim.innerHTML = ok
+      ? `<span class="text-success">✔ dentro do limite (${limite}%)</span>`
+      : `<span class="text-danger fw-bold">⚠ excede ${limite}%</span>`;
+  }
+
+  setPerc('percAon', 'limiteAon', aon, 40);
+  setPerc('percAin', 'limiteAin', ain,  5);
+  setPerc('percAag', 'limiteAag', aag,  5);
+
+  const divTot = document.getElementById('totalOutorga');
+  if (tot > 0 && abp > 0) {
+    const pt = tot / abp * 100;
+    const ok = pt <= 50;
+    divTot.classList.remove('d-none', 'alert-secondary', 'alert-success', 'alert-danger');
+    divTot.classList.add(ok ? 'alert-success' : 'alert-danger');
+    divTot.innerHTML = `<strong>Total das áreas: ${tot.toLocaleString('pt-BR',{minimumFractionDigits:2})} m² = ${fmtPerc(pt)} da ABP</strong>` +
+      (ok ? ' — dentro do limite de 50%' : ' — <strong>excede o limite de 50%!</strong>');
+  } else {
+    divTot.classList.add('d-none');
+  }
+
+  document.getElementById('avisoSemABP').classList.toggle('d-none', abp > 0 || tot === 0);
+}
+
 async function carregarZoneamento(zid) {
   const iabInput  = document.getElementById('inputIab');
   const iamInput  = document.getElementById('inputIam');
@@ -334,6 +429,7 @@ async function carregarZoneamento(zid) {
     iamInput.value = '';
     pscInfo.innerHTML = '— selecione o zoneamento —';
     pscHidden.value = '';
+    atualizarPercs();
     return;
   }
 
@@ -348,9 +444,20 @@ async function carregarZoneamento(zid) {
     pscInfo.innerHTML = d.permite_solo_criado
       ? '<span class="text-success fw-bold">Sim</span>'
       : '<span class="text-danger fw-bold">Não — este zoneamento não permite solo criado</span>';
+    atualizarPercs();
   } catch(e) {
     console.error(e);
   }
 }
+
+// Atualiza percentuais quando área do terreno muda também
+document.addEventListener('DOMContentLoaded', () => {
+  const atInput = document.querySelector('input[name="area_terreno"]');
+  if (atInput) {
+    atInput.id = 'area_terreno';
+    atInput.addEventListener('input', atualizarPercs);
+  }
+  atualizarPercs();
+});
 </script>
 {% endblock %}
