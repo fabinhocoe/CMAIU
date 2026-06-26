@@ -1735,10 +1735,23 @@ def _sc_fill(sc, f):
     sc.responsavel_tecnico   = s('responsavel_tecnico')
     sc.area_terreno          = fi('area_terreno')
     sc.area_computavel       = fi('area_computavel')
-    sc.iab                   = fi('iab')
-    sc.iam                   = fi('iam')
     sc.taxa_ocupacao         = fi('taxa_ocupacao')
-    sc.permite_solo_criado   = bool(f.get('permite_solo_criado'))
+    # IAB vem do zoneamento; IAM = IAB × 1,50 (IAB + 50% máx de solo criado)
+    zid = _int(f.get('zoneamento_id'))
+    if zid:
+        zon = Zoneamento.query.get(zid)
+        if zon:
+            sc.iab = zon.cab
+            sc.iam = round(zon.cab * 1.50, 4)
+            sc.permite_solo_criado = zon.permite_solo_criado
+        else:
+            sc.iab = fi('iab')
+            sc.iam = fi('iam')
+            sc.permite_solo_criado = bool(f.get('permite_solo_criado'))
+    else:
+        sc.iab = fi('iab')
+        sc.iam = fi('iam')
+        sc.permite_solo_criado = bool(f.get('permite_solo_criado'))
     sc.aon                   = fi('aon')
     sc.ain                   = fi('ain')
     sc.aag                   = fi('aag')
