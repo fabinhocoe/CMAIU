@@ -169,29 +169,32 @@
       </div>
     </div>
 
-    <!-- Percentuais -->
+    <!-- Áreas de outorga -->
     <div class="col-lg-6">
       <div class="card border-0 shadow-sm">
-        <div class="card-header section-header"><i class="bi bi-percent me-2"></i>Percentuais de Outorga</div>
+        <div class="card-header section-header"><i class="bi bi-rulers me-2"></i>Áreas de Outorga (m²)</div>
         <div class="card-body">
           <div class="row g-2">
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Oneroso (%)</label>
-              <input type="number" step="0.01" min="0" max="40" name="pon" class="form-control form-control-sm"
-                     value="{{ '%.2f'|format(sc.pon) if sc and sc.pon else '' }}" placeholder="0 – 40">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Área Onerosa (m²) <span class="text-danger">*</span></label>
+              <input type="number" step="0.01" min="0" name="aon" class="form-control form-control-sm"
+                     value="{{ '%.2f'|format(sc.aon) if sc and sc.aon else '' }}"
+                     placeholder="Área a adquirir na modalidade onerosa — máx 40% da ABP">
             </div>
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Infraestrutura (%)</label>
-              <input type="number" step="0.01" min="0" max="5" name="pin" class="form-control form-control-sm"
-                     value="{{ '%.2f'|format(sc.pin) if sc and sc.pin else '' }}" placeholder="0 – 5">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Área de Infraestrutura (m²)</label>
+              <input type="number" step="0.01" min="0" name="ain" class="form-control form-control-sm"
+                     value="{{ '%.2f'|format(sc.ain) if sc and sc.ain else '' }}"
+                     placeholder="Área a adquirir via obra de infraestrutura — máx 5% da ABP">
             </div>
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Águas (%)</label>
-              <input type="number" step="0.01" min="0" max="5" name="pag" class="form-control form-control-sm"
-                     value="{{ '%.2f'|format(sc.pag) if sc and sc.pag else '' }}" placeholder="0 – 5">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Área de Águas Pluviais (m²)</label>
+              <input type="number" step="0.01" min="0" name="aag" class="form-control form-control-sm"
+                     value="{{ '%.2f'|format(sc.aag) if sc and sc.aag else '' }}"
+                     placeholder="Área a adquirir via sistema de águas — máx 5% da ABP">
             </div>
           </div>
-          <small class="text-muted">Oneroso: mín 20%, máx 40% · Infra: máx 5% · Águas: máx 5% · Total: máx 50%</small>
+          <small class="text-muted mt-2 d-block">Os percentuais são calculados automaticamente em relação à ABP. Limite total: 50% da ABP.</small>
         </div>
       </div>
     </div>

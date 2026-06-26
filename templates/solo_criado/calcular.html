@@ -22,113 +22,253 @@
 {% endif %}
 
 <div class="row g-3">
-  <div class="col-lg-5">
+  <div class="col-lg-6">
     <div class="card border-0 shadow-sm">
-      <div class="card-header section-header"><i class="bi bi-sliders me-2"></i>Parâmetros de entrada</div>
-      <div class="card-body small">
-        <dl class="row mb-2">
-          <dt class="col-7">Área do Terreno (AT)</dt>
-          <dd class="col-5 text-end">{{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</dd>
-          <dt class="col-7">Área Computável (ACP)</dt>
-          <dd class="col-5 text-end">{{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</dd>
-          <dt class="col-7">IAB</dt>
-          <dd class="col-5 text-end">{{ '%.4f'|format(sc.iab) if sc.iab else '—' }}</dd>
-          <dt class="col-7">CUB</dt>
-          <dd class="col-5 text-end">{{ sc.cub_valor|brl if sc.cub_valor else '—' }}/m²</dd>
-        </dl>
-        <form method="POST">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-          <div class="row g-2">
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Oneroso (%)</label>
-              <input type="number" step="0.01" min="0" max="40" name="pon"
-                     class="form-control form-control-sm"
-                     value="{{ '%.2f'|format(sc.pon) if sc.pon else '' }}" placeholder="20 – 40">
-              <small class="text-muted">mín 20%, máx 40%</small>
+      <div class="card-header section-header"><i class="bi bi-rulers me-2"></i>Áreas a adquirir por modalidade</div>
+      <div class="card-body">
+
+        <!-- Resumo de referência -->
+        <div class="alert alert-info py-2 small mb-3">
+          <div class="row g-1">
+            <div class="col-6"><strong>Área Terreno (AT):</strong> {{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</div>
+            <div class="col-6"><strong>IAB:</strong> {{ '%.4f'|format(sc.iab) if sc.iab else '—' }}</div>
+            <div class="col-6"><strong>Área Básica (ABP = AT×IAB):</strong>
+              {% if sc.area_terreno and sc.iab %}
+                <strong>{{ (sc.area_terreno * sc.iab)|fmt_area }}</strong>
+              {% else %}—{% endif %}
             </div>
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Infra (%)</label>
-              <input type="number" step="0.01" min="0" max="5" name="pin"
-                     class="form-control form-control-sm"
-                     value="{{ '%.2f'|format(sc.pin) if sc.pin else '' }}" placeholder="0 – 5">
-              <small class="text-muted">máx 5%</small>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label small fw-semibold">Águas (%)</label>
-              <input type="number" step="0.01" min="0" max="5" name="pag"
-                     class="form-control form-control-sm"
-                     value="{{ '%.2f'|format(sc.pag) if sc.pag else '' }}" placeholder="0 – 5">
-              <small class="text-muted">máx 5%</small>
+            <div class="col-6"><strong>Área Computável (ACP):</strong> {{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</div>
+            <div class="col-12"><strong>Área Excedente (AEX = ACP−ABP):</strong>
+              {% if sc.area_terreno and sc.iab and sc.area_computavel %}
+                {% set abp = sc.area_terreno * sc.iab %}
+                {% set aex = sc.area_computavel - abp if sc.area_computavel > abp else 0 %}
+                <strong class="text-danger">{{ aex|fmt_area }}</strong>
+              {% else %}—{% endif %}
             </div>
           </div>
-          <button type="submit" class="btn btn-success mt-3 w-100" {% if erros %}disabled{% endif %}>
+        </div>
+
+        <form method="POST" id="formCalculo">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Limites da lei -->
+          {% if sc.area_terreno and sc.iab %}
+          {% set abp_val = sc.area_terreno * sc.iab %}
+          {% set lim_on = abp_val * 0.40 %}
+          {% set lim_in = abp_val * 0.05 %}
+          {% set lim_ag = abp_val * 0.05 %}
+          {% set lim_tot = abp_val * 0.50 %}
+          <div class="table-responsive mb-3">
+            <table class="table table-sm table-bordered small mb-0">
+              <thead class="table-light text-center">
+                <tr>
+                  <th>Modalidade</th>
+                  <th>Limite legal</th>
+                  <th>Máx. em m² (sobre ABP)</th>
+                </tr>
+              </thead>
+              <tbody class="text-center">
+                <tr>
+                  <td class="text-start">Onerosa</td>
+                  <td>máx 40%</td>
+                  <td class="fw-bold">{{ lim_on|fmt_area }}</td>
+                </tr>
+                <tr>
+                  <td class="text-start">Infraestrutura</td>
+                  <td>máx 5%</td>
+                  <td class="fw-bold">{{ lim_in|fmt_area }}</td>
+                </tr>
+                <tr>
+                  <td class="text-start">Águas Pluviais</td>
+                  <td>máx 5%</td>
+                  <td class="fw-bold">{{ lim_ag|fmt_area }}</td>
+                </tr>
+                <tr class="table-warning">
+                  <td class="text-start fw-bold">Total</td>
+                  <td>máx 50%</td>
+                  <td class="fw-bold">{{ lim_tot|fmt_area }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+
+          <div class="row g-2">
+            <div class="col-12">
+              <label class="form-label small fw-semibold">
+                Área Onerosa (m²)
+                <span class="text-danger">*</span>
+                <small class="text-muted fw-normal">– pagamento em dinheiro ao município</small>
+              </label>
+              <input type="number" step="0.01" min="0" name="aon"
+                     class="form-control" id="inputAon"
+                     value="{{ '%.2f'|format(sc.aon) if sc.aon else '' }}"
+                     oninput="recalcPreview()">
+              <div id="previewOn" class="form-text text-muted"></div>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">
+                Área de Infraestrutura (m²)
+                <small class="text-muted fw-normal">– execução de obra de infra urbana</small>
+              </label>
+              <input type="number" step="0.01" min="0" name="ain"
+                     class="form-control" id="inputAin"
+                     value="{{ '%.2f'|format(sc.ain) if sc.ain else '' }}"
+                     oninput="recalcPreview()">
+              <div id="previewIn" class="form-text text-muted"></div>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">
+                Área de Águas Pluviais (m²)
+                <small class="text-muted fw-normal">– sistema de retenção/tratamento de águas</small>
+              </label>
+              <input type="number" step="0.01" min="0" name="aag"
+                     class="form-control" id="inputAag"
+                     value="{{ '%.2f'|format(sc.aag) if sc.aag else '' }}"
+                     oninput="recalcPreview()">
+              <div id="previewAg" class="form-text text-muted"></div>
+            </div>
+            <div class="col-12">
+              <div id="previewTotal" class="alert alert-secondary py-2 small"></div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success mt-2 w-100" {% if erros %}disabled{% endif %}>
             <i class="bi bi-calculator me-1"></i>Executar Cálculo
           </button>
-          {% if erros %}<small class="text-danger d-block mt-1">Corrija os impeditivos antes de calcular.</small>{% endif %}
+          {% if erros %}<small class="text-danger d-block mt-1 text-center">Corrija os impeditivos antes de calcular.</small>{% endif %}
         </form>
       </div>
     </div>
   </div>
 
   {% if sc.von is not none %}
-  <div class="col-lg-7">
+  <div class="col-lg-6">
     <div class="card border-0 shadow-sm">
-      <div class="card-header section-header"><i class="bi bi-calculator me-2"></i>Resultado atual</div>
+      <div class="card-header section-header"><i class="bi bi-calculator me-2"></i>Resultado do último cálculo</div>
       <div class="card-body small">
-        <dl class="row mb-2">
-          <dt class="col-7">Área Básica (ABP = AT × IAB)</dt>
-          <dd class="col-5 text-end fw-bold">{{ sc.abp|fmt_area }}</dd>
-          <dt class="col-7">Área Excedente (AEX = ACP − ABP)</dt>
-          <dd class="col-5 text-end fw-bold">{{ sc.aex|fmt_area }}</dd>
-          <dt class="col-7">VU (CUB × 6%)</dt>
-          <dd class="col-5 text-end">{{ sc.vu|brl }}/m²</dd>
-        </dl>
-        <table class="table table-sm">
-          <thead class="table-light">
-            <tr><th>Modalidade</th><th>%</th><th>Índice</th><th>Área</th><th>Valor</th></tr>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="p-2 bg-light rounded text-center">
+              <div class="text-muted">ABP</div>
+              <div class="fw-bold">{{ sc.abp|fmt_area }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-2 bg-light rounded text-center">
+              <div class="text-muted">AEX</div>
+              <div class="fw-bold">{{ sc.aex|fmt_area }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-2 bg-light rounded text-center">
+              <div class="text-muted">VU (CUB × 6%)</div>
+              <div class="fw-bold">{{ sc.vu|brl }}/m²</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="p-2 bg-light rounded text-center">
+              <div class="text-muted">Índice Final</div>
+              <div class="fw-bold">{{ '%.4f'|format(sc.indice_final) }}</div>
+            </div>
+          </div>
+        </div>
+        <table class="table table-sm table-bordered">
+          <thead class="table-light text-center">
+            <tr><th>Modalidade</th><th>Área (m²)</th><th>%</th><th>Valor (R$)</th></tr>
           </thead>
-          <tbody>
+          <tbody class="text-center">
             <tr>
-              <td>Onerosa</td><td>{{ '%.2f'|format(sc.pon) }}%</td>
-              <td>{{ '%.4f'|format(sc.ion) }}</td><td>{{ sc.aon|fmt_area }}</td>
+              <td class="text-start">Onerosa</td>
+              <td>{{ sc.aon|fmt_area }}</td>
+              <td>{{ '%.2f'|format(sc.pon) }}%</td>
               <td class="fw-bold text-success">{{ sc.von|brl }}</td>
             </tr>
-            {% if sc.pin %}
+            {% if sc.ain %}
             <tr>
-              <td>Infraestrutura</td><td>{{ '%.2f'|format(sc.pin) }}%</td>
-              <td>{{ '%.4f'|format(sc.iin) }}</td><td>{{ sc.ain|fmt_area }}</td>
+              <td class="text-start">Infraestrutura</td>
+              <td>{{ sc.ain|fmt_area }}</td>
+              <td>{{ '%.2f'|format(sc.pin) }}%</td>
               <td>{{ sc.vin|brl }}</td>
             </tr>
             {% endif %}
-            {% if sc.pag %}
+            {% if sc.aag %}
             <tr>
-              <td>Águas</td><td>{{ '%.2f'|format(sc.pag) }}%</td>
-              <td>{{ '%.4f'|format(sc.iag) }}</td><td>{{ sc.aag|fmt_area }}</td>
+              <td class="text-start">Águas</td>
+              <td>{{ sc.aag|fmt_area }}</td>
+              <td>{{ '%.2f'|format(sc.pag) }}%</td>
               <td>{{ sc.vag|brl }}</td>
             </tr>
             {% endif %}
             <tr class="table-success fw-bold">
-              <td>Total</td>
-              <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
-              <td>{{ '%.4f'|format(sc.iat) }}</td>
+              <td class="text-start">Total</td>
               <td>{{ sc.aat|fmt_area }}</td>
-              <td>{{ (sc.von+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
+              <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
+              <td>{{ ((sc.von or 0)+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
             </tr>
           </tbody>
         </table>
-        <div class="mt-2">
-          <strong>Índice Final:</strong> {{ '%.4f'|format(sc.indice_final) }}
-          {% if sc.iam %}
-            {% if sc.indice_final <= sc.iam %}
-              <span class="badge bg-success ms-1">≤ IAM {{ '%.4f'|format(sc.iam) }}</span>
-            {% else %}
-              <span class="badge bg-danger ms-1">Excede IAM {{ '%.4f'|format(sc.iam) }}</span>
-            {% endif %}
-          {% endif %}
-        </div>
+        {% if sc.data_calculo %}
+        <small class="text-muted">
+          Calculado em {{ sc.data_calculo.strftime('%d/%m/%Y %H:%M') }}
+          {% if sc.calculador %} por {{ sc.calculador.nome }}{% endif %}
+        </small>
+        {% endif %}
       </div>
     </div>
   </div>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const ABP = {{ (sc.area_terreno * sc.iab) if sc.area_terreno and sc.iab else 0 }};
+const LIM_ON  = ABP * 0.40;
+const LIM_IN  = ABP * 0.05;
+const LIM_AG  = ABP * 0.05;
+const LIM_TOT = ABP * 0.50;
+
+function fmtArea(v) {
+  return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' m²';
+}
+function fmtPerc(v) {
+  return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '%';
+}
+
+function recalcPreview() {
+  if (!ABP) return;
+  const aon = parseFloat(document.getElementById('inputAon').value) || 0;
+  const ain = parseFloat(document.getElementById('inputAin').value) || 0;
+  const aag = parseFloat(document.getElementById('inputAag').value) || 0;
+  const tot = aon + ain + aag;
+
+  const pon = aon / ABP * 100;
+  const pin = ain / ABP * 100;
+  const pag = aag / ABP * 100;
+  const pt  = tot / ABP * 100;
+
+  function hint(area, perc, limit, el) {
+    if (!area) { el.textContent = ''; return; }
+    const ok = perc <= limit;
+    el.innerHTML = `→ ${fmtPerc(perc)} da ABP ${ok ? '✔' : '<span class="text-danger fw-bold">⚠ excede ' + limit + '%</span>'}`;
+  }
+
+  hint(aon, pon, 40, document.getElementById('previewOn'));
+  hint(ain, pin,  5, document.getElementById('previewIn'));
+  hint(aag, pag,  5, document.getElementById('previewAg'));
+
+  const divTot = document.getElementById('previewTotal');
+  if (tot > 0) {
+    const ok = pt <= 50;
+    divTot.className = 'alert py-2 small ' + (ok ? 'alert-success' : 'alert-danger');
+    divTot.innerHTML = `<strong>Total: ${fmtArea(tot)} = ${fmtPerc(pt)} da ABP</strong>` +
+      (ok ? ' — dentro do limite de 50%' : ' — <strong>excede o limite de 50%!</strong>');
+  } else {
+    divTot.className = 'alert alert-secondary py-2 small';
+    divTot.innerHTML = 'Preencha as áreas acima para ver o preview dos percentuais.';
+  }
+}
+recalcPreview();
+</script>
 {% endblock %}

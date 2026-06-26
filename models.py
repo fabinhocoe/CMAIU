@@ -890,29 +890,31 @@ class SoloCriado(db.Model):
         return cores.get(self.situacao, 'secondary')
 
     def calcular(self, perc_cub=0.06):
-        """Executa o motor de cálculo conforme LC 109/2011."""
+        """Executa o motor de cálculo conforme LC 109/2011.
+        Entrada: áreas (aon, ain, aag). Percentuais são derivados da ABP."""
         at  = self.area_terreno or 0.0
         iab = self.iab or 0.0
         acp = self.area_computavel or 0.0
         cub = self.cub_valor or 0.0
-        pon = (self.pon or 0.0) / 100.0
-        pin = (self.pin or 0.0) / 100.0
-        pag = (self.pag or 0.0) / 100.0
+        aon = self.aon or 0.0
+        ain = self.ain or 0.0
+        aag = self.aag or 0.0
 
         abp = at * iab
         aex = max(0.0, acp - abp)
-        pn  = (aex / abp) if abp > 0 else 0.0
+        aat = aon + ain + aag
+        pn  = (aex / abp * 100) if abp > 0 else 0.0
+
+        # Percentuais derivados das áreas informadas
+        pon = (aon / abp * 100) if abp > 0 else 0.0
+        pin = (ain / abp * 100) if abp > 0 else 0.0
+        pag = (aag / abp * 100) if abp > 0 else 0.0
         pt  = pon + pin + pag
 
-        ion = iab * pon
-        iin = iab * pin
-        iag = iab * pag
+        ion = iab * pon / 100
+        iin = iab * pin / 100
+        iag = iab * pag / 100
         iat = ion + iin + iag
-
-        aon = abp * pon
-        ain = abp * pin
-        aag = abp * pag
-        aat = aon + ain + aag
 
         vu  = cub * perc_cub
         von = aon * vu
@@ -922,12 +924,25 @@ class SoloCriado(db.Model):
         indice_final = iab + iat
 
         self.abp = abp; self.aex = aex; self.pn = pn; self.pt = pt
+        self.pon = pon; self.pin = pin; self.pag = pag
         self.ion = ion; self.iin = iin; self.iag = iag; self.iat = iat
         self.aon = aon; self.ain = ain; self.aag = aag; self.aat = aat
         self.vu  = vu;  self.von = von; self.vin = vin; self.vag = vag
         self.indice_final = indice_final
 
         return self
+
+    def _percentuais(self):
+        """Calcula pon/pin/pag a partir das áreas e da ABP (para validação antes do cálculo)."""
+        at  = self.area_terreno or 0.0
+        iab = self.iab or 0.0
+        abp = at * iab
+        aon = self.aon or 0.0
+        ain = self.ain or 0.0
+        aag = self.aag or 0.0
+        if abp > 0:
+            return aon / abp * 100, ain / abp * 100, aag / abp * 100
+        return self.pon or 0.0, self.pin or 0.0, self.pag or 0.0
 
     def validar(self, perc_cub=0.06):
         """Retorna lista de erros impeditivos e alertas."""
@@ -936,36 +951,48 @@ class SoloCriado(db.Model):
         iab = self.iab or 0
         acp = self.area_computavel or 0
         cub = self.cub_valor or 0
-        pon = self.pon or 0
-        pin = self.pin or 0
-        pag = self.pag or 0
+        aon = self.aon or 0
+        ain = self.ain or 0
+        aag = self.aag or 0
         iam = self.iam or 0
 
-        if not at:            erros.append('Área do terreno não informada.')
-        if not iab:           erros.append('Índice de aproveitamento básico não informado.')
-        if not acp:           erros.append('Área computável do projeto não informada.')
-        if not cub:           erros.append('CUB não selecionado.')
-        if not self.permite_solo_criado: erros.append('Zoneamento não permite solo criado.')
-        if pon > 0 and pon < 20: erros.append(f'Percentual oneroso ({pon}%) abaixo do mínimo de 20%.')
-        if pon > 40:          erros.append(f'Percentual oneroso ({pon}%) excede o limite de 40%.')
-        if pin > 5:           erros.append(f'Percentual de infraestrutura ({pin}%) excede 5%.')
-        if pag > 5:           erros.append(f'Percentual de águas ({pag}%) excede 5%.')
-        if pin + pag > 10:    erros.append(f'Total não oneroso ({pin+pag}%) excede 10%.')
-        if pon + pin + pag > 50: erros.append(f'Percentual total ({pon+pin+pag}%) excede 50%.')
-        if self.von and self.von < 0: erros.append('Valor oneroso negativo.')
+        abp = at * iab if at and iab else 0
+        pon, pin, pag = self._percentuais()
+        pt  = pon + pin + pag
 
-        if self.aat and self.aex and self.aat < self.aex - 0.01:
-            erros.append(f'Área adquirida ({self.aat:.2f} m²) insuficiente para cobrir a área excedente ({self.aex:.2f} m²).')
-        if iam and self.indice_final and self.indice_final > iam:
-            erros.append(f'Índice final ({self.indice_final:.4f}) excede o índice máximo do zoneamento ({iam:.4f}).')
-        if (pin > 0 or pag > 0) and not self.decisao_comissao:
+        if not at:   erros.append('Área do terreno não informada.')
+        if not iab:  erros.append('Índice de aproveitamento básico não informado.')
+        if not acp:  erros.append('Área computável do projeto não informada.')
+        if not cub:  erros.append('CUB não selecionado.')
+        if not self.permite_solo_criado:
+            erros.append('Zoneamento não permite solo criado.')
+        if aon <= 0:
+            erros.append('Área onerosa não informada (obrigatória).')
+        if abp > 0 and pon > 40:
+            erros.append(f'Área onerosa ({aon:.2f} m²) representa {pon:.2f}% da ABP — excede o limite de 40%.')
+        if abp > 0 and pin > 5:
+            erros.append(f'Área de infraestrutura ({ain:.2f} m²) representa {pin:.2f}% da ABP — excede o limite de 5%.')
+        if abp > 0 and pag > 5:
+            erros.append(f'Área de águas ({aag:.2f} m²) representa {pag:.2f}% da ABP — excede o limite de 5%.')
+        if abp > 0 and pt > 50:
+            erros.append(f'Total ({aon+ain+aag:.2f} m²) representa {pt:.2f}% da ABP — excede o limite de 50%.')
+
+        aex = max(0.0, acp - abp) if abp else 0
+        aat = aon + ain + aag
+        if abp > 0 and aat < aex - 0.01:
+            erros.append(f'Área total adquirida ({aat:.2f} m²) insuficiente para cobrir a área excedente ({aex:.2f} m²).')
+        if iam and abp > 0:
+            indice_final = iab + (iab * pt / 100)
+            if indice_final > iam:
+                erros.append(f'Índice final estimado ({indice_final:.4f}) excede o IAM ({iam:.4f}).')
+        if (ain > 0 or aag > 0) and not self.decisao_comissao:
             erros.append('Modalidade não onerosa sem decisão da Comissão.')
 
-        if self.aat and self.aex and self.aat > self.aex + 0.01:
-            alertas.append('Área adquirida superior à área excedente.')
-        if pon + pin + pag == 50:
+        if abp > 0 and aat > aex + 0.01:
+            alertas.append(f'Área total adquirida ({aat:.2f} m²) superior à área excedente ({aex:.2f} m²).')
+        if abp > 0 and abs(pt - 50) < 0.01:
             alertas.append('Projeto utiliza o limite total de 50%.')
-        if pin > 0 and not self.infra_descricao:
-            alertas.append('Infraestrutura sem descrição técnica ou orçamento.')
+        if ain > 0 and not self.infra_descricao:
+            alertas.append('Infraestrutura sem descrição técnica.')
 
         return erros, alertas

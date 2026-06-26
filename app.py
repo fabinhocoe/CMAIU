@@ -1682,10 +1682,10 @@ def sc_calcular(sid):
     sc = SoloCriado.query.get_or_404(sid)
     erros, alertas = [], []
     if request.method == 'POST':
-        # Update percentuais from form
-        sc.pon = _float(request.form.get('pon', sc.pon))
-        sc.pin = _float(request.form.get('pin', sc.pin))
-        sc.pag = _float(request.form.get('pag', sc.pag))
+        # Entrada: áreas em m² — percentuais são derivados pela model
+        sc.aon = _float(request.form.get('aon')) or sc.aon
+        sc.ain = _float(request.form.get('ain')) or sc.ain
+        sc.aag = _float(request.form.get('aag')) or sc.aag
         erros, alertas = sc.validar()
         if not erros:
             sc.calcular()
@@ -1739,9 +1739,9 @@ def _sc_fill(sc, f):
     sc.iam                   = fi('iam')
     sc.taxa_ocupacao         = fi('taxa_ocupacao')
     sc.permite_solo_criado   = bool(f.get('permite_solo_criado'))
-    sc.pon                   = fi('pon')
-    sc.pin                   = fi('pin')
-    sc.pag                   = fi('pag')
+    sc.aon                   = fi('aon')
+    sc.ain                   = fi('ain')
+    sc.aag                   = fi('aag')
     sc.cub_id                = _int(f.get('cub_id'))
     sc.cub_valor             = fi('cub_valor')
     sc.cub_mes_ref           = s('cub_mes_ref')
