@@ -1,0 +1,106 @@
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header text-center">
+    <strong>PREFEITURA MUNICIPAL DE PALHOÇA</strong><br>
+    <span class="small">CMAIU – Comissão Municipal de Avaliação de Impacto Urbano</span><br>
+    <span class="small fw-bold">RELATÓRIO DE CÁLCULO DE OUTORGA ONEROSA – SOLO CRIADO</span>
+  </div>
+  <div class="card-body">
+    <h6 class="fw-bold border-bottom pb-1 mb-2">1. IDENTIFICAÇÃO</h6>
+    <div class="row g-1 small mb-3">
+      <div class="col-md-4"><strong>Protocolo CMAIU:</strong> {{ sc.protocolo or '—' }}</div>
+      <div class="col-md-4"><strong>Processo Adm.:</strong> {{ sc.num_processo or '—' }}</div>
+      <div class="col-md-4"><strong>Data do cálculo:</strong>
+        {{ sc.data_calculo.strftime('%d/%m/%Y') if sc.data_calculo else '—' }}</div>
+      <div class="col-md-6"><strong>Requerente:</strong> {{ sc.nome_empreendimento or '—' }}</div>
+      <div class="col-md-6"><strong>Resp. Técnico:</strong> {{ sc.responsavel_tecnico or '—' }}</div>
+      <div class="col-md-8"><strong>Endereço:</strong> {{ sc.endereco_imovel or '—' }}{% if sc.bairro_imovel %}, {{ sc.bairro_imovel }}{% endif %}</div>
+      <div class="col-md-4"><strong>Inscrição Imob.:</strong> {{ sc.inscricao_imob or '—' }}</div>
+    </div>
+
+    <h6 class="fw-bold border-bottom pb-1 mb-2">2. PARÂMETROS URBANÍSTICOS</h6>
+    <div class="row g-1 small mb-3">
+      <div class="col-md-3"><strong>Zoneamento:</strong> {{ sc.zoneamento.codigo if sc.zoneamento else '—' }}</div>
+      <div class="col-md-3"><strong>IAB:</strong> {{ '%.4f'|format(sc.iab) if sc.iab else '—' }}</div>
+      <div class="col-md-3"><strong>IAM:</strong> {{ '%.4f'|format(sc.iam) if sc.iam else '—' }}</div>
+      <div class="col-md-3"><strong>Permite Solo Criado:</strong> {{ 'Sim' if sc.permite_solo_criado else 'Não' }}</div>
+      <div class="col-md-4"><strong>Área do Terreno (AT):</strong> {{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</div>
+      <div class="col-md-4"><strong>Área Computável (ACP):</strong> {{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</div>
+      <div class="col-md-4"><strong>CUB:</strong>
+        {% if sc.cub %}{{ sc.cub.mes_ano_str }} – {{ sc.cub_valor|brl }}/m²
+        {% elif sc.cub_valor %}{{ sc.cub_valor|brl }}/m²{% else %}—{% endif %}
+      </div>
+    </div>
+
+    <h6 class="fw-bold border-bottom pb-1 mb-2">3. MEMÓRIA DE CÁLCULO</h6>
+    <div class="small mb-3">
+      <p class="mb-1">
+        <strong>Área Básica (ABP)</strong> = AT × IAB = {{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }} × {{ '%.4f'|format(sc.iab) if sc.iab else '—' }}
+        = <strong>{{ sc.abp|fmt_area if sc.abp is not none else '—' }}</strong>
+      </p>
+      <p class="mb-1">
+        <strong>Área Excedente (AEX)</strong> = ACP − ABP = {{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }} − {{ sc.abp|fmt_area if sc.abp is not none else '—' }}
+        = <strong>{{ sc.aex|fmt_area if sc.aex is not none else '—' }}</strong>
+      </p>
+      <p class="mb-3">
+        <strong>VU</strong> = CUB × 6% = {{ sc.cub_valor|brl if sc.cub_valor else '—' }} × 0,06
+        = <strong>{{ sc.vu|brl if sc.vu is not none else '—' }}/m²</strong>
+      </p>
+      <table class="table table-sm table-bordered">
+        <thead class="table-light text-center">
+          <tr>
+            <th>Modalidade</th><th>% Outorga</th><th>Índice</th>
+            <th>Área Outorgada (m²)</th><th>Valor de Outorga (R$)</th>
+          </tr>
+        </thead>
+        <tbody class="text-center">
+          <tr>
+            <td class="text-start">Onerosa (VON)</td>
+            <td>{{ '%.2f'|format(sc.pon) if sc.pon else '—' }}%</td>
+            <td>{{ '%.4f'|format(sc.ion) if sc.ion is not none else '—' }}</td>
+            <td>{{ sc.aon|fmt_area if sc.aon is not none else '—' }}</td>
+            <td class="fw-bold">{{ sc.von|brl if sc.von is not none else '—' }}</td>
+          </tr>
+          {% if sc.pin %}
+          <tr>
+            <td class="text-start">Infraestrutura (VIN)</td>
+            <td>{{ '%.2f'|format(sc.pin) }}%</td>
+            <td>{{ '%.4f'|format(sc.iin) if sc.iin is not none else '—' }}</td>
+            <td>{{ sc.ain|fmt_area if sc.ain is not none else '—' }}</td>
+            <td>{{ sc.vin|brl if sc.vin is not none else '—' }}</td>
+          </tr>
+          {% endif %}
+          {% if sc.pag %}
+          <tr>
+            <td class="text-start">Águas Pluviais (VAG)</td>
+            <td>{{ '%.2f'|format(sc.pag) }}%</td>
+            <td>{{ '%.4f'|format(sc.iag) if sc.iag is not none else '—' }}</td>
+            <td>{{ sc.aag|fmt_area if sc.aag is not none else '—' }}</td>
+            <td>{{ sc.vag|brl if sc.vag is not none else '—' }}</td>
+          </tr>
+          {% endif %}
+          <tr class="table-success fw-bold">
+            <td class="text-start">TOTAL</td>
+            <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
+            <td>{{ '%.4f'|format(sc.iat) if sc.iat is not none else '—' }}</td>
+            <td>{{ sc.aat|fmt_area if sc.aat is not none else '—' }}</td>
+            <td>{{ ((sc.von or 0)+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="mb-0"><strong>Índice de Aproveitamento Final:</strong> IAB + IAT = {{ '%.4f'|format(sc.iab) if sc.iab else '—' }} + {{ '%.4f'|format(sc.iat) if sc.iat is not none else '—' }} = <strong>{{ '%.4f'|format(sc.indice_final) if sc.indice_final is not none else '—' }}</strong></p>
+    </div>
+
+    {% if sc.parecer_tecnico or sc.decisao_comissao or sc.condicionantes %}
+    <h6 class="fw-bold border-bottom pb-1 mb-2">4. MANIFESTAÇÕES</h6>
+    <div class="small mb-3">
+      {% if sc.parecer_tecnico %}<p><strong>Parecer técnico:</strong> {{ sc.parecer_tecnico }}</p>{% endif %}
+      {% if sc.decisao_comissao %}<p><strong>Decisão da Comissão:</strong> {{ sc.decisao_comissao }}</p>{% endif %}
+      {% if sc.condicionantes %}<p class="mb-0"><strong>Condicionantes:</strong> {{ sc.condicionantes }}</p>{% endif %}
+    </div>
+    {% endif %}
+
+    <div class="small text-muted mt-3 border-top pt-2">
+      Gerado em {{ now().strftime('%d/%m/%Y %H:%M') }} · Situação: {{ sc.situacao }}
+    </div>
+  </div>
+</div>

@@ -19,7 +19,8 @@ from models import (db, Usuario, Zoneamento, CUB, Parametro, HistoricoParametro,
                     TAC, CompromissarioTAC, ObraTAC, IrregularidadeTAC,
                     VagasTAC, CalculoTAC,
                     SITUACOES_TAC, GRUPOS_OBRA, TIPOS_IRREGULARIDADE, PERC_TAC,
-                    PAPEIS_PROCESSO, PAPEIS_TAC)
+                    PAPEIS_PROCESSO, PAPEIS_TAC,
+                    SoloCriado, SITUACOES_SC)
 
 app = Flask(__name__)
 
@@ -1606,6 +1607,176 @@ def tac_extrato_pdf(tid):
     buf.seek(0)
     nome = f"TAC_{tac.numero or tac.id}_Extrato.pdf"
     return send_file(buf, mimetype='application/pdf', download_name=nome)
+
+
+# ─── Solo Criado ─────────────────────────────────────────────────────────────
+
+@app.route('/solo-criado')
+@login_required
+def sc_index():
+    q = request.args.get('q', '').strip()
+    sit = request.args.get('situacao', '')
+    qs = SoloCriado.query.order_by(SoloCriado.criado_em.desc())
+    if q:
+        qs = qs.filter(db.or_(
+            SoloCriado.nome_empreendimento.ilike(f'%{q}%'),
+            SoloCriado.endereco_imovel.ilike(f'%{q}%'),
+            SoloCriado.num_processo.ilike(f'%{q}%'),
+        ))
+    if sit:
+        qs = qs.filter(SoloCriado.situacao == sit)
+    registros = qs.all()
+    return render_template('solo_criado/index.html', registros=registros,
+                           q=q, sit=sit, situacoes=SITUACOES_SC)
+
+
+@app.route('/solo-criado/novo', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def sc_novo():
+    if request.method == 'POST':
+        if not csrf_ok():
+            abort(403)
+        sc = SoloCriado()
+        _sc_fill(sc, request.form)
+        sc.criado_por = current_user.id
+        db.session.add(sc)
+        db.session.commit()
+        flash('Registro criado com sucesso.', 'success')
+        return redirect(url_for('sc_detail', sid=sc.id))
+    return render_template('solo_criado/form.html', sc=None,
+                           situacoes=SITUACOES_SC,
+                           zoneamentos=Zoneamento.query.order_by('codigo').all(),
+                           cubs=CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).limit(24).all(),
+                           processos=Processo.query.order_by(Processo.protocolo_cmaiu).all(),
+                           pessoas=Pessoa.query.order_by(Pessoa.nome).all())
+
+
+@app.route('/solo-criado/<int:sid>')
+@login_required
+def sc_detail(sid):
+    sc = SoloCriado.query.get_or_404(sid)
+    return render_template('solo_criado/detail.html', sc=sc)
+
+
+@app.route('/solo-criado/<int:sid>/editar', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def sc_editar(sid):
+    sc = SoloCriado.query.get_or_404(sid)
+    if request.method == 'POST':
+        if not csrf_ok():
+            abort(403)
+        _sc_fill(sc, request.form)
+        db.session.commit()
+        flash('Registro atualizado.', 'success')
+        return redirect(url_for('sc_detail', sid=sc.id))
+    return render_template('solo_criado/form.html', sc=sc,
+                           situacoes=SITUACOES_SC,
+                           zoneamentos=Zoneamento.query.order_by('codigo').all(),
+                           cubs=CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).limit(24).all(),
+                           processos=Processo.query.order_by(Processo.protocolo_cmaiu).all(),
+                           pessoas=Pessoa.query.order_by(Pessoa.nome).all())
+
+
+@app.route('/solo-criado/<int:sid>/calcular', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def sc_calcular(sid):
+    sc = SoloCriado.query.get_or_404(sid)
+    erros, alertas = [], []
+    if request.method == 'POST':
+        if not csrf_ok():
+            abort(403)
+        # Update percentuais from form
+        sc.pon = _float(request.form.get('pon', sc.pon))
+        sc.pin = _float(request.form.get('pin', sc.pin))
+        sc.pag = _float(request.form.get('pag', sc.pag))
+        erros, alertas = sc.validar()
+        if not erros:
+            sc.calcular()
+            sc.calculado_por = current_user.id
+            sc.data_calculo = datetime.utcnow()
+            if sc.situacao in ('Rascunho', 'Em preenchimento', 'Com pendências'):
+                sc.situacao = 'Aguardando parecer técnico'
+            db.session.commit()
+            flash('Cálculo realizado com sucesso.', 'success')
+            return redirect(url_for('sc_detail', sid=sc.id))
+        else:
+            flash('Corrija os erros antes de calcular.', 'danger')
+    else:
+        erros, alertas = sc.validar()
+    return render_template('solo_criado/calcular.html', sc=sc, erros=erros, alertas=alertas)
+
+
+@app.route('/solo-criado/<int:sid>/relatorio')
+@login_required
+def sc_relatorio(sid):
+    sc = SoloCriado.query.get_or_404(sid)
+    return render_template('solo_criado/relatorio.html', sc=sc)
+
+
+@app.route('/solo-criado/<int:sid>/relatorio.pdf')
+@login_required
+def sc_relatorio_pdf(sid):
+    sc = SoloCriado.query.get_or_404(sid)
+    html = render_template('solo_criado/relatorio_pdf.html', sc=sc)
+    buf = io.BytesIO()
+    pisa.CreatePDF(html, dest=buf)
+    buf.seek(0)
+    return send_file(buf, mimetype='application/pdf',
+                     download_name=f'SoloCriado_{sc.id}.pdf')
+
+
+def _sc_fill(sc, f):
+    def s(k): return f.get(k, '').strip() or None
+    def fi(k): return _float(f.get(k))
+    sc.situacao              = f.get('situacao', 'Rascunho')
+    sc.num_processo          = s('num_processo_adm')
+    sc.protocolo             = s('protocolo_cmaiu')
+    sc.nome_empreendimento   = s('requerente')
+    sc.endereco_imovel       = s('endereco_imovel')
+    sc.bairro_imovel         = s('bairro')
+    sc.inscricao_imob        = s('inscricao_imobiliaria')
+    sc.responsavel_tecnico   = s('responsavel_tecnico')
+    sc.area_terreno          = fi('area_terreno')
+    sc.area_computavel       = fi('area_computavel')
+    sc.iab                   = fi('iab')
+    sc.iam                   = fi('iam')
+    sc.taxa_ocupacao         = fi('taxa_ocupacao')
+    sc.permite_solo_criado   = bool(f.get('permite_solo_criado'))
+    sc.pon                   = fi('pon')
+    sc.pin                   = fi('pin')
+    sc.pag                   = fi('pag')
+    sc.cub_id                = _int(f.get('cub_id'))
+    sc.cub_valor             = fi('cub_valor')
+    sc.cub_mes_ref           = s('cub_mes_ref')
+    sc.justificativa_cub     = s('justificativa_cub')
+    sc.infra_descricao       = s('infra_descricao')
+    sc.infra_localizacao     = s('infra_localizacao')
+    sc.infra_orcamento       = fi('infra_orcamento')
+    sc.infra_orgao           = s('infra_orgao')
+    sc.infra_decisao         = s('infra_decisao')
+    sc.aguas_tipo            = s('aguas_tipo')
+    sc.aguas_capacidade      = fi('aguas_capacidade')
+    sc.aguas_area_atendida   = fi('aguas_area_atendida')
+    sc.aguas_finalidade      = s('aguas_finalidade')
+    sc.aguas_parecer         = s('aguas_parecer')
+    sc.aguas_decisao         = s('aguas_decisao')
+    sc.parecer_tecnico       = s('parecer_tecnico')
+    sc.decisao_comissao      = s('decisao_comissao')
+    sc.condicionantes        = s('condicionantes')
+    sc.observacoes           = s('observacoes')
+    sc.processo_id           = _int(f.get('processo_id'))
+    sc.pessoa_id             = _int(f.get('pessoa_id'))
+    sc.zoneamento_id         = _int(f.get('zoneamento_id'))
+    # Fill CUB from selected id
+    if sc.cub_id and not sc.cub_valor:
+        cub = CUB.query.get(sc.cub_id)
+        if cub:
+            sc.cub_valor   = cub.valor
+            sc.cub_mes_ref = cub.mes_ano_str
+
 
 
 # ─── Cabeçalhos de segurança HTTP ────────────────────────────────────────────

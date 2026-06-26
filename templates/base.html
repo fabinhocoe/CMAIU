@@ -43,6 +43,11 @@
         </a>
       </li>
       <li class="nav-item">
+        <a href="{{ url_for('sc_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'sc_' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-layers me-2"></i>Solo Criado
+        </a>
+      </li>
+      <li class="nav-item">
         <a href="{{ url_for('cub_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'cub' in request.endpoint %}active{% endif %}">
           <i class="bi bi-currency-dollar me-2"></i>CUB
         </a>

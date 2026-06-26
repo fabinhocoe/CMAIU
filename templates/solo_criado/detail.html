@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% block title %}Solo Criado #{{ sc.id }} – CMAIU{% endblock %}
+{% block page_title %}Solo Criado – #{{ sc.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2 flex-wrap">
+  <a href="{{ url_for('sc_index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  {% if current_user.is_tecnico %}
+  <a href="{{ url_for('sc_editar', sid=sc.id) }}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-pencil me-1"></i>Editar
+  </a>
+  <a href="{{ url_for('sc_calcular', sid=sc.id) }}" class="btn btn-sm btn-success">
+    <i class="bi bi-calculator me-1"></i>Calcular
+  </a>
+  {% endif %}
+  {% if sc.von is not none %}
+  <a href="{{ url_for('sc_relatorio', sid=sc.id) }}" class="btn btn-sm btn-info">
+    <i class="bi bi-file-text me-1"></i>Relatório
+  </a>
+  <a href="{{ url_for('sc_relatorio_pdf', sid=sc.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>PDF
+  </a>
+  {% endif %}
+</div>
+
+<div class="row g-3">
+  <!-- Identificação -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header section-header"><i class="bi bi-info-circle me-2"></i>Identificação</div>
+      <div class="card-body small">
+        <dl class="row mb-0">
+          <dt class="col-sm-5">Situação</dt>
+          <dd class="col-sm-7"><span class="badge bg-{{ sc.situacao_badge }}">{{ sc.situacao }}</span></dd>
+          <dt class="col-sm-5">Processo Adm.</dt><dd class="col-sm-7">{{ sc.num_processo or '—' }}</dd>
+          <dt class="col-sm-5">Protocolo CMAIU</dt><dd class="col-sm-7">{{ sc.protocolo or '—' }}</dd>
+          <dt class="col-sm-5">Requerente</dt><dd class="col-sm-7">{{ sc.nome_empreendimento or '—' }}</dd>
+          <dt class="col-sm-5">Resp. Técnico</dt><dd class="col-sm-7">{{ sc.responsavel_tecnico or '—' }}</dd>
+          <dt class="col-sm-5">Endereço</dt><dd class="col-sm-7">{{ sc.endereco_imovel or '—' }}{% if sc.bairro_imovel %}, {{ sc.bairro_imovel }}{% endif %}</dd>
+          <dt class="col-sm-5">Inscrição Imob.</dt><dd class="col-sm-7">{{ sc.inscricao_imob or '—' }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Parâmetros -->
+  <div class="col-lg-6">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header section-header"><i class="bi bi-sliders me-2"></i>Parâmetros Urbanísticos</div>
+      <div class="card-body small">
+        <dl class="row mb-0">
+          <dt class="col-sm-5">Zoneamento</dt>
+          <dd class="col-sm-7">{{ sc.zoneamento.codigo if sc.zoneamento else '—' }}</dd>
+          <dt class="col-sm-5">Área Terreno</dt>
+          <dd class="col-sm-7">{{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</dd>
+          <dt class="col-sm-5">Área Computável</dt>
+          <dd class="col-sm-7">{{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</dd>
+          <dt class="col-sm-5">IAB</dt><dd class="col-sm-7">{{ '%.4f'|format(sc.iab) if sc.iab else '—' }}</dd>
+          <dt class="col-sm-5">IAM</dt><dd class="col-sm-7">{{ '%.4f'|format(sc.iam) if sc.iam else '—' }}</dd>
+          <dt class="col-sm-5">Permite SC</dt>
+          <dd class="col-sm-7">
+            {% if sc.permite_solo_criado %}<span class="badge bg-success">Sim</span>
+            {% else %}<span class="badge bg-danger">Não</span>{% endif %}
+          </dd>
+          <dt class="col-sm-5">CUB</dt>
+          <dd class="col-sm-7">
+            {% if sc.cub %}{{ sc.cub.mes_ano_str }} – {{ sc.cub_valor|brl }}/m²
+            {% elif sc.cub_valor %}{{ sc.cub_valor|brl }}/m²
+            {% else %}—{% endif %}
+          </dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <!-- Resultado do cálculo -->
+  {% if sc.von is not none %}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-calculator me-2"></i>Resultado do Cálculo</div>
+      <div class="card-body">
+        <div class="row g-3 mb-3">
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded text-center">
+              <div class="small text-muted">Área Básica (ABP)</div>
+              <div class="fw-bold">{{ sc.abp|fmt_area }}</div>
+              <div class="small text-muted">AT × IAB</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded text-center">
+              <div class="small text-muted">Área Excedente (AEX)</div>
+              <div class="fw-bold">{{ sc.aex|fmt_area }}</div>
+              <div class="small text-muted">ACP − ABP</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded text-center">
+              <div class="small text-muted">VU (CUB × 6%)</div>
+              <div class="fw-bold">{{ sc.vu|brl }}/m²</div>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <div class="p-3 bg-light rounded text-center">
+              <div class="small text-muted">Índice Final</div>
+              <div class="fw-bold">{{ '%.4f'|format(sc.indice_final) }}</div>
+            </div>
+          </div>
+        </div>
+        <table class="table table-sm">
+          <thead class="table-light">
+            <tr><th>Modalidade</th><th>%</th><th>Índice</th><th>Área (m²)</th><th>Valor (R$)</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Onerosa</td>
+              <td>{{ '%.2f'|format(sc.pon) }}%</td>
+              <td>{{ '%.4f'|format(sc.ion) }}</td>
+              <td>{{ sc.aon|fmt_area }}</td>
+              <td class="fw-bold">{{ sc.von|brl }}</td>
+            </tr>
+            {% if sc.pin %}
+            <tr>
+              <td>Infraestrutura</td>
+              <td>{{ '%.2f'|format(sc.pin) }}%</td>
+              <td>{{ '%.4f'|format(sc.iin) }}</td>
+              <td>{{ sc.ain|fmt_area }}</td>
+              <td>{{ sc.vin|brl }}</td>
+            </tr>
+            {% endif %}
+            {% if sc.pag %}
+            <tr>
+              <td>Águas</td>
+              <td>{{ '%.2f'|format(sc.pag) }}%</td>
+              <td>{{ '%.4f'|format(sc.iag) }}</td>
+              <td>{{ sc.aag|fmt_area }}</td>
+              <td>{{ sc.vag|brl }}</td>
+            </tr>
+            {% endif %}
+            <tr class="table-success fw-bold">
+              <td>Total</td>
+              <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
+              <td>{{ '%.4f'|format(sc.iat) }}</td>
+              <td>{{ sc.aat|fmt_area }}</td>
+              <td>{{ (sc.von+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
+            </tr>
+          </tbody>
+        </table>
+        {% if sc.data_calculo %}
+        <small class="text-muted">Calculado em {{ sc.data_calculo.strftime('%d/%m/%Y %H:%M') }}
+          {% if sc.calculador %} por {{ sc.calculador.nome }}{% endif %}</small>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Manifestações -->
+  {% if sc.parecer_tecnico or sc.decisao_comissao or sc.condicionantes %}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-chat-left-text me-2"></i>Manifestações</div>
+      <div class="card-body small">
+        {% if sc.parecer_tecnico %}
+        <p><strong>Parecer técnico:</strong> {{ sc.parecer_tecnico }}</p>{% endif %}
+        {% if sc.decisao_comissao %}
+        <p><strong>Decisão da Comissão:</strong> {{ sc.decisao_comissao }}</p>{% endif %}
+        {% if sc.condicionantes %}
+        <p class="mb-0"><strong>Condicionantes:</strong> {{ sc.condicionantes }}</p>{% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}Calcular Solo Criado #{{ sc.id }} – CMAIU{% endblock %}
+{% block page_title %}Cálculo de Solo Criado – #{{ sc.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('sc_detail', sid=sc.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+{% if erros %}
+<div class="alert alert-danger">
+  <strong>Impeditivos:</strong>
+  <ul class="mb-0 mt-1">{% for e in erros %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+{% if alertas %}
+<div class="alert alert-warning">
+  <strong>Alertas:</strong>
+  <ul class="mb-0 mt-1">{% for a in alertas %}<li>{{ a }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<div class="row g-3">
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-sliders me-2"></i>Parâmetros de entrada</div>
+      <div class="card-body small">
+        <dl class="row mb-2">
+          <dt class="col-7">Área do Terreno (AT)</dt>
+          <dd class="col-5 text-end">{{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</dd>
+          <dt class="col-7">Área Computável (ACP)</dt>
+          <dd class="col-5 text-end">{{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</dd>
+          <dt class="col-7">IAB</dt>
+          <dd class="col-5 text-end">{{ '%.4f'|format(sc.iab) if sc.iab else '—' }}</dd>
+          <dt class="col-7">CUB</dt>
+          <dd class="col-5 text-end">{{ sc.cub_valor|brl if sc.cub_valor else '—' }}/m²</dd>
+        </dl>
+        <form method="POST">
+          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+          <div class="row g-2">
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Oneroso (%)</label>
+              <input type="number" step="0.01" min="0" max="40" name="pon"
+                     class="form-control form-control-sm"
+                     value="{{ '%.2f'|format(sc.pon) if sc.pon else '' }}" placeholder="20 – 40">
+              <small class="text-muted">mín 20%, máx 40%</small>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Infra (%)</label>
+              <input type="number" step="0.01" min="0" max="5" name="pin"
+                     class="form-control form-control-sm"
+                     value="{{ '%.2f'|format(sc.pin) if sc.pin else '' }}" placeholder="0 – 5">
+              <small class="text-muted">máx 5%</small>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Águas (%)</label>
+              <input type="number" step="0.01" min="0" max="5" name="pag"
+                     class="form-control form-control-sm"
+                     value="{{ '%.2f'|format(sc.pag) if sc.pag else '' }}" placeholder="0 – 5">
+              <small class="text-muted">máx 5%</small>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-success mt-3 w-100" {% if erros %}disabled{% endif %}>
+            <i class="bi bi-calculator me-1"></i>Executar Cálculo
+          </button>
+          {% if erros %}<small class="text-danger d-block mt-1">Corrija os impeditivos antes de calcular.</small>{% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+
+  {% if sc.von is not none %}
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-calculator me-2"></i>Resultado atual</div>
+      <div class="card-body small">
+        <dl class="row mb-2">
+          <dt class="col-7">Área Básica (ABP = AT × IAB)</dt>
+          <dd class="col-5 text-end fw-bold">{{ sc.abp|fmt_area }}</dd>
+          <dt class="col-7">Área Excedente (AEX = ACP − ABP)</dt>
+          <dd class="col-5 text-end fw-bold">{{ sc.aex|fmt_area }}</dd>
+          <dt class="col-7">VU (CUB × 6%)</dt>
+          <dd class="col-5 text-end">{{ sc.vu|brl }}/m²</dd>
+        </dl>
+        <table class="table table-sm">
+          <thead class="table-light">
+            <tr><th>Modalidade</th><th>%</th><th>Índice</th><th>Área</th><th>Valor</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Onerosa</td><td>{{ '%.2f'|format(sc.pon) }}%</td>
+              <td>{{ '%.4f'|format(sc.ion) }}</td><td>{{ sc.aon|fmt_area }}</td>
+              <td class="fw-bold text-success">{{ sc.von|brl }}</td>
+            </tr>
+            {% if sc.pin %}
+            <tr>
+              <td>Infraestrutura</td><td>{{ '%.2f'|format(sc.pin) }}%</td>
+              <td>{{ '%.4f'|format(sc.iin) }}</td><td>{{ sc.ain|fmt_area }}</td>
+              <td>{{ sc.vin|brl }}</td>
+            </tr>
+            {% endif %}
+            {% if sc.pag %}
+            <tr>
+              <td>Águas</td><td>{{ '%.2f'|format(sc.pag) }}%</td>
+              <td>{{ '%.4f'|format(sc.iag) }}</td><td>{{ sc.aag|fmt_area }}</td>
+              <td>{{ sc.vag|brl }}</td>
+            </tr>
+            {% endif %}
+            <tr class="table-success fw-bold">
+              <td>Total</td>
+              <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
+              <td>{{ '%.4f'|format(sc.iat) }}</td>
+              <td>{{ sc.aat|fmt_area }}</td>
+              <td>{{ (sc.von+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="mt-2">
+          <strong>Índice Final:</strong> {{ '%.4f'|format(sc.indice_final) }}
+          {% if sc.iam %}
+            {% if sc.indice_final <= sc.iam %}
+              <span class="badge bg-success ms-1">≤ IAM {{ '%.4f'|format(sc.iam) }}</span>
+            {% else %}
+              <span class="badge bg-danger ms-1">Excede IAM {{ '%.4f'|format(sc.iam) }}</span>
+            {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

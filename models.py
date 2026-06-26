@@ -754,3 +754,218 @@ class CalculoTAC(db.Model):
 
     tac = db.relationship('TAC', back_populates='calculo')
     usuario = db.relationship('Usuario', backref='calculos_tac')
+
+
+# ─── Solo Criado – Lei Complementar nº 109/2011 ──────────────────────────────
+
+SITUACOES_SC = [
+    'Rascunho', 'Em preenchimento', 'Com pendências',
+    'Aguardando parecer técnico', 'Aguardando Comissão',
+    'Aprovado', 'Encaminhado à Receita', 'Guia emitida',
+    'Cancelado', 'Substituído por nova versão',
+]
+
+
+class SoloCriado(db.Model):
+    """Processo de aquisição de solo criado (LC 109/2011)."""
+    __tablename__ = 'solo_criado'
+    id              = db.Column(db.Integer, primary_key=True)
+    versao          = db.Column(db.Integer, default=1)
+    versao_anterior = db.Column(db.Integer, db.ForeignKey('solo_criado.id'))
+    situacao        = db.Column(db.String(60), default='Rascunho')
+
+    # Vínculo com processo e proprietário
+    processo_id     = db.Column(db.Integer, db.ForeignKey('processos.id'))
+    num_processo    = db.Column(db.String(100))
+    ano_processo    = db.Column(db.String(10))
+    protocolo       = db.Column(db.String(100))
+    data_requerimento = db.Column(db.Date)
+
+    # Proprietário / empreendedor (vinculado ao cadastro de Pessoas)
+    pessoa_id       = db.Column(db.Integer, db.ForeignKey('pessoas.id'))
+
+    # Imóvel
+    endereco_imovel    = db.Column(db.String(400))
+    bairro_imovel      = db.Column(db.String(200))
+    inscricao_imob     = db.Column(db.String(100))
+    matricula          = db.Column(db.String(200))
+    area_terreno       = db.Column(db.Float)
+    zoneamento_id      = db.Column(db.Integer, db.ForeignKey('zoneamentos.id'))
+    macrozona_turistica= db.Column(db.Boolean, default=False)
+
+    # Empreendimento
+    nome_empreendimento    = db.Column(db.String(300))
+    uso_empreendimento     = db.Column(db.String(100))
+    area_construida_total  = db.Column(db.Float)
+    area_computavel        = db.Column(db.Float)  # ACP
+    num_pavimentos         = db.Column(db.Integer)
+    responsavel_tecnico    = db.Column(db.String(200))
+    art_rrt_trt            = db.Column(db.String(100))
+    num_proc_aprovacao     = db.Column(db.String(100))
+
+    # Parâmetros urbanísticos (confirmados pelo técnico)
+    iab = db.Column(db.Float)   # Índice de Aproveitamento Básico
+    iam = db.Column(db.Float)   # Índice de Aproveitamento Máximo
+    taxa_ocupacao = db.Column(db.Float)
+    gabarito      = db.Column(db.String(50))
+    permite_solo_criado = db.Column(db.Boolean, default=True)
+    limite_zoneamento   = db.Column(db.Float)
+    fundamento_legal    = db.Column(db.String(300))
+
+    # CUB utilizado (gravado permanentemente)
+    cub_id      = db.Column(db.Integer, db.ForeignKey('cub.id'))
+    cub_valor   = db.Column(db.Float)
+    cub_mes_ref = db.Column(db.String(20))
+    justificativa_cub = db.Column(db.Text)
+
+    # Percentuais solicitados
+    pon = db.Column(db.Float, default=0.0)  # % oneroso
+    pin = db.Column(db.Float, default=0.0)  # % infraestrutura
+    pag = db.Column(db.Float, default=0.0)  # % águas
+
+    # Resultados calculados (gravados)
+    abp = db.Column(db.Float)   # Área Básica Permitida
+    aex = db.Column(db.Float)   # Área Excedente
+    pn  = db.Column(db.Float)   # Percentual Necessário
+    pt  = db.Column(db.Float)   # Percentual Total
+    ion = db.Column(db.Float)   # Índice adicional oneroso
+    iin = db.Column(db.Float)   # Índice adicional infra
+    iag = db.Column(db.Float)   # Índice adicional águas
+    iat = db.Column(db.Float)   # Índice adicional total
+    aon = db.Column(db.Float)   # Área onerosa
+    ain = db.Column(db.Float)   # Área infra
+    aag = db.Column(db.Float)   # Área águas
+    aat = db.Column(db.Float)   # Área total adquirida
+    vu  = db.Column(db.Float)   # Valor unitário (6% CUB)
+    von = db.Column(db.Float)   # Valor oneroso
+    vin = db.Column(db.Float)   # Valor equivalente infra
+    vag = db.Column(db.Float)   # Valor equivalente águas
+    indice_final = db.Column(db.Float)
+
+    # Modalidade infraestrutura – complementos
+    infra_descricao  = db.Column(db.Text)
+    infra_localizacao= db.Column(db.String(400))
+    infra_orcamento  = db.Column(db.Float)
+    infra_orgao      = db.Column(db.String(200))
+    infra_decisao    = db.Column(db.Text)
+
+    # Modalidade águas – complementos
+    aguas_tipo          = db.Column(db.String(50))   # pluvial / servida
+    aguas_capacidade    = db.Column(db.Float)
+    aguas_area_atendida = db.Column(db.Float)
+    aguas_finalidade    = db.Column(db.String(200))
+    aguas_parecer       = db.Column(db.Text)
+    aguas_decisao       = db.Column(db.Text)
+
+    # Manifestação técnica e Comissão
+    parecer_tecnico  = db.Column(db.Text)
+    decisao_comissao = db.Column(db.Text)
+    condicionantes   = db.Column(db.Text)
+    observacoes      = db.Column(db.Text)
+
+    # Auditoria
+    criado_por   = db.Column(db.Integer, db.ForeignKey('usuarios.id'))
+    criado_em    = db.Column(db.DateTime, default=datetime.utcnow)
+    atualizado_em= db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    data_calculo = db.Column(db.DateTime)
+    calculado_por= db.Column(db.Integer, db.ForeignKey('usuarios.id'))
+
+    # Relacionamentos
+    processo   = db.relationship('Processo',   backref='solos_criados', foreign_keys=[processo_id])
+    pessoa     = db.relationship('Pessoa',     backref='solos_criados', foreign_keys=[pessoa_id])
+    zoneamento = db.relationship('Zoneamento', backref='solos_criados', foreign_keys=[zoneamento_id])
+    cub        = db.relationship('CUB',        backref='solos_criados', foreign_keys=[cub_id])
+    criador    = db.relationship('Usuario',    backref='solos_criados_criados', foreign_keys=[criado_por])
+    calculador = db.relationship('Usuario',    backref='solos_criados_calculados', foreign_keys=[calculado_por])
+
+    @property
+    def situacao_badge(self):
+        cores = {
+            'Rascunho': 'secondary', 'Em preenchimento': 'info',
+            'Com pendências': 'warning', 'Aguardando parecer técnico': 'primary',
+            'Aguardando Comissão': 'primary', 'Aprovado': 'success',
+            'Encaminhado à Receita': 'success', 'Guia emitida': 'dark',
+            'Cancelado': 'danger', 'Substituído por nova versão': 'secondary',
+        }
+        return cores.get(self.situacao, 'secondary')
+
+    def calcular(self, perc_cub=0.06):
+        """Executa o motor de cálculo conforme LC 109/2011."""
+        at  = self.area_terreno or 0.0
+        iab = self.iab or 0.0
+        acp = self.area_computavel or 0.0
+        cub = self.cub_valor or 0.0
+        pon = (self.pon or 0.0) / 100.0
+        pin = (self.pin or 0.0) / 100.0
+        pag = (self.pag or 0.0) / 100.0
+
+        abp = at * iab
+        aex = max(0.0, acp - abp)
+        pn  = (aex / abp) if abp > 0 else 0.0
+        pt  = pon + pin + pag
+
+        ion = iab * pon
+        iin = iab * pin
+        iag = iab * pag
+        iat = ion + iin + iag
+
+        aon = abp * pon
+        ain = abp * pin
+        aag = abp * pag
+        aat = aon + ain + aag
+
+        vu  = cub * perc_cub
+        von = aon * vu
+        vin = ain * vu
+        vag = aag * vu
+
+        indice_final = iab + iat
+
+        self.abp = abp; self.aex = aex; self.pn = pn; self.pt = pt
+        self.ion = ion; self.iin = iin; self.iag = iag; self.iat = iat
+        self.aon = aon; self.ain = ain; self.aag = aag; self.aat = aat
+        self.vu  = vu;  self.von = von; self.vin = vin; self.vag = vag
+        self.indice_final = indice_final
+
+        return self
+
+    def validar(self, perc_cub=0.06):
+        """Retorna lista de erros impeditivos e alertas."""
+        erros, alertas = [], []
+        at  = self.area_terreno or 0
+        iab = self.iab or 0
+        acp = self.area_computavel or 0
+        cub = self.cub_valor or 0
+        pon = self.pon or 0
+        pin = self.pin or 0
+        pag = self.pag or 0
+        iam = self.iam or 0
+
+        if not at:            erros.append('Área do terreno não informada.')
+        if not iab:           erros.append('Índice de aproveitamento básico não informado.')
+        if not acp:           erros.append('Área computável do projeto não informada.')
+        if not cub:           erros.append('CUB não selecionado.')
+        if not self.permite_solo_criado: erros.append('Zoneamento não permite solo criado.')
+        if pon > 0 and pon < 20: erros.append(f'Percentual oneroso ({pon}%) abaixo do mínimo de 20%.')
+        if pon > 40:          erros.append(f'Percentual oneroso ({pon}%) excede o limite de 40%.')
+        if pin > 5:           erros.append(f'Percentual de infraestrutura ({pin}%) excede 5%.')
+        if pag > 5:           erros.append(f'Percentual de águas ({pag}%) excede 5%.')
+        if pin + pag > 10:    erros.append(f'Total não oneroso ({pin+pag}%) excede 10%.')
+        if pon + pin + pag > 50: erros.append(f'Percentual total ({pon+pin+pag}%) excede 50%.')
+        if self.von and self.von < 0: erros.append('Valor oneroso negativo.')
+
+        if self.aat and self.aex and self.aat < self.aex - 0.01:
+            erros.append(f'Área adquirida ({self.aat:.2f} m²) insuficiente para cobrir a área excedente ({self.aex:.2f} m²).')
+        if iam and self.indice_final and self.indice_final > iam:
+            erros.append(f'Índice final ({self.indice_final:.4f}) excede o índice máximo do zoneamento ({iam:.4f}).')
+        if (pin > 0 or pag > 0) and not self.decisao_comissao:
+            erros.append('Modalidade não onerosa sem decisão da Comissão.')
+
+        if self.aat and self.aex and self.aat > self.aex + 0.01:
+            alertas.append('Área adquirida superior à área excedente.')
+        if pon + pin + pag == 50:
+            alertas.append('Projeto utiliza o limite total de 50%.')
+        if pin > 0 and not self.infra_descricao:
+            alertas.append('Infraestrutura sem descrição técnica ou orçamento.')
+
+        return erros, alertas

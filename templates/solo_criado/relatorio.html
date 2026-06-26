@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Relatório Solo Criado #{{ sc.id }} – CMAIU{% endblock %}
+{% block page_title %}Relatório de Solo Criado – #{{ sc.id }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('sc_detail', sid=sc.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  <a href="{{ url_for('sc_relatorio_pdf', sid=sc.id) }}" class="btn btn-sm btn-danger">
+    <i class="bi bi-file-pdf me-1"></i>Baixar PDF
+  </a>
+</div>
+
+{% include 'solo_criado/_relatorio_corpo.html' %}
+{% endblock %}
