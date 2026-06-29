@@ -758,6 +758,22 @@ class CalculoTAC(db.Model):
 
 # ─── Solo Criado – Lei Complementar nº 109/2011 ──────────────────────────────
 
+class ResponsavelTecnico(db.Model):
+    """Cadastro de responsáveis técnicos para Solo Criado."""
+    __tablename__ = 'responsaveis_tecnicos'
+    id              = db.Column(db.Integer, primary_key=True)
+    nome            = db.Column(db.String(300), nullable=False)
+    registro_prof   = db.Column(db.String(100))   # CREA / CAU / CRQ etc.
+    especialidade   = db.Column(db.String(200))
+    telefone        = db.Column(db.String(50))
+    email           = db.Column(db.String(200))
+    ativo           = db.Column(db.Boolean, default=True)
+    criado_em       = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<ResponsavelTecnico {self.nome}>'
+
+
 SITUACOES_SC = [
     'Rascunho', 'Em preenchimento', 'Com pendências',
     'Aguardando parecer técnico', 'Aguardando Comissão',
@@ -770,6 +786,7 @@ class SoloCriado(db.Model):
     """Processo de aquisição de solo criado (LC 109/2011)."""
     __tablename__ = 'solo_criado'
     id              = db.Column(db.Integer, primary_key=True)
+    numero          = db.Column(db.String(30))    # Ex.: SC-2025-001
     versao          = db.Column(db.Integer, default=1)
     versao_anterior = db.Column(db.Integer, db.ForeignKey('solo_criado.id'))
     situacao        = db.Column(db.String(60), default='Rascunho')
@@ -781,8 +798,11 @@ class SoloCriado(db.Model):
     protocolo       = db.Column(db.String(100))
     data_requerimento = db.Column(db.Date)
 
-    # Proprietário / empreendedor (vinculado ao cadastro de Pessoas)
+    # Proprietário (vinculado ao cadastro de Pessoas)
     pessoa_id       = db.Column(db.Integer, db.ForeignKey('pessoas.id'))
+
+    # Responsável Técnico (vinculado ao cadastro)
+    resp_tecnico_id = db.Column(db.Integer, db.ForeignKey('responsaveis_tecnicos.id'))
 
     # Imóvel
     endereco_imovel    = db.Column(db.String(400))
@@ -871,12 +891,13 @@ class SoloCriado(db.Model):
     calculado_por= db.Column(db.Integer, db.ForeignKey('usuarios.id'))
 
     # Relacionamentos
-    processo   = db.relationship('Processo',   backref='solos_criados', foreign_keys=[processo_id])
-    pessoa     = db.relationship('Pessoa',     backref='solos_criados', foreign_keys=[pessoa_id])
-    zoneamento = db.relationship('Zoneamento', backref='solos_criados', foreign_keys=[zoneamento_id])
-    cub        = db.relationship('CUB',        backref='solos_criados', foreign_keys=[cub_id])
-    criador    = db.relationship('Usuario',    backref='solos_criados_criados', foreign_keys=[criado_por])
-    calculador = db.relationship('Usuario',    backref='solos_criados_calculados', foreign_keys=[calculado_por])
+    processo       = db.relationship('Processo',           backref='solos_criados',    foreign_keys=[processo_id])
+    pessoa         = db.relationship('Pessoa',             backref='solos_criados',    foreign_keys=[pessoa_id])
+    resp_tecnico   = db.relationship('ResponsavelTecnico', backref='solos_criados',    foreign_keys=[resp_tecnico_id])
+    zoneamento     = db.relationship('Zoneamento',         backref='solos_criados',    foreign_keys=[zoneamento_id])
+    cub            = db.relationship('CUB',                backref='solos_criados',    foreign_keys=[cub_id])
+    criador        = db.relationship('Usuario',            backref='solos_criados_criados',    foreign_keys=[criado_por])
+    calculador     = db.relationship('Usuario',            backref='solos_criados_calculados', foreign_keys=[calculado_por])
 
     @property
     def situacao_badge(self):

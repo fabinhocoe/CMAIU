@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Responsáveis Técnicos – CMAIU{% endblock %}
+{% block page_title %}Responsáveis Técnicos{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <p class="text-muted small mb-0">Cadastro de profissionais habilitados que atuam como responsáveis técnicos nos processos de Solo Criado.</p>
+  <a href="{{ url_for('rt_novo') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>Novo Responsável
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-hover mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Nome</th>
+          <th>Registro Profissional</th>
+          <th>Especialidade</th>
+          <th>Telefone</th>
+          <th>E-mail</th>
+          <th class="text-center">Ativo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for rt in rts %}
+        <tr>
+          <td class="fw-semibold">{{ rt.nome }}</td>
+          <td>{{ rt.registro_prof or '—' }}</td>
+          <td>{{ rt.especialidade or '—' }}</td>
+          <td>{{ rt.telefone or '—' }}</td>
+          <td>{{ rt.email or '—' }}</td>
+          <td class="text-center">
+            {% if rt.ativo %}
+              <span class="badge bg-success">Sim</span>
+            {% else %}
+              <span class="badge bg-secondary">Não</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('rt_editar', rid=rt.id) }}" class="btn btn-sm btn-outline-secondary">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">
+            <i class="bi bi-person-x fs-3 d-block mb-2"></i>
+            Nenhum responsável técnico cadastrado.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -20,7 +20,8 @@ from models import (db, Usuario, Zoneamento, CUB, Parametro, HistoricoParametro,
                     VagasTAC, CalculoTAC,
                     SITUACOES_TAC, GRUPOS_OBRA, TIPOS_IRREGULARIDADE, PERC_TAC,
                     PAPEIS_PROCESSO, PAPEIS_TAC,
-                    SoloCriado, SITUACOES_SC)
+                    SoloCriado, SITUACOES_SC,
+                    ResponsavelTecnico)
 
 app = Flask(__name__)
 
@@ -1609,6 +1610,56 @@ def tac_extrato_pdf(tid):
     return send_file(buf, mimetype='application/pdf', download_name=nome)
 
 
+# ─── Responsáveis Técnicos ───────────────────────────────────────────────────
+
+@app.route('/responsaveis-tecnicos')
+@login_required
+@tecnico_required
+def rt_index():
+    rts = ResponsavelTecnico.query.order_by(ResponsavelTecnico.nome).all()
+    return render_template('resp_tecnico/index.html', rts=rts)
+
+
+@app.route('/responsaveis-tecnicos/novo', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def rt_novo():
+    if request.method == 'POST':
+        f = request.form
+        rt = ResponsavelTecnico(
+            nome=f.get('nome', '').strip(),
+            registro_prof=f.get('registro_prof', '').strip() or None,
+            especialidade=f.get('especialidade', '').strip() or None,
+            telefone=f.get('telefone', '').strip() or None,
+            email=f.get('email', '').strip() or None,
+            ativo=True,
+        )
+        db.session.add(rt)
+        db.session.commit()
+        flash('Responsável técnico cadastrado.', 'success')
+        return redirect(url_for('rt_index'))
+    return render_template('resp_tecnico/form.html', rt=None)
+
+
+@app.route('/responsaveis-tecnicos/<int:rid>/editar', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def rt_editar(rid):
+    rt = ResponsavelTecnico.query.get_or_404(rid)
+    if request.method == 'POST':
+        f = request.form
+        rt.nome          = f.get('nome', '').strip()
+        rt.registro_prof = f.get('registro_prof', '').strip() or None
+        rt.especialidade = f.get('especialidade', '').strip() or None
+        rt.telefone      = f.get('telefone', '').strip() or None
+        rt.email         = f.get('email', '').strip() or None
+        rt.ativo         = f.get('ativo') == '1'
+        db.session.commit()
+        flash('Responsável técnico atualizado.', 'success')
+        return redirect(url_for('rt_index'))
+    return render_template('resp_tecnico/form.html', rt=rt)
+
+
 # ─── Solo Criado ─────────────────────────────────────────────────────────────
 
 @app.route('/solo-criado')
@@ -1646,8 +1697,8 @@ def sc_novo():
                            situacoes=SITUACOES_SC,
                            zoneamentos=Zoneamento.query.order_by('codigo').all(),
                            cubs=CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).limit(24).all(),
-                           processos=Processo.query.order_by(Processo.protocolo_cmaiu).all(),
-                           pessoas=Pessoa.query.order_by(Pessoa.nome).all())
+                           pessoas=Pessoa.query.order_by(Pessoa.nome).all(),
+                           resp_tecnicos=ResponsavelTecnico.query.filter_by(ativo=True).order_by(ResponsavelTecnico.nome).all())
 
 
 @app.route('/solo-criado/<int:sid>')
@@ -1671,8 +1722,8 @@ def sc_editar(sid):
                            situacoes=SITUACOES_SC,
                            zoneamentos=Zoneamento.query.order_by('codigo').all(),
                            cubs=CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).limit(24).all(),
-                           processos=Processo.query.order_by(Processo.protocolo_cmaiu).all(),
-                           pessoas=Pessoa.query.order_by(Pessoa.nome).all())
+                           pessoas=Pessoa.query.order_by(Pessoa.nome).all(),
+                           resp_tecnicos=ResponsavelTecnico.query.filter_by(ativo=True).order_by(ResponsavelTecnico.nome).all())
 
 
 @app.route('/solo-criado/<int:sid>/calcular', methods=['GET', 'POST'])
@@ -1726,17 +1777,18 @@ def _sc_fill(sc, f):
     def s(k): return f.get(k, '').strip() or None
     def fi(k): return _float(f.get(k))
     sc.situacao              = f.get('situacao', 'Rascunho')
+    sc.numero                = s('numero')
     sc.num_processo          = s('num_processo_adm')
-    sc.protocolo             = s('protocolo_cmaiu')
-    sc.nome_empreendimento   = s('requerente')
     sc.endereco_imovel       = s('endereco_imovel')
     sc.bairro_imovel         = s('bairro')
     sc.inscricao_imob        = s('inscricao_imobiliaria')
-    sc.responsavel_tecnico   = s('responsavel_tecnico')
     sc.area_terreno          = fi('area_terreno')
     sc.area_computavel       = fi('area_computavel')
     sc.taxa_ocupacao         = fi('taxa_ocupacao')
-    # IAB vem do zoneamento; IAM = IAB × 1,50 (IAB + 50% máx de solo criado)
+    sc.pessoa_id             = _int(f.get('pessoa_id'))
+    sc.resp_tecnico_id       = _int(f.get('resp_tecnico_id'))
+    sc.zoneamento_id         = _int(f.get('zoneamento_id'))
+    # IAB vem do zoneamento; IAM = IAB × 1,50
     zid = _int(f.get('zoneamento_id'))
     if zid:
         zon = Zoneamento.query.get(zid)
@@ -1759,24 +1811,10 @@ def _sc_fill(sc, f):
     sc.cub_valor             = fi('cub_valor')
     sc.cub_mes_ref           = s('cub_mes_ref')
     sc.justificativa_cub     = s('justificativa_cub')
-    sc.infra_descricao       = s('infra_descricao')
-    sc.infra_localizacao     = s('infra_localizacao')
-    sc.infra_orcamento       = fi('infra_orcamento')
-    sc.infra_orgao           = s('infra_orgao')
-    sc.infra_decisao         = s('infra_decisao')
-    sc.aguas_tipo            = s('aguas_tipo')
-    sc.aguas_capacidade      = fi('aguas_capacidade')
-    sc.aguas_area_atendida   = fi('aguas_area_atendida')
-    sc.aguas_finalidade      = s('aguas_finalidade')
-    sc.aguas_parecer         = s('aguas_parecer')
-    sc.aguas_decisao         = s('aguas_decisao')
     sc.parecer_tecnico       = s('parecer_tecnico')
     sc.decisao_comissao      = s('decisao_comissao')
     sc.condicionantes        = s('condicionantes')
     sc.observacoes           = s('observacoes')
-    sc.processo_id           = _int(f.get('processo_id'))
-    sc.pessoa_id             = _int(f.get('pessoa_id'))
-    sc.zoneamento_id         = _int(f.get('zoneamento_id'))
     # Fill CUB from selected id
     if sc.cub_id and not sc.cub_valor:
         cub = CUB.query.get(sc.cub_id)

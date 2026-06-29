@@ -48,6 +48,11 @@
         </a>
       </li>
       <li class="nav-item">
+        <a href="{{ url_for('rt_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'rt_' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-person-badge me-2"></i>Resp. Técnicos
+        </a>
+      </li>
+      <li class="nav-item">
         <a href="{{ url_for('cub_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'cub' in request.endpoint %}active{% endif %}">
           <i class="bi bi-currency-dollar me-2"></i>CUB
         </a>

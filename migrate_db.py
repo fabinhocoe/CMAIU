@@ -7,6 +7,9 @@ from app import app, db
 import sqlalchemy as sa
 
 MIGRATIONS = [
+    # solo_criado – novos campos
+    ("solo_criado", "numero",          "ALTER TABLE solo_criado ADD COLUMN numero VARCHAR(30)"),
+    ("solo_criado", "resp_tecnico_id", "ALTER TABLE solo_criado ADD COLUMN resp_tecnico_id INTEGER REFERENCES responsaveis_tecnicos(id)"),
     # vagas_tac – expansão para Lei 5.410/2024
     ("vagas_tac", "vagas_exigidas",            "ALTER TABLE vagas_tac ADD COLUMN vagas_exigidas INTEGER DEFAULT 0"),
     ("vagas_tac", "vagas_regulares_executadas", "ALTER TABLE vagas_tac ADD COLUMN vagas_regulares_executadas INTEGER DEFAULT 0"),
@@ -47,6 +50,17 @@ CREATE_TABLES = [
         tac_id    INTEGER NOT NULL REFERENCES tacs(id),
         pessoa_id INTEGER NOT NULL REFERENCES pessoas(id),
         papel VARCHAR(60) DEFAULT 'Compromissário'
+    )""",
+    # Responsáveis Técnicos
+    """CREATE TABLE IF NOT EXISTS responsaveis_tecnicos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome VARCHAR(300) NOT NULL,
+        registro_prof VARCHAR(100),
+        especialidade VARCHAR(200),
+        telefone VARCHAR(50),
+        email VARCHAR(200),
+        ativo BOOLEAN DEFAULT 1,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
     )""",
     # Solo Criado – LC 109/2011
     """CREATE TABLE IF NOT EXISTS solo_criado (
