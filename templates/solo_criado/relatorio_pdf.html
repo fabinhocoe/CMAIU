@@ -108,6 +108,16 @@
 {% if sc.condicionantes %}<p style="margin:4px 0"><strong>Condicionantes:</strong> {{ sc.condicionantes }}</p>{% endif %}
 {% endif %}
 
+{% if sc.calculador %}
+<h6>{{ '5.' if sc.parecer_tecnico or sc.decisao_comissao else '4.' }} RESPONSÁVEL PELO CÁLCULO</h6>
+<table>
+  <tr>
+    <td><strong>Técnico responsável:</strong> {{ sc.calculador.nome }}</td>
+    <td><strong>Data do cálculo:</strong> {{ sc.data_calculo.strftime('%d/%m/%Y %H:%M') if sc.data_calculo else '—' }}</td>
+  </tr>
+</table>
+{% endif %}
+
 <div class="footer">
   Situação: {{ sc.situacao }} · Gerado em {{ now().strftime('%d/%m/%Y %H:%M') }}
   · LC 109/2011 – Palhoça/SC
