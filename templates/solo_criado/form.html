@@ -13,24 +13,26 @@
   </a>
   {% endif %}
   <span class="text-muted small ms-auto">
-    <i class="bi bi-asterisk text-danger me-1" style="font-size:.6rem;vertical-align:middle"></i>
-    Campo obrigatório
+    <i class="bi bi-asterisk text-danger me-1" style="font-size:.6rem;vertical-align:middle"></i>Campo obrigatório
   </span>
 </div>
 
 <form method="POST" autocomplete="off">
   <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 
-  <!-- ══════════════════════════════════════════════════════
-       SEÇÃO 1 – IDENTIFICAÇÃO
-  ══════════════════════════════════════════════════════ -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header section-header d-flex align-items-center gap-2">
-      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:26px;height:26px;font-size:.75rem">1</span>
-      <i class="bi bi-person-badge"></i> Identificação
+  {# ─────────────────────────────────────────────────────────────────────────
+     SEÇÃO 1 – IDENTIFICAÇÃO DO PROCESSO
+  ───────────────────────────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">1</span>
+      <i class="bi bi-person-badge"></i>
+      <span class="fw-semibold">Identificação do Processo</span>
     </div>
-    <div class="card-body">
+    <div class="card-body py-3">
       <div class="row g-3">
+
         <div class="col-md-3">
           <label class="form-label small fw-semibold">Situação</label>
           <select name="situacao" class="form-select form-select-sm">
@@ -39,13 +41,15 @@
             {% endfor %}
           </select>
         </div>
+
         <div class="col-md-3">
           <label class="form-label small fw-semibold">Processo Administrativo</label>
           <input type="text" name="num_processo_adm" class="form-control form-control-sm"
                  placeholder="Nº do processo"
                  value="{{ sc.num_processo or '' if sc else '' }}">
         </div>
-        <div class="col-md-4">
+
+        <div class="col-md-6">
           <label class="form-label small fw-semibold">Proprietário <span class="text-danger">*</span></label>
           <select name="pessoa_id" class="form-select form-select-sm">
             <option value="">— Selecione o proprietário —</option>
@@ -56,44 +60,51 @@
             {% endfor %}
           </select>
         </div>
+
         <div class="col-md-6">
-          <label class="form-label small fw-semibold">Responsável Técnico</label>
+          <label class="form-label small fw-semibold">Responsável Técnico (do empreendimento)</label>
           <div class="input-group input-group-sm">
             <select name="resp_tecnico_id" class="form-select form-select-sm">
-              <option value="">— Selecione o responsável técnico —</option>
+              <option value="">— Selecione —</option>
               {% for rt in resp_tecnicos %}
               <option value="{{ rt.id }}" {% if sc and sc.resp_tecnico_id == rt.id %}selected{% endif %}>
-                {{ rt.nome }}{% if rt.registro_prof %} ({{ rt.registro_prof }}){% endif %}
+                {{ rt.nome }}{% if rt.registro_prof %} – {{ rt.registro_prof }}{% endif %}
               </option>
               {% endfor %}
             </select>
-            <a href="{{ url_for('rt_novo') }}" target="_blank" class="btn btn-outline-secondary btn-sm" title="Cadastrar novo responsável técnico">
+            <a href="{{ url_for('rt_novo') }}" target="_blank"
+               class="btn btn-outline-secondary btn-sm" title="Cadastrar novo">
               <i class="bi bi-plus-lg"></i>
             </a>
           </div>
-          <div class="form-text">Não encontrou? <a href="{{ url_for('rt_index') }}" target="_blank">Cadastre aqui</a></div>
+          <div class="form-text">
+            Não encontrou? <a href="{{ url_for('rt_index') }}" target="_blank">Cadastre aqui</a>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       SEÇÃO 2 – DADOS DO IMÓVEL E PARÂMETROS URBANÍSTICOS
-  ══════════════════════════════════════════════════════ -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header section-header d-flex align-items-center gap-2">
-      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:26px;height:26px;font-size:.75rem">2</span>
-      <i class="bi bi-house-door"></i> Dados do Imóvel e Parâmetros Urbanísticos
+  {# ─────────────────────────────────────────────────────────────────────────
+     SEÇÃO 2 – LOCALIZAÇÃO DO IMÓVEL
+  ───────────────────────────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">2</span>
+      <i class="bi bi-geo-alt"></i>
+      <span class="fw-semibold">Localização do Imóvel</span>
     </div>
-    <div class="card-body">
+    <div class="card-body py-3">
       <div class="row g-3">
-        <!-- Localização via CEP -->
+
+        {# Linha 1: CEP → Logradouro → Número → Complemento #}
         <div class="col-md-2">
           <label class="form-label small fw-semibold">CEP <span class="text-danger">*</span></label>
           <div class="input-group input-group-sm">
             <input type="text" name="cep_imovel" id="inputCEP"
-                   class="form-control form-control-sm"
-                   placeholder="00000-000" maxlength="9"
+                   class="form-control" placeholder="00000-000" maxlength="9"
                    value="{{ sc.cep_imovel or '' if sc else '' }}"
                    oninput="mascaraCEP(this)" onblur="buscarCEP(this.value)">
             <span class="input-group-text" id="spinnerCEP" style="display:none">
@@ -102,27 +113,30 @@
           </div>
           <div id="msgCEP" class="form-text"></div>
         </div>
-        <div class="col-md-4">
+
+        <div class="col-md-5">
           <label class="form-label small fw-semibold">Logradouro <span class="text-danger">*</span></label>
           <input type="text" name="endereco_imovel" id="inputEndereco"
                  class="form-control form-control-sm"
-                 placeholder="Preenchido pelo CEP"
+                 placeholder="Preenchido automaticamente pelo CEP"
                  value="{{ sc.endereco_imovel or '' if sc else '' }}">
         </div>
+
         <div class="col-md-2">
           <label class="form-label small fw-semibold">Número</label>
           <input type="text" name="numero_imovel" id="inputNumeroImovel"
-                 class="form-control form-control-sm"
-                 placeholder="S/N"
+                 class="form-control form-control-sm" placeholder="S/N"
                  value="{{ sc.numero_imovel or '' if sc else '' }}">
         </div>
-        <div class="col-md-4">
+
+        <div class="col-md-3">
           <label class="form-label small fw-semibold">Complemento</label>
           <input type="text" name="complemento_imovel"
-                 class="form-control form-control-sm"
-                 placeholder="Apto, sala, bloco…"
+                 class="form-control form-control-sm" placeholder="Apto, bloco, sala…"
                  value="{{ sc.complemento_imovel or '' if sc else '' }}">
         </div>
+
+        {# Linha 2: Bairro → Cidade → Inscrição Imobiliária #}
         <div class="col-md-3">
           <label class="form-label small fw-semibold">Bairro</label>
           <input type="text" name="bairro" id="inputBairro"
@@ -130,6 +144,7 @@
                  placeholder="Preenchido pelo CEP"
                  value="{{ sc.bairro_imovel or '' if sc else '' }}">
         </div>
+
         <div class="col-md-3">
           <label class="form-label small fw-semibold">Cidade</label>
           <input type="text" name="cidade_imovel" id="inputCidade"
@@ -137,33 +152,53 @@
                  placeholder="Preenchida pelo CEP"
                  value="{{ sc.cidade_imovel or '' if sc else '' }}">
         </div>
+
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
-          <input type="text" name="inscricao_imobiliaria" class="form-control form-control-sm"
+          <input type="text" name="inscricao_imobiliaria"
+                 class="form-control form-control-sm"
                  placeholder="Ex.: 01.02.0003.0004"
                  value="{{ sc.inscricao_imob or '' if sc else '' }}">
         </div>
 
-        <div class="col-12"><hr class="my-1 opacity-25"></div>
+      </div>
+    </div>
+  </div>
 
-        <!-- Áreas -->
+  {# ─────────────────────────────────────────────────────────────────────────
+     SEÇÃO 3 – PARÂMETROS URBANÍSTICOS
+  ───────────────────────────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">3</span>
+      <i class="bi bi-building"></i>
+      <span class="fw-semibold">Parâmetros Urbanísticos</span>
+    </div>
+    <div class="card-body py-3">
+      <div class="row g-3 align-items-end">
+
         <div class="col-md-3">
           <label class="form-label small fw-semibold">Área do Terreno – AT (m²) <span class="text-danger">*</span></label>
-          <input type="number" step="0.01" min="0" name="area_terreno" id="area_terreno"
-                 class="form-control form-control-sm"
-                 placeholder="0,00"
-                 value="{{ '%.2f'|format(sc.area_terreno) if sc and sc.area_terreno else '' }}"
-                 oninput="atualizarPercs()">
-        </div>
-        <div class="col-md-3">
-          <label class="form-label small fw-semibold">Área Computável – ACP (m²) <span class="text-danger">*</span></label>
-          <input type="number" step="0.01" min="0" name="area_computavel"
-                 class="form-control form-control-sm"
-                 placeholder="0,00"
-                 value="{{ '%.2f'|format(sc.area_computavel) if sc and sc.area_computavel else '' }}">
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.01" min="0" name="area_terreno" id="area_terreno"
+                   class="form-control" placeholder="0,00"
+                   value="{{ '%.2f'|format(sc.area_terreno) if sc and sc.area_terreno else '' }}"
+                   oninput="atualizarPercs()">
+            <span class="input-group-text">m²</span>
+          </div>
         </div>
 
-        <!-- Zoneamento e índices -->
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Área Computável – ACP (m²) <span class="text-danger">*</span></label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.01" min="0" name="area_computavel"
+                   class="form-control" placeholder="0,00"
+                   value="{{ '%.2f'|format(sc.area_computavel) if sc and sc.area_computavel else '' }}">
+            <span class="input-group-text">m²</span>
+          </div>
+        </div>
+
         <div class="col-md-3">
           <label class="form-label small fw-semibold">Zoneamento <span class="text-danger">*</span></label>
           <select name="zoneamento_id" id="selectZoneamento" class="form-select form-select-sm"
@@ -176,69 +211,80 @@
             {% endfor %}
           </select>
         </div>
+
         <div class="col-md-3">
           <label class="form-label small fw-semibold">Permite Solo Criado?</label>
-          <div id="permiteSCInfo" class="form-control form-control-sm bg-light text-muted">
+          <div id="permiteSCInfo" class="form-control form-control-sm bg-light">
             {% if sc and sc.zoneamento_id %}
-              {% if sc.permite_solo_criado %}<span class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i>Sim</span>
-              {% else %}<span class="text-danger fw-bold"><i class="bi bi-x-circle me-1"></i>Não</span>{% endif %}
-            {% else %}<span class="text-muted">— selecione o zoneamento —</span>{% endif %}
+              {% if sc.permite_solo_criado %}
+                <span class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i>Sim</span>
+              {% else %}
+                <span class="text-danger fw-bold"><i class="bi bi-x-circle me-1"></i>Não</span>
+              {% endif %}
+            {% else %}
+              <span class="text-muted">— selecione o zoneamento —</span>
+            {% endif %}
           </div>
           <input type="hidden" name="permite_solo_criado" id="inputPermiteSC"
                  value="{{ '1' if sc and sc.permite_solo_criado else '' }}">
         </div>
 
-        <!-- IAB / IAM (readonly) -->
+        {# IAB / IAM / ABP — linha inferior #}
         <div class="col-md-3">
           <label class="form-label small fw-semibold">
-            IAB <small class="text-muted fw-normal">(Índice de Aproveit. Básico)</small>
+            IAB <small class="text-muted fw-normal">– Índice de Aproveit. Básico</small>
           </label>
           <div class="input-group input-group-sm">
-            <span class="input-group-text bg-light"><i class="bi bi-calculator"></i></span>
+            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
             <input type="number" step="0.0001" name="iab" id="inputIab"
-                   class="form-control bg-light" readonly
-                   placeholder="—"
+                   class="form-control bg-light" readonly placeholder="—"
                    value="{{ '%.4f'|format(sc.iab) if sc and sc.iab else '' }}">
           </div>
-          <div class="form-text">Preenchido automaticamente pelo zoneamento</div>
-        </div>
-        <div class="col-md-3">
-          <label class="form-label small fw-semibold">
-            IAM <small class="text-muted fw-normal">(IAB × 1,50)</small>
-          </label>
-          <div class="input-group input-group-sm">
-            <span class="input-group-text bg-light"><i class="bi bi-calculator"></i></span>
-            <input type="number" step="0.0001" name="iam" id="inputIam"
-                   class="form-control bg-light" readonly
-                   placeholder="—"
-                   value="{{ '%.4f'|format(sc.iam) if sc and sc.iam else '' }}">
-          </div>
-          <div class="form-text">Índice máximo após aquisição do solo criado</div>
+          <div class="form-text">Preenchido pelo zoneamento</div>
         </div>
 
-        <!-- Box ABP calculada -->
         <div class="col-md-3">
-          <label class="form-label small fw-semibold">ABP calculada <small class="text-muted fw-normal">(AT × IAB)</small></label>
+          <label class="form-label small fw-semibold">
+            IAM <small class="text-muted fw-normal">– IAB × 1,50</small>
+          </label>
           <div class="input-group input-group-sm">
-            <span class="input-group-text bg-light"><i class="bi bi-rulers"></i></span>
-            <input type="text" id="displayABP" class="form-control bg-light text-end fw-bold" readonly placeholder="—">
+            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+            <input type="number" step="0.0001" name="iam" id="inputIam"
+                   class="form-control bg-light" readonly placeholder="—"
+                   value="{{ '%.4f'|format(sc.iam) if sc and sc.iam else '' }}">
+          </div>
+          <div class="form-text">Índice máximo com solo criado</div>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">
+            ABP calculada <small class="text-muted fw-normal">– AT × IAB</small>
+          </label>
+          <div class="input-group input-group-sm">
+            <span class="input-group-text bg-light text-muted"><i class="bi bi-calculator"></i></span>
+            <input type="text" id="displayABP" class="form-control bg-light text-end fw-bold"
+                   readonly placeholder="—">
             <span class="input-group-text bg-light">m²</span>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       SEÇÃO 3 – CUB DE REFERÊNCIA
-  ══════════════════════════════════════════════════════ -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header section-header d-flex align-items-center gap-2">
-      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:26px;height:26px;font-size:.75rem">3</span>
-      <i class="bi bi-currency-dollar"></i> CUB de Referência
+  {# ─────────────────────────────────────────────────────────────────────────
+     SEÇÃO 4 – CUB DE REFERÊNCIA
+  ───────────────────────────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">4</span>
+      <i class="bi bi-currency-dollar"></i>
+      <span class="fw-semibold">CUB de Referência</span>
     </div>
-    <div class="card-body">
+    <div class="card-body py-3">
       <div class="row g-3 align-items-end">
+
         <div class="col-md-5">
           <label class="form-label small fw-semibold">CUB <span class="text-danger">*</span></label>
           <select name="cub_id" class="form-select form-select-sm">
@@ -250,45 +296,52 @@
             {% endfor %}
           </select>
         </div>
+
         <div class="col-md-5">
           <label class="form-label small fw-semibold">Justificativa do CUB</label>
           <input type="text" name="justificativa_cub" class="form-control form-control-sm"
                  placeholder="Motivação para uso deste CUB"
                  value="{{ sc.justificativa_cub or '' if sc else '' }}">
         </div>
+
         <div class="col-md-2">
           <div class="alert alert-info py-2 text-center small mb-0">
-            <div class="text-muted">VU = CUB × 6%</div>
+            <div class="text-muted mb-1">Valor Unitário</div>
             <div class="fw-bold" id="displayVU">—</div>
+            <div class="text-muted" style="font-size:.7rem">CUB × 6%</div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       SEÇÃO 4 – ÁREAS DE OUTORGA
-  ══════════════════════════════════════════════════════ -->
-  <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header section-header d-flex align-items-center gap-2">
-      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:26px;height:26px;font-size:.75rem">4</span>
-      <i class="bi bi-rulers"></i> Áreas de Outorga
+  {# ─────────────────────────────────────────────────────────────────────────
+     SEÇÃO 5 – ÁREAS DE OUTORGA
+  ───────────────────────────────────────────────────────────────────────── #}
+  <div class="card border-0 shadow-sm mb-3">
+    <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">5</span>
+      <i class="bi bi-rulers"></i>
+      <span class="fw-semibold">Áreas de Outorga</span>
     </div>
-    <div class="card-body">
+    <div class="card-body py-3">
 
-      <div id="avisoSemABP" class="alert alert-warning py-2 small mb-3 {% if sc and sc.area_terreno and sc.iab %}d-none{% endif %}">
+      <div id="avisoSemABP" class="alert alert-warning py-2 small mb-3
+           {% if sc and sc.area_terreno and sc.iab %}d-none{% endif %}">
         <i class="bi bi-exclamation-triangle me-1"></i>
-        Selecione o zoneamento e informe a área do terreno para ver os percentuais em tempo real.
+        Preencha a seção 3 (zoneamento e área do terreno) para ver os percentuais em tempo real.
       </div>
 
-      <!-- Tabela de limites legais -->
+      {# Tabela de limites legais — atualizada via JS #}
       <div class="table-responsive mb-4">
         <table class="table table-sm table-bordered text-center small mb-0">
           <thead class="table-light">
             <tr>
-              <th class="text-start">Modalidade</th>
+              <th class="text-start" style="width:40%">Modalidade</th>
               <th>Limite Legal</th>
-              <th>Máx. sobre ABP</th>
+              <th>Máx. sobre a ABP</th>
             </tr>
           </thead>
           <tbody>
@@ -310,129 +363,126 @@
             <tr class="table-warning fw-bold">
               <td class="text-start"><i class="bi bi-sigma me-1"></i>Total</td>
               <td><span class="badge bg-warning text-dark">≤ 50%</span></td>
-              <td id="limLegTot" class="fw-bold">—</td>
+              <td id="limLegTot">—</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <!-- Campos de entrada -->
-      <div class="row g-4">
-        <!-- Onerosa -->
+      {# Cards de input por modalidade #}
+      <div class="row g-3">
         <div class="col-md-4">
-          <div class="border rounded p-3 h-100" style="border-color:#198754!important;border-width:2px!important">
-            <div class="d-flex align-items-center mb-2">
-              <span class="badge bg-success me-2"><i class="bi bi-cash-coin"></i></span>
+          <div class="border border-2 rounded-3 p-3 h-100" style="border-color:#198754!important">
+            <div class="d-flex align-items-center mb-3">
+              <span class="badge bg-success me-2 px-2 py-1"><i class="bi bi-cash-coin"></i></span>
               <strong class="small">Área Onerosa <span class="text-danger">*</span></strong>
             </div>
+            <label class="form-label small text-muted mb-1">Área (m²)</label>
             <div class="input-group input-group-sm mb-2">
               <input type="number" step="0.01" min="0" name="aon" id="inputAon"
-                     class="form-control"
-                     placeholder="0,00"
+                     class="form-control" placeholder="0,00"
                      value="{{ '%.2f'|format(sc.aon) if sc and sc.aon else '' }}"
                      oninput="atualizarPercs()">
               <span class="input-group-text">m²</span>
             </div>
+            <label class="form-label small text-muted mb-1">Representa</label>
             <div class="input-group input-group-sm">
-              <span class="input-group-text bg-light">%</span>
-              <input type="text" id="percAon" class="form-control text-center fw-bold bg-light" readonly placeholder="—">
+              <input type="text" id="percAon" class="form-control text-center fw-bold bg-light"
+                     readonly placeholder="—">
+              <span class="input-group-text bg-light">% da ABP</span>
             </div>
-            <div id="limiteAon" class="form-text mt-1 text-center"></div>
+            <div id="limiteAon" class="form-text mt-2 text-center small"></div>
           </div>
         </div>
 
-        <!-- Infraestrutura -->
         <div class="col-md-4">
-          <div class="border rounded p-3 h-100" style="border-color:#0d6efd!important;border-width:2px!important">
-            <div class="d-flex align-items-center mb-2">
-              <span class="badge bg-primary me-2"><i class="bi bi-tools"></i></span>
+          <div class="border border-2 rounded-3 p-3 h-100" style="border-color:#0d6efd!important">
+            <div class="d-flex align-items-center mb-3">
+              <span class="badge bg-primary me-2 px-2 py-1"><i class="bi bi-tools"></i></span>
               <strong class="small">Área de Infraestrutura</strong>
             </div>
+            <label class="form-label small text-muted mb-1">Área (m²)</label>
             <div class="input-group input-group-sm mb-2">
               <input type="number" step="0.01" min="0" name="ain" id="inputAin"
-                     class="form-control"
-                     placeholder="0,00"
+                     class="form-control" placeholder="0,00"
                      value="{{ '%.2f'|format(sc.ain) if sc and sc.ain else '' }}"
                      oninput="atualizarPercs()">
               <span class="input-group-text">m²</span>
             </div>
+            <label class="form-label small text-muted mb-1">Representa</label>
             <div class="input-group input-group-sm">
-              <span class="input-group-text bg-light">%</span>
-              <input type="text" id="percAin" class="form-control text-center fw-bold bg-light" readonly placeholder="—">
+              <input type="text" id="percAin" class="form-control text-center fw-bold bg-light"
+                     readonly placeholder="—">
+              <span class="input-group-text bg-light">% da ABP</span>
             </div>
-            <div id="limiteAin" class="form-text mt-1 text-center"></div>
+            <div id="limiteAin" class="form-text mt-2 text-center small"></div>
           </div>
         </div>
 
-        <!-- Águas -->
         <div class="col-md-4">
-          <div class="border rounded p-3 h-100" style="border-color:#0dcaf0!important;border-width:2px!important">
-            <div class="d-flex align-items-center mb-2">
-              <span class="badge bg-info text-dark me-2"><i class="bi bi-droplet"></i></span>
+          <div class="border border-2 rounded-3 p-3 h-100" style="border-color:#0dcaf0!important">
+            <div class="d-flex align-items-center mb-3">
+              <span class="badge bg-info text-dark me-2 px-2 py-1"><i class="bi bi-droplet"></i></span>
               <strong class="small">Área de Águas Pluviais</strong>
             </div>
+            <label class="form-label small text-muted mb-1">Área (m²)</label>
             <div class="input-group input-group-sm mb-2">
               <input type="number" step="0.01" min="0" name="aag" id="inputAag"
-                     class="form-control"
-                     placeholder="0,00"
+                     class="form-control" placeholder="0,00"
                      value="{{ '%.2f'|format(sc.aag) if sc and sc.aag else '' }}"
                      oninput="atualizarPercs()">
               <span class="input-group-text">m²</span>
             </div>
+            <label class="form-label small text-muted mb-1">Representa</label>
             <div class="input-group input-group-sm">
-              <span class="input-group-text bg-light">%</span>
-              <input type="text" id="percAag" class="form-control text-center fw-bold bg-light" readonly placeholder="—">
+              <input type="text" id="percAag" class="form-control text-center fw-bold bg-light"
+                     readonly placeholder="—">
+              <span class="input-group-text bg-light">% da ABP</span>
             </div>
-            <div id="limiteAag" class="form-text mt-1 text-center"></div>
+            <div id="limiteAag" class="form-text mt-2 text-center small"></div>
           </div>
         </div>
       </div>
 
-      <!-- Total -->
-      <div id="totalOutorga" class="alert py-2 small mt-3 d-none text-center fw-bold"></div>
+      <div id="totalOutorga" class="alert small mt-3 mb-0 text-center fw-bold d-none"></div>
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       SEÇÃO 5 – MANIFESTAÇÕES E DECISÕES
-  ══════════════════════════════════════════════════════ -->
+  {# ─────────────────────────────────────────────────────────────────────────
+     SEÇÃO 6 – PARECER TÉCNICO E OBSERVAÇÕES
+  ───────────────────────────────────────────────────────────────────────── #}
   <div class="card border-0 shadow-sm mb-4">
-    <div class="card-header section-header d-flex align-items-center gap-2">
-      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center" style="width:26px;height:26px;font-size:.75rem">5</span>
-      <i class="bi bi-chat-left-text"></i> Manifestações e Decisões
+    <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+      <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+            style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">6</span>
+      <i class="bi bi-chat-left-text"></i>
+      <span class="fw-semibold">Parecer Técnico e Observações</span>
     </div>
-    <div class="card-body">
+    <div class="card-body py-3">
       <div class="row g-3">
+
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Parecer Técnico</label>
-          <textarea name="parecer_tecnico" class="form-control form-control-sm" rows="3"
-                    placeholder="Descreva o parecer técnico...">{{ sc.parecer_tecnico or '' if sc else '' }}</textarea>
+          <textarea name="parecer_tecnico" class="form-control form-control-sm" rows="4"
+                    placeholder="Descreva o parecer técnico da equipe municipal…">{{ sc.parecer_tecnico or '' if sc else '' }}</textarea>
         </div>
-        <div class="col-md-6">
-          <label class="form-label small fw-semibold">Decisão da Comissão</label>
-          <textarea name="decisao_comissao" class="form-control form-control-sm" rows="3"
-                    placeholder="Descreva a decisão da comissão...">{{ sc.decisao_comissao or '' if sc else '' }}</textarea>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label small fw-semibold">Condicionantes</label>
-          <textarea name="condicionantes" class="form-control form-control-sm" rows="2"
-                    placeholder="Condicionantes da aprovação...">{{ sc.condicionantes or '' if sc else '' }}</textarea>
-        </div>
+
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Observações</label>
-          <textarea name="observacoes" class="form-control form-control-sm" rows="2"
-                    placeholder="Observações adicionais...">{{ sc.observacoes or '' if sc else '' }}</textarea>
+          <textarea name="observacoes" class="form-control form-control-sm" rows="4"
+                    placeholder="Observações adicionais pertinentes ao processo…">{{ sc.observacoes or '' if sc else '' }}</textarea>
         </div>
+
       </div>
     </div>
   </div>
 
-  <!-- Ações -->
+  {# Ações #}
   <div class="d-flex gap-2 justify-content-end pb-4">
     <a href="{{ url_for('sc_index') }}" class="btn btn-outline-secondary">
       <i class="bi bi-x-lg me-1"></i>Cancelar
     </a>
-    <button type="submit" class="btn btn-primary px-4">
+    <button type="submit" class="btn btn-primary px-5">
       <i class="bi bi-floppy me-1"></i>Salvar registro
     </button>
   </div>
@@ -442,28 +492,26 @@
 
 {% block scripts %}
 <script>
+// ── Cálculo ABP / percentuais ─────────────────────────────────────────────────
 function getABP() {
   const at  = parseFloat(document.getElementById('area_terreno')?.value) || 0;
   const iab = parseFloat(document.getElementById('inputIab')?.value)    || 0;
   return at * iab;
 }
-
 function fmtArea(v) {
-  return v.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
-
 function fmtPerc(v) {
-  return v.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%';
+  return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + '%';
 }
 
 function atualizarPercs() {
   const abp = getABP();
 
-  // Limites na tabela
+  // Tabela de limites
   ['limLegOn','limLegIn','limLegAg','limLegTot'].forEach((id, i) => {
-    const el = document.getElementById(id);
     const pct = [0.40, 0.05, 0.05, 0.50][i];
-    el.textContent = abp > 0 ? fmtArea(abp * pct) + ' m²' : '—';
+    document.getElementById(id).textContent = abp > 0 ? fmtArea(abp * pct) + ' m²' : '—';
   });
 
   // ABP display
@@ -488,7 +536,7 @@ function atualizarPercs() {
     const ok   = perc <= limite;
     el.value = fmtPerc(perc);
     el.className = 'form-control text-center fw-bold ' +
-                   (ok ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger');
+      (ok ? 'bg-success bg-opacity-10 text-success' : 'bg-danger bg-opacity-10 text-danger');
     if (elLim) elLim.innerHTML = ok
       ? `<span class="text-success"><i class="bi bi-check-circle me-1"></i>dentro do limite (${limite}%)</span>`
       : `<span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle me-1"></i>excede ${limite}%</span>`;
@@ -502,33 +550,31 @@ function atualizarPercs() {
   if (tot > 0 && abp > 0) {
     const pt = tot / abp * 100;
     const ok = pt <= 50;
-    divTot.className = 'alert py-2 small mt-3 text-center fw-bold ' + (ok ? 'alert-success' : 'alert-danger');
+    divTot.className = 'alert small mt-3 mb-0 text-center fw-bold ' +
+      (ok ? 'alert-success' : 'alert-danger');
     divTot.innerHTML =
       `<i class="bi bi-${ok ? 'check-circle' : 'exclamation-triangle'} me-2"></i>` +
-      `Total das áreas: ${fmtArea(tot)} m² = ${fmtPerc(pt)} da ABP` +
+      `Total: ${fmtArea(tot)} m² = ${fmtPerc(pt)} da ABP` +
       (ok ? ' — dentro do limite de 50%' : ' — <strong>excede o limite de 50%!</strong>');
   } else {
-    divTot.className = 'alert py-2 small mt-3 d-none';
+    divTot.className = 'alert small mt-3 mb-0 d-none';
   }
 
   document.getElementById('avisoSemABP').classList.toggle('d-none', abp > 0);
 }
 
+// ── Zoneamento ────────────────────────────────────────────────────────────────
 async function carregarZoneamento(zid) {
   const iabInput  = document.getElementById('inputIab');
   const iamInput  = document.getElementById('inputIam');
   const pscInfo   = document.getElementById('permiteSCInfo');
   const pscHidden = document.getElementById('inputPermiteSC');
-
   if (!zid) {
-    iabInput.value = '';
-    iamInput.value = '';
+    iabInput.value = ''; iamInput.value = '';
     pscInfo.innerHTML = '<span class="text-muted">— selecione o zoneamento —</span>';
     pscHidden.value = '';
-    atualizarPercs();
-    return;
+    atualizarPercs(); return;
   }
-
   try {
     const r = await fetch(`/api/zoneamento/${zid}`);
     const d = await r.json();
@@ -541,16 +587,10 @@ async function carregarZoneamento(zid) {
       ? '<span class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i>Sim</span>'
       : '<span class="text-danger fw-bold"><i class="bi bi-x-circle me-1"></i>Não — zoneamento não permite solo criado</span>';
     atualizarPercs();
-  } catch(e) {
-    console.error(e);
-  }
+  } catch(e) { console.error(e); }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  atualizarPercs();
-});
-
-// ── CEP ──────────────────────────────────────────────────────────────────────
+// ── CEP ───────────────────────────────────────────────────────────────────────
 function mascaraCEP(input) {
   let v = input.value.replace(/\D/g, '').slice(0, 8);
   if (v.length > 5) v = v.slice(0, 5) + '-' + v.slice(5);
@@ -561,21 +601,14 @@ function mascaraCEP(input) {
 async function buscarCEP(cep) {
   const limpo = cep.replace(/\D/g, '');
   if (limpo.length !== 8) return;
-
   const spinner = document.getElementById('spinnerCEP');
   const msg     = document.getElementById('msgCEP');
   spinner.style.display = '';
   msg.textContent = '';
-
   try {
     const r = await fetch(`https://viacep.com.br/ws/${limpo}/json/`);
     const d = await r.json();
-
-    if (d.erro) {
-      msg.innerHTML = '<span class="text-danger">CEP não encontrado.</span>';
-      return;
-    }
-
+    if (d.erro) { msg.innerHTML = '<span class="text-danger">CEP não encontrado.</span>'; return; }
     document.getElementById('inputEndereco').value = d.logradouro || '';
     document.getElementById('inputBairro').value   = d.bairro     || '';
     document.getElementById('inputCidade').value   = d.localidade || '';
@@ -587,5 +620,7 @@ async function buscarCEP(cep) {
     spinner.style.display = 'none';
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => { atualizarPercs(); });
 </script>
 {% endblock %}
