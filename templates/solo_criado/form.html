@@ -606,7 +606,7 @@ async function buscarCEP(cep) {
   spinner.style.display = '';
   msg.textContent = '';
   try {
-    const r = await fetch(`https://viacep.com.br/ws/${limpo}/json/`);
+    const r = await fetch(`/api/cep/${limpo}`);
     const d = await r.json();
     if (d.erro) { msg.innerHTML = '<span class="text-danger">CEP não encontrado.</span>'; return; }
     document.getElementById('inputEndereco').value = d.logradouro || '';

@@ -856,6 +856,25 @@ def api_cub(cid):
                     'categoria': c.categoria})
 
 
+@app.route('/api/cep/<cep>')
+@login_required
+def api_cep(cep):
+    """Proxy para ViaCEP — evita bloqueios CORS no browser."""
+    import re, urllib.request, urllib.error
+    limpo = re.sub(r'\D', '', cep)
+    if len(limpo) != 8:
+        return jsonify({'erro': True, 'msg': 'CEP inválido'}), 400
+    try:
+        url = f'https://viacep.com.br/ws/{limpo}/json/'
+        req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            import json as _json
+            data = _json.loads(resp.read().decode('utf-8'))
+        return jsonify(data)
+    except Exception as e:
+        return jsonify({'erro': True, 'msg': str(e)}), 502
+
+
 @app.route('/api/zoneamento/<int:zid>')
 @login_required
 def api_zoneamento(zid):
