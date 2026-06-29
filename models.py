@@ -805,8 +805,12 @@ class SoloCriado(db.Model):
     resp_tecnico_id = db.Column(db.Integer, db.ForeignKey('responsaveis_tecnicos.id'))
 
     # Imóvel
+    cep_imovel         = db.Column(db.String(10))
     endereco_imovel    = db.Column(db.String(400))
+    numero_imovel      = db.Column(db.String(20))
+    complemento_imovel = db.Column(db.String(200))
     bairro_imovel      = db.Column(db.String(200))
+    cidade_imovel      = db.Column(db.String(200))
     inscricao_imob     = db.Column(db.String(100))
     matricula          = db.Column(db.String(200))
     area_terreno       = db.Column(db.Float)

@@ -8,8 +8,12 @@ import sqlalchemy as sa
 
 MIGRATIONS = [
     # solo_criado – novos campos
-    ("solo_criado", "numero",          "ALTER TABLE solo_criado ADD COLUMN numero VARCHAR(30)"),
-    ("solo_criado", "resp_tecnico_id", "ALTER TABLE solo_criado ADD COLUMN resp_tecnico_id INTEGER REFERENCES responsaveis_tecnicos(id)"),
+    ("solo_criado", "numero",              "ALTER TABLE solo_criado ADD COLUMN numero VARCHAR(30)"),
+    ("solo_criado", "resp_tecnico_id",     "ALTER TABLE solo_criado ADD COLUMN resp_tecnico_id INTEGER REFERENCES responsaveis_tecnicos(id)"),
+    ("solo_criado", "cep_imovel",          "ALTER TABLE solo_criado ADD COLUMN cep_imovel VARCHAR(10)"),
+    ("solo_criado", "numero_imovel",       "ALTER TABLE solo_criado ADD COLUMN numero_imovel VARCHAR(20)"),
+    ("solo_criado", "complemento_imovel",  "ALTER TABLE solo_criado ADD COLUMN complemento_imovel VARCHAR(200)"),
+    ("solo_criado", "cidade_imovel",       "ALTER TABLE solo_criado ADD COLUMN cidade_imovel VARCHAR(200)"),
     # vagas_tac – expansão para Lei 5.410/2024
     ("vagas_tac", "vagas_exigidas",            "ALTER TABLE vagas_tac ADD COLUMN vagas_exigidas INTEGER DEFAULT 0"),
     ("vagas_tac", "vagas_regulares_executadas", "ALTER TABLE vagas_tac ADD COLUMN vagas_regulares_executadas INTEGER DEFAULT 0"),
