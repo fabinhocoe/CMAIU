@@ -31,12 +31,19 @@
       <div class="card-header section-header"><i class="bi bi-info-circle me-2"></i>Identificação</div>
       <div class="card-body small">
         <dl class="row mb-0">
+          <dt class="col-sm-5">Nº Solo Criado</dt>
+          <dd class="col-sm-7">
+            {% if sc.numero %}
+              <span class="badge bg-dark fs-6">{{ sc.numero }}</span>
+            {% else %}
+              <span class="text-muted fst-italic">Gerado na emissão do PDF</span>
+            {% endif %}
+          </dd>
           <dt class="col-sm-5">Situação</dt>
           <dd class="col-sm-7"><span class="badge bg-{{ sc.situacao_badge }}">{{ sc.situacao }}</span></dd>
           <dt class="col-sm-5">Processo Adm.</dt><dd class="col-sm-7">{{ sc.num_processo or '—' }}</dd>
-          <dt class="col-sm-5">Protocolo CMAIU</dt><dd class="col-sm-7">{{ sc.protocolo or '—' }}</dd>
-          <dt class="col-sm-5">Requerente</dt><dd class="col-sm-7">{{ sc.nome_empreendimento or '—' }}</dd>
-          <dt class="col-sm-5">Resp. Técnico</dt><dd class="col-sm-7">{{ sc.responsavel_tecnico or '—' }}</dd>
+          <dt class="col-sm-5">Proprietário</dt><dd class="col-sm-7">{{ sc.pessoa.nome if sc.pessoa else (sc.nome_empreendimento or '—') }}</dd>
+          <dt class="col-sm-5">Resp. Técnico</dt><dd class="col-sm-7">{{ sc.resp_tecnico.nome if sc.resp_tecnico else (sc.responsavel_tecnico or '—') }}</dd>
           <dt class="col-sm-5">Endereço</dt><dd class="col-sm-7">{{ sc.endereco_imovel or '—' }}{% if sc.bairro_imovel %}, {{ sc.bairro_imovel }}{% endif %}</dd>
           <dt class="col-sm-5">Inscrição Imob.</dt><dd class="col-sm-7">{{ sc.inscricao_imob or '—' }}</dd>
         </dl>

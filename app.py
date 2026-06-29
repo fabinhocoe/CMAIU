@@ -1761,16 +1761,37 @@ def sc_relatorio(sid):
     return render_template('solo_criado/relatorio.html', sc=sc)
 
 
+def _gerar_numero_sc(sc):
+    """Gera número sequencial SC-AAAA-NNN no momento da primeira emissão de PDF."""
+    from datetime import date
+    ano = date.today().year
+    ultimo = (db.session.query(db.func.max(SoloCriado.numero))
+              .filter(SoloCriado.numero.like(f'SC-{ano}-%'))
+              .scalar())
+    if ultimo:
+        try:
+            seq = int(ultimo.split('-')[-1]) + 1
+        except (ValueError, IndexError):
+            seq = 1
+    else:
+        seq = 1
+    return f'SC-{ano}-{seq:03d}'
+
+
 @app.route('/solo-criado/<int:sid>/relatorio.pdf')
 @login_required
 def sc_relatorio_pdf(sid):
     sc = SoloCriado.query.get_or_404(sid)
+    # Gera o número sequencial na primeira emissão do PDF
+    if not sc.numero:
+        sc.numero = _gerar_numero_sc(sc)
+        db.session.commit()
     html = render_template('solo_criado/relatorio_pdf.html', sc=sc)
     buf = io.BytesIO()
     pisa.CreatePDF(html, dest=buf)
     buf.seek(0)
     return send_file(buf, mimetype='application/pdf',
-                     download_name=f'SoloCriado_{sc.id}.pdf')
+                     download_name=f'SoloCriado_{sc.numero}.pdf')
 
 
 def _sc_fill(sc, f):

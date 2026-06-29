@@ -25,13 +25,13 @@
 <h6>1. IDENTIFICAÇÃO</h6>
 <table>
   <tr>
-    <td><strong>Protocolo CMAIU:</strong> {{ sc.protocolo or '—' }}</td>
+    <td><strong>Nº Solo Criado:</strong> {{ sc.numero or '—' }}</td>
     <td><strong>Processo Adm.:</strong> {{ sc.num_processo or '—' }}</td>
     <td><strong>Data:</strong> {{ sc.data_calculo.strftime('%d/%m/%Y') if sc.data_calculo else '—' }}</td>
   </tr>
   <tr>
-    <td colspan="2"><strong>Requerente:</strong> {{ sc.nome_empreendimento or '—' }}</td>
-    <td><strong>Resp. Técnico:</strong> {{ sc.responsavel_tecnico or '—' }}</td>
+    <td colspan="2"><strong>Proprietário:</strong> {{ sc.pessoa.nome if sc.pessoa else (sc.nome_empreendimento or '—') }}</td>
+    <td><strong>Resp. Técnico:</strong> {{ sc.resp_tecnico.nome if sc.resp_tecnico else (sc.responsavel_tecnico or '—') }}</td>
   </tr>
   <tr>
     <td colspan="2"><strong>Endereço:</strong> {{ sc.endereco_imovel or '—' }}{% if sc.bairro_imovel %}, {{ sc.bairro_imovel }}{% endif %}</td>
