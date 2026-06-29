@@ -1010,14 +1010,9 @@ class SoloCriado(db.Model):
             indice_final = iab + (iab * pt / 100)
             if indice_final > iam:
                 erros.append(f'Índice final estimado ({indice_final:.4f}) excede o IAM ({iam:.4f}).')
-        if (ain > 0 or aag > 0) and not self.decisao_comissao:
-            erros.append('Modalidade não onerosa sem decisão da Comissão.')
-
         if abp > 0 and aat > aex + 0.01:
             alertas.append(f'Área total adquirida ({aat:.2f} m²) superior à área excedente ({aex:.2f} m²).')
         if abp > 0 and abs(pt - 50) < 0.01:
             alertas.append('Projeto utiliza o limite total de 50%.')
-        if ain > 0 and not self.infra_descricao:
-            alertas.append('Infraestrutura sem descrição técnica.')
 
         return erros, alertas
