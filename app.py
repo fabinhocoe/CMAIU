@@ -1805,8 +1805,11 @@ def sc_relatorio_pdf(sid):
     if not sc.numero:
         sc.numero = _gerar_numero_sc(sc)
         db.session.commit()
+    import os as _os
     from xhtml2pdf import pisa
-    html = render_template('solo_criado/relatorio_pdf.html', sc=sc)
+    logo_path = 'file://' + _os.path.abspath(
+        _os.path.join(_os.path.dirname(__file__), 'static', 'img', 'smpu_logo.png'))
+    html = render_template('solo_criado/relatorio_pdf.html', sc=sc, logo_path=logo_path)
     buf = io.BytesIO()
     pisa.CreatePDF(html, dest=buf)
     buf.seek(0)
