@@ -1,54 +1,228 @@
 {% extends 'base.html' %}
 {% block title %}Solo Criado – CMAIU{% endblock %}
-{% block page_title %}Solo Criado{% endblock %}
+{% block page_title %}Solo Criado – Outorga Onerosa{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mt-2 mb-3">
-  <form class="d-flex gap-2" method="GET">
-    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Requerente, endereço ou processo..." style="width:280px">
+
+{# ── Barra de filtros + botão novo ── #}
+<div class="d-flex flex-wrap gap-2 align-items-center mt-2 mb-3">
+  <form class="d-flex gap-2 flex-wrap flex-grow-1" method="GET">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm"
+           placeholder="Proprietário, endereço, nº processo…" style="min-width:240px;max-width:340px">
     <select name="situacao" class="form-select form-select-sm" style="width:200px">
-      <option value="">Todas situações</option>
-      {% for s in situacoes %}<option value="{{ s }}" {% if s == sit %}selected{% endif %}>{{ s }}</option>{% endfor %}
+      <option value="">Todas as situações</option>
+      {% for s in situacoes %}
+      <option value="{{ s }}" {% if s == sit %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
     </select>
-    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-search"></i></button>
+    <button class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-search me-1"></i>Filtrar
+    </button>
+    {% if q or sit %}
+    <a href="{{ url_for('sc_index') }}" class="btn btn-sm btn-outline-danger">
+      <i class="bi bi-x-lg me-1"></i>Limpar
+    </a>
+    {% endif %}
   </form>
   {% if current_user.is_tecnico %}
-  <a href="{{ url_for('sc_novo') }}" class="btn btn-sm btn-primary">
-    <i class="bi bi-plus-lg me-1"></i>Novo
+  <a href="{{ url_for('sc_novo') }}" class="btn btn-sm btn-primary ms-auto">
+    <i class="bi bi-plus-lg me-1"></i>Novo Solo Criado
   </a>
   {% endif %}
 </div>
 
+{# ── Totalizadores ── #}
+{% if registros %}
+{% set ns = namespace(von=0, vin=0, vag=0, vtot=0) %}
+{% for r in registros %}
+  {% set ns.von  = ns.von  + (r.von or 0) %}
+  {% set ns.vin  = ns.vin  + (r.vin or 0) %}
+  {% set ns.vag  = ns.vag  + (r.vag or 0) %}
+  {% set ns.vtot = ns.vtot + (r.von or 0) + (r.vin or 0) + (r.vag or 0) %}
+{% endfor %}
+<div class="row g-2 mb-3">
+  <div class="col-6 col-md-3">
+    <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
+      <div class="small text-muted">Total Oneroso</div>
+      <div class="fw-bold text-success">{{ ns.von|brl }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
+      <div class="small text-muted">Total Infraestrutura</div>
+      <div class="fw-bold text-primary">{{ ns.vin|brl }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 bg-info bg-opacity-10 text-center py-2">
+      <div class="small text-muted">Total Águas Pluviais</div>
+      <div class="fw-bold text-info">{{ ns.vag|brl }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
+      <div class="small text-muted">Valor Total Geral</div>
+      <div class="fw-bold">{{ ns.vtot|brl }}</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Tabela principal ── #}
 <div class="card border-0 shadow-sm">
   <div class="card-body p-0">
-    <table class="table table-sm table-hover mb-0 align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>#</th><th>Requerente</th><th>Endereço</th>
-          <th>Processo Adm.</th><th>Situação</th>
-          <th>A. Terreno</th><th>V. Oneroso</th><th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in registros %}
-        <tr>
-          <td class="small text-muted">{{ r.id }}</td>
-          <td class="small fw-semibold">{{ r.nome_empreendimento or '—' }}</td>
-          <td class="small">{{ r.endereco_imovel or '—' }}</td>
-          <td class="small">{{ r.num_processo or '—' }}</td>
-          <td><span class="badge bg-{{ r.situacao_badge }}">{{ r.situacao }}</span></td>
-          <td class="small">{{ r.area_terreno|fmt_area if r.area_terreno else '—' }}</td>
-          <td class="small">{{ r.von|brl if r.von else '—' }}</td>
-          <td>
-            <a href="{{ url_for('sc_detail', sid=r.id) }}" class="btn btn-xs btn-outline-primary">
-              <i class="bi bi-eye"></i>
-            </a>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="8" class="text-center text-muted py-3">Nenhum registro encontrado.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center px-2" style="width:90px">Nº SC</th>
+            <th>Proprietário</th>
+            <th>Endereço / Bairro</th>
+            <th class="text-center">Situação</th>
+            <th class="text-center">Zoneamento</th>
+            <th class="text-end">AT (m²)</th>
+            <th class="text-center" colspan="2" style="border-left:2px solid #198754">
+              <span class="text-success">Oneroso</span>
+            </th>
+            <th class="text-center" colspan="2" style="border-left:2px solid #0d6efd">
+              <span class="text-primary">Infraestrutura</span>
+            </th>
+            <th class="text-center" colspan="2" style="border-left:2px solid #0dcaf0">
+              <span class="text-info">Águas</span>
+            </th>
+            <th class="text-end" style="border-left:2px solid #333">Valor Total</th>
+            <th class="px-2"></th>
+          </tr>
+          <tr class="table-light border-top-0" style="font-size:.75rem;color:#666">
+            <th></th><th></th><th></th><th></th><th></th>
+            <th></th>
+            <th class="text-center" style="border-left:2px solid #198754">%</th>
+            <th class="text-end">R$</th>
+            <th class="text-center" style="border-left:2px solid #0d6efd">%</th>
+            <th class="text-end">R$</th>
+            <th class="text-center" style="border-left:2px solid #0dcaf0">%</th>
+            <th class="text-end">R$</th>
+            <th class="text-end" style="border-left:2px solid #333"></th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in registros %}
+          <tr>
+            {# Número SC #}
+            <td class="text-center px-2">
+              {% if r.numero %}
+                <span class="badge bg-dark">{{ r.numero }}</span>
+              {% else %}
+                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
+              {% endif %}
+            </td>
+
+            {# Proprietário #}
+            <td class="fw-semibold">
+              {{ r.pessoa.nome if r.pessoa else (r.nome_empreendimento or '—') }}
+            </td>
+
+            {# Endereço / Bairro #}
+            <td>
+              <div>{{ r.endereco_imovel or '—' }}{% if r.numero_imovel %}, {{ r.numero_imovel }}{% endif %}</div>
+              {% if r.bairro_imovel %}
+                <div class="text-muted" style="font-size:.75rem">{{ r.bairro_imovel }}</div>
+              {% endif %}
+            </td>
+
+            {# Situação #}
+            <td class="text-center">
+              <span class="badge bg-{{ r.situacao_badge }}">{{ r.situacao }}</span>
+            </td>
+
+            {# Zoneamento #}
+            <td class="text-center">
+              {{ r.zoneamento.codigo if r.zoneamento else '—' }}
+            </td>
+
+            {# Área Terreno #}
+            <td class="text-end">
+              {{ r.area_terreno|fmt_area if r.area_terreno else '—' }}
+            </td>
+
+            {# Oneroso % e R$ #}
+            <td class="text-center" style="border-left:2px solid #19875430">
+              {% if r.pon is not none and r.von is not none %}
+                <span class="{% if r.pon > 40 %}text-danger fw-bold{% else %}text-success{% endif %}">
+                  {{ '%.2f'|format(r.pon) }}%
+                </span>
+              {% else %}—{% endif %}
+            </td>
+            <td class="text-end fw-semibold text-success">
+              {{ r.von|brl if r.von is not none else '—' }}
+            </td>
+
+            {# Infraestrutura % e R$ #}
+            <td class="text-center" style="border-left:2px solid #0d6efd30">
+              {% if r.pin is not none and r.pin > 0 %}
+                <span class="{% if r.pin > 5 %}text-danger fw-bold{% else %}text-primary{% endif %}">
+                  {{ '%.2f'|format(r.pin) }}%
+                </span>
+              {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            <td class="text-end text-primary">
+              {{ r.vin|brl if r.vin else '—' }}
+            </td>
+
+            {# Águas % e R$ #}
+            <td class="text-center" style="border-left:2px solid #0dcaf030">
+              {% if r.pag is not none and r.pag > 0 %}
+                <span class="{% if r.pag > 5 %}text-danger fw-bold{% else %}text-info{% endif %}">
+                  {{ '%.2f'|format(r.pag) }}%
+                </span>
+              {% else %}<span class="text-muted">—</span>{% endif %}
+            </td>
+            <td class="text-end text-info">
+              {{ r.vag|brl if r.vag else '—' }}
+            </td>
+
+            {# Valor Total #}
+            <td class="text-end fw-bold" style="border-left:2px solid #33333330">
+              {% set vtot = (r.von or 0) + (r.vin or 0) + (r.vag or 0) %}
+              {% if vtot > 0 %}
+                {{ vtot|brl }}
+              {% else %}
+                <span class="text-muted fst-italic">Não calculado</span>
+              {% endif %}
+            </td>
+
+            {# Ações #}
+            <td class="text-end px-2">
+              <a href="{{ url_for('sc_detail', sid=r.id) }}"
+                 class="btn btn-xs btn-outline-primary" title="Visualizar">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="14" class="text-center text-muted py-5">
+              <i class="bi bi-layers fs-2 d-block mb-2 opacity-25"></i>
+              Nenhum registro encontrado.
+              {% if current_user.is_tecnico %}
+              <div class="mt-2">
+                <a href="{{ url_for('sc_novo') }}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus-lg me-1"></i>Criar o primeiro registro
+                </a>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+  {% if registros %}
+  <div class="card-footer text-muted small py-2">
+    {{ registros|length }} registro{{ 's' if registros|length != 1 }}
+    {% if q or sit %} (filtrado{{ 's' if registros|length != 1 }}){% endif %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}
