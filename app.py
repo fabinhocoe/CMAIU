@@ -1786,6 +1786,7 @@ def sc_relatorio_pdf(sid):
     if not sc.numero:
         sc.numero = _gerar_numero_sc(sc)
         db.session.commit()
+    from xhtml2pdf import pisa
     html = render_template('solo_criado/relatorio_pdf.html', sc=sc)
     buf = io.BytesIO()
     pisa.CreatePDF(html, dest=buf)
