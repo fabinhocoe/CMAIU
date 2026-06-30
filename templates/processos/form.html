@@ -33,17 +33,26 @@
   <div class="card-body py-3">
     <div class="row g-3">
 
-      <div class="col-md-6">
+      <div class="col-md-5">
         <label class="form-label small fw-semibold">Número do Processo CMAIU <span class="text-danger">*</span></label>
         <input type="text" name="num_processo" class="form-control form-control-sm" required
                placeholder="Ex.: 12345/2024"
                value="{{ processo.num_processo if editing else '' }}">
       </div>
 
-      <div class="col-md-6">
+      <div class="col-md-4">
         <label class="form-label small fw-semibold">Número de Protocolo de Aprovação</label>
         <input type="text" name="protocolo_aprovacao" class="form-control form-control-sm"
                value="{{ processo.protocolo_aprovacao if editing else '' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Situação</label>
+        <select name="situacao" class="form-select form-select-sm">
+          {% for s in situacoes %}
+          <option value="{{ s }}" {% if editing and processo.situacao == s %}selected{% endif %}>{{ s }}</option>
+          {% endfor %}
+        </select>
       </div>
 
       <div class="col-md-3">
@@ -56,15 +65,6 @@
         <label class="form-label small fw-semibold">Data da Análise</label>
         <input type="date" name="data_analise" class="form-control form-control-sm"
                value="{{ processo.data_analise.isoformat() if editing and processo.data_analise else '' }}">
-      </div>
-
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Situação</label>
-        <select name="situacao" class="form-select form-select-sm">
-          {% for s in situacoes %}
-          <option value="{{ s }}" {% if editing and processo.situacao == s %}selected{% endif %}>{{ s }}</option>
-          {% endfor %}
-        </select>
       </div>
 
       <div class="col-12">
@@ -87,7 +87,7 @@
   </div>
   <div class="card-body py-3">
 
-    {# ── Pessoas já vinculadas (modo edição) ── #}
+    {# ── Pessoas já vinculadas ── #}
     <div id="pessoasSelecionadas" class="d-flex flex-wrap gap-2 mb-3">
       {% if editing %}
         {% for vp in processo.pessoas_vinculadas %}
@@ -169,11 +169,27 @@
   </div>
   <div class="card-body py-3">
     <div class="row g-3">
-      <div class="col-md-6">
+
+      {# Identificação  #}
+      <div class="col-md-8">
         <label class="form-label small fw-semibold">Nome do Empreendimento</label>
         <input type="text" name="emp_nome" class="form-control form-control-sm"
                value="{{ emp.nome if emp else '' }}">
       </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Padrão do Empreendimento</label>
+        <select name="emp_padrao_empreendimento" class="form-select form-select-sm">
+          <option value="">— Selecione —</option>
+          {% set padroes_emp = ['Baixo', 'Médio Baixo', 'Médio', 'Médio Alto', 'Alto'] %}
+          {% for pad in padroes_emp %}
+          <option value="{{ pad }}" {% if emp and emp.padrao_empreendimento == pad %}selected{% endif %}>{{ pad }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# Localização  #}
+      <div class="col-12"><hr class="my-0"><p class="text-muted small fw-semibold mt-2 mb-0"><i class="bi bi-geo-alt me-1"></i>Localização</p></div>
+
       <div class="col-md-2">
         <label class="form-label small fw-semibold">CEP</label>
         <div class="input-group input-group-sm">
@@ -186,7 +202,7 @@
         </div>
         <div id="cepErro" class="form-text text-danger" style="display:none">CEP não encontrado.</div>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-7">
         <label class="form-label small fw-semibold">Endereço</label>
         <input type="text" name="emp_endereco" id="empEndereco" class="form-control form-control-sm"
                value="{{ emp.endereco if emp else '' }}">
@@ -196,17 +212,18 @@
         <input type="text" name="emp_bairro" id="empBairro" class="form-control form-control-sm"
                value="{{ emp.bairro if emp else '' }}">
       </div>
-      <div class="col-md-3">
+
+      <div class="col-md-4">
         <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
         <input type="text" name="emp_inscricao" class="form-control form-control-sm"
                value="{{ emp.inscricao if emp else '' }}">
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <label class="form-label small fw-semibold">Matrícula</label>
         <input type="text" name="emp_matricula" class="form-control form-control-sm"
                value="{{ emp.matricula if emp else '' }}">
       </div>
-      <div class="col-md-3">
+      <div class="col-md-4">
         <label class="form-label small fw-semibold">Zoneamento</label>
         <select name="zoneamento_id" class="form-select form-select-sm" id="zoneamentoSelect">
           <option value="">— Selecione —</option>
@@ -220,7 +237,11 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-4">
+
+      {# Uso  #}
+      <div class="col-12"><hr class="my-0"><p class="text-muted small fw-semibold mt-2 mb-0"><i class="bi bi-tag me-1"></i>Uso</p></div>
+
+      <div class="col-md-6">
         <label class="form-label small fw-semibold">Uso Predominante</label>
         <select name="emp_uso_predominante" class="form-select form-select-sm">
           <option value="">— Selecione —</option>
@@ -229,7 +250,7 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-4">
+      <div class="col-md-6">
         <label class="form-label small fw-semibold">Uso Secundário</label>
         <select name="emp_uso_secundario" class="form-select form-select-sm">
           <option value="">—</option>
@@ -238,16 +259,7 @@
           {% endfor %}
         </select>
       </div>
-      <div class="col-md-4">
-        <label class="form-label small fw-semibold">Padrão do Empreendimento</label>
-        <select name="emp_padrao_empreendimento" class="form-select form-select-sm">
-          <option value="">— Selecione —</option>
-          {% set padroes_emp = ['Baixo', 'Médio Baixo', 'Médio', 'Médio Alto', 'Alto'] %}
-          {% for pad in padroes_emp %}
-          <option value="{{ pad }}" {% if emp and emp.padrao_empreendimento == pad %}selected{% endif %}>{{ pad }}</option>
-          {% endfor %}
-        </select>
-      </div>
+
     </div>
   </div>
 </div>
@@ -262,6 +274,10 @@
   </div>
   <div class="card-body py-3">
     <div class="row g-3">
+
+      {# Áreas e Estrutura  #}
+      <div class="col-12"><p class="text-muted small fw-semibold mb-0"><i class="bi bi-aspect-ratio me-1"></i>Áreas e Estrutura</p><hr class="mt-1 mb-0"></div>
+
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Área do Terreno (m²)</label>
         <input type="number" step="0.01" name="area_terreno" class="form-control form-control-sm"
@@ -282,6 +298,10 @@
         <input type="number" name="num_pavimentos" class="form-control form-control-sm"
                value="{{ emp.num_pavimentos if emp and emp.num_pavimentos else '' }}">
       </div>
+
+      {# Unidades e Vagas  #}
+      <div class="col-12"><p class="text-muted small fw-semibold mb-0 mt-1"><i class="bi bi-grid me-1"></i>Unidades e Vagas</p><hr class="mt-1 mb-0"></div>
+
       <div class="col-md-3">
         <label class="form-label small fw-semibold">UH (Unidades Habitacionais)</label>
         <input type="number" name="num_uh" class="form-control form-control-sm"
@@ -292,6 +312,24 @@
         <input type="number" name="num_uc" class="form-control form-control-sm"
                value="{{ emp.num_uc if emp and emp.num_uc else '' }}">
       </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Nº de Vagas</label>
+        <input type="number" name="vagas" class="form-control form-control-sm"
+               value="{{ emp.vagas if emp and emp.vagas else '' }}">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Padrão de Impacto</label>
+        <select name="padrao_impacto" class="form-select form-select-sm">
+          <option value="">—</option>
+          {% for pad in padroes %}
+          <option value="{{ pad }}" {% if emp and emp.padrao_impacto == pad %}selected{% endif %}>{{ pad }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {# População  #}
+      <div class="col-12"><p class="text-muted small fw-semibold mb-0 mt-1"><i class="bi bi-people me-1"></i>População</p><hr class="mt-1 mb-0"></div>
+
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Total de Dormitórios</label>
         <input type="number" name="total_dormitorios" id="dormitorios" class="form-control form-control-sm"
@@ -310,24 +348,11 @@
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">População Total</label>
-        <input type="number" name="pop_total" id="popTotal" class="form-control form-control-sm fw-bold bg-light"
+        <input type="number" name="pop_total" id="popTotal" class="form-control form-control-sm bg-light"
                value="{{ emp.pop_total if emp and emp.pop_total else '' }}" readonly>
         <div class="form-text">Calculado automaticamente</div>
       </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Nº de Vagas</label>
-        <input type="number" name="vagas" class="form-control form-control-sm"
-               value="{{ emp.vagas if emp and emp.vagas else '' }}">
-      </div>
-      <div class="col-md-4">
-        <label class="form-label small fw-semibold">Padrão de Impacto</label>
-        <select name="padrao_impacto" class="form-select form-select-sm">
-          <option value="">—</option>
-          {% for pad in padroes %}
-          <option value="{{ pad }}" {% if emp and emp.padrao_impacto == pad %}selected{% endif %}>{{ pad }}</option>
-          {% endfor %}
-        </select>
-      </div>
+
     </div>
   </div>
 </div>
@@ -348,8 +373,6 @@
 
 {% block scripts %}
 <script>
-// ── Zoneamento autocomplete ──
-
 // ── Cálculo de população ──
 function calcPop() {
   const dorms = parseInt(document.getElementById('dormitorios').value) || 0;
