@@ -648,6 +648,7 @@ def processos_exportar_excel(pid):
     calc = p.ultimo_calculo
     emp = p.empreendimento
     prop = p.proprietario
+    pessoas_proc = p.pessoas_vinculadas if p.pessoas_vinculadas else []
     try:
         import openpyxl
         from openpyxl.styles import Font, PatternFill, Alignment
@@ -665,7 +666,8 @@ def processos_exportar_excel(pid):
         row('Protocolo de Aprovação', p.protocolo_aprovacao)
         row('Situação', p.situacao)
         row('Data de Entrada', str(p.data_entrada or ''))
-        row('Proprietário', prop.nome if prop else '')
+        nomes_prop = ', '.join(pv.pessoa.nome for pv in pessoas_proc) if pessoas_proc else (prop.nome if prop else '')
+        row('Proprietário / Empreendedor', nomes_prop)
         row('Empreendimento', emp.nome if emp else '')
         row('Endereço', emp.endereco if emp else '')
         row('Bairro', emp.bairro if emp else '')

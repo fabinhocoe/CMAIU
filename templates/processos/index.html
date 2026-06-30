@@ -90,7 +90,7 @@
             <td>
               {% set pessoas = p.pessoas_vinculadas if p.pessoas_vinculadas else [] %}
               {% if pessoas %}
-                <div>{{ pessoas[0].nome }}</div>
+                <div>{{ pessoas[0].pessoa.nome }}</div>
                 {% if pessoas|length > 1 %}
                   <div class="text-muted" style="font-size:.75rem">+{{ pessoas|length - 1 }} outro(s)</div>
                 {% endif %}

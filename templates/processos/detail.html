@@ -121,11 +121,11 @@
           {% if pessoas %}
             {% for pv in pessoas %}
             <tr>
-              <td class="fw-semibold">{{ pv.nome }}</td>
-              <td class="text-center"><span class="badge bg-secondary bg-opacity-75">{{ pv.tipo }}</span></td>
-              <td>{{ pv.cpf_cnpj or '—' }}</td>
-              <td>{{ pv.telefone or '—' }}</td>
-              <td>{{ pv.email or '—' }}</td>
+              <td class="fw-semibold">{{ pv.pessoa.nome }}</td>
+              <td class="text-center"><span class="badge bg-secondary bg-opacity-75">{{ pv.pessoa.tipo or pv.papel }}</span></td>
+              <td>{{ pv.pessoa.cpf_cnpj or '—' }}</td>
+              <td>{{ pv.pessoa.telefone or '—' }}</td>
+              <td>{{ pv.pessoa.email or '—' }}</td>
             </tr>
             {% endfor %}
           {% elif prop %}

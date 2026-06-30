@@ -4,6 +4,7 @@
 {% block content %}
 {% set emp = processo.empreendimento %}
 {% set prop = processo.proprietario %}
+{% set pessoas_proc = processo.pessoas_vinculadas if processo.pessoas_vinculadas else [] %}
 {% set c = calc %}
 
 <div class="d-flex gap-2 mb-3 mt-2 flex-wrap">
@@ -82,7 +83,11 @@
           <th>Processo Administrativo</th><td>{{ processo.num_processo or '—' }}</td></tr>
       <tr><th>Protocolo de Aprovação</th><td>{{ processo.protocolo_aprovacao or '—' }}</td>
           <th>Data de Entrada</th><td>{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</td></tr>
-      <tr><th>Proprietário</th><td colspan="3">{{ prop.nome if prop else '—' }}</td></tr>
+      <tr><th>Proprietário / Empreendedor</th><td colspan="3">
+        {% if pessoas_proc %}
+          {{ pessoas_proc | map(attribute='pessoa') | map(attribute='nome') | join(', ') }}
+        {% elif prop %}{{ prop.nome }}{% else %}—{% endif %}
+      </td></tr>
       <tr><th>Empreendimento</th><td colspan="3">{{ emp.nome if emp else '—' }}</td></tr>
       <tr><th>Endereço</th><td colspan="3">{{ emp.endereco if emp else '—' }}, {{ emp.bairro if emp else '—' }}</td></tr>
       <tr><th>Zoneamento</th><td>{{ emp.zoneamento.codigo if emp and emp.zoneamento else '—' }}</td>
