@@ -81,36 +81,11 @@
   </thead>
   <tbody>
     <tr>
-      <td>Onerosa (VON)</td>
+      <td>Outorga Onerosa (VON)</td>
       <td class="text-center">{{ '%.2f'|format(sc.pon) if sc.pon else '—' }}%</td>
       <td class="text-center">{{ '%.4f'|format(sc.ion) if sc.ion is not none else '—' }}</td>
       <td class="text-end">{{ sc.aon|fmt_area if sc.aon is not none else '—' }}</td>
       <td class="text-end fw-bold">{{ sc.von|brl if sc.von is not none else '—' }}</td>
-    </tr>
-    {% if sc.pin %}
-    <tr>
-      <td>Infraestrutura (VIN)</td>
-      <td class="text-center">{{ '%.2f'|format(sc.pin) }}%</td>
-      <td class="text-center">{{ '%.4f'|format(sc.iin) if sc.iin is not none else '—' }}</td>
-      <td class="text-end">{{ sc.ain|fmt_area if sc.ain is not none else '—' }}</td>
-      <td class="text-end">{{ sc.vin|brl if sc.vin is not none else '—' }}</td>
-    </tr>
-    {% endif %}
-    {% if sc.pag %}
-    <tr>
-      <td>Águas Pluviais (VAG)</td>
-      <td class="text-center">{{ '%.2f'|format(sc.pag) }}%</td>
-      <td class="text-center">{{ '%.4f'|format(sc.iag) if sc.iag is not none else '—' }}</td>
-      <td class="text-end">{{ sc.aag|fmt_area if sc.aag is not none else '—' }}</td>
-      <td class="text-end">{{ sc.vag|brl if sc.vag is not none else '—' }}</td>
-    </tr>
-    {% endif %}
-    <tr class="fw-bold">
-      <td>TOTAL</td>
-      <td class="text-center">{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
-      <td class="text-center">{{ '%.4f'|format(sc.iat) if sc.iat is not none else '—' }}</td>
-      <td class="text-end">{{ sc.aat|fmt_area if sc.aat is not none else '—' }}</td>
-      <td class="text-end">{{ ((sc.von or 0)+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
     </tr>
   </tbody>
 </table>
