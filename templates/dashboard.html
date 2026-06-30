@@ -2,6 +2,8 @@
 {% block title %}Dashboard – CMAIU{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 {% block content %}
+
+{# ── Resumo geral ── #}
 <div class="row g-3 mt-1">
   <div class="col-sm-6 col-lg-3">
     <div class="card stat-card border-0 shadow-sm">
@@ -11,38 +13,8 @@
             <i class="bi bi-folder2-open fs-4"></i>
           </div>
           <div>
-            <div class="fs-2 fw-bold">{{ total }}</div>
-            <div class="text-muted small">Total de Processos</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card stat-card border-0 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="stat-icon bg-warning-subtle text-warning rounded-3 p-3 me-3">
-            <i class="bi bi-hourglass-split fs-4"></i>
-          </div>
-          <div>
-            <div class="fs-2 fw-bold">{{ em_analise }}</div>
-            <div class="text-muted small">Em Análise</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card stat-card border-0 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="stat-icon bg-success-subtle text-success rounded-3 p-3 me-3">
-            <i class="bi bi-check-circle fs-4"></i>
-          </div>
-          <div>
-            <div class="fs-2 fw-bold">{{ aprovados }}</div>
-            <div class="text-muted small">Aprovados</div>
+            <div class="fs-2 fw-bold">{{ proc_totais.total }}</div>
+            <div class="text-muted small">Processos CMAIU</div>
           </div>
         </div>
       </div>
@@ -53,10 +25,40 @@
       <div class="card-body">
         <div class="d-flex align-items-center">
           <div class="stat-icon bg-info-subtle text-info rounded-3 p-3 me-3">
+            <i class="bi bi-file-earmark-ruled fs-4"></i>
+          </div>
+          <div>
+            <div class="fs-2 fw-bold">{{ tac_totais.total }}</div>
+            <div class="text-muted small">TACs</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card stat-card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-success-subtle text-success rounded-3 p-3 me-3">
+            <i class="bi bi-layers fs-4"></i>
+          </div>
+          <div>
+            <div class="fs-2 fw-bold">{{ sc_totais.total }}</div>
+            <div class="text-muted small">Solo Criado</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card stat-card border-0 shadow-sm">
+      <div class="card-body">
+        <div class="d-flex align-items-center">
+          <div class="stat-icon bg-warning-subtle text-warning rounded-3 p-3 me-3">
             <i class="bi bi-currency-dollar fs-4"></i>
           </div>
           <div>
-            <div class="fs-2 fw-bold">{{ cub_atual.valor|brl if cub_atual else '—' }}</div>
+            <div class="fs-5 fw-bold">{{ cub_atual.valor|brl if cub_atual else '—' }}</div>
             <div class="text-muted small">CUB Mais Recente{% if cub_atual %} ({{ cub_atual.mes_ano_str }}){% endif %}</div>
           </div>
         </div>
@@ -65,42 +67,266 @@
   </div>
 </div>
 
+{# ════════════════════════════════════════ CMAIU / Processos ════════════════════════════════════════ #}
 <div class="card border-0 shadow-sm mt-4">
-  <div class="card-header bg-white d-flex align-items-center justify-content-between py-3">
-    <span class="fw-semibold"><i class="bi bi-clock-history me-2 text-primary"></i>Processos Recentes</span>
-    <a href="{{ url_for('processos_novo') }}" class="btn btn-sm btn-primary">
-      <i class="bi bi-plus-circle me-1"></i>Novo Processo
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0"><i class="bi bi-folder2-open" style="font-size:.65rem"></i></span>
+    <span class="fw-semibold">CMAIU – Processos</span>
+    <a href="{{ url_for('processos_index') }}" class="btn btn-sm btn-outline-primary ms-auto">
+      Ver todos<i class="bi bi-arrow-right ms-1"></i>
     </a>
   </div>
-  <div class="card-body p-0">
+  <div class="card-body">
+    <div class="row g-2 mb-3">
+      <div class="col-12">
+        <div class="text-muted small mb-1 ps-1">
+          <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ proc_totais.ano }}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
+          <div class="small text-muted">No Ano</div>
+          <div class="fw-bold text-primary">{{ proc_totais.qtd_ano }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-warning bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Em Análise</div>
+          <div class="fw-bold" style="color:#7a5800">{{ proc_totais.em_analise }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Aprovados</div>
+          <div class="fw-bold text-success">{{ proc_totais.aprovados }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Valor Compensação</div>
+          <div class="fw-bold">{{ proc_totais.vcomp|brl }}</div>
+        </div>
+      </div>
+    </div>
+
     <div class="table-responsive">
-      <table class="table table-hover mb-0 align-middle">
+      <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
         <thead class="table-light">
           <tr>
-            <th>Protocolo CMAIU</th>
+            <th class="text-center px-2" style="width:140px">Protocolo CMAIU</th>
             <th>Empreendimento</th>
             <th>Bairro</th>
-            <th>Situação</th>
-            <th>Data</th>
-            <th></th>
+            <th class="text-center">Situação</th>
+            <th class="text-center">Data Entrada</th>
+            <th class="px-2"></th>
           </tr>
         </thead>
         <tbody>
-          {% for p in recentes %}
+          {% for p in proc_recentes %}
           <tr>
-            <td><code>{{ p.protocolo_cmaiu or '—' }}</code></td>
+            <td class="text-center px-2">
+              {% if p.protocolo_cmaiu %}
+                <span class="badge bg-dark">{{ p.protocolo_cmaiu }}</span>
+              {% else %}
+                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
+              {% endif %}
+            </td>
             <td>{{ p.empreendimento.nome if p.empreendimento else '—' }}</td>
             <td>{{ p.empreendimento.bairro if p.empreendimento else '—' }}</td>
-            <td><span class="badge bg-{{ p.situacao_badge }}">{{ p.situacao }}</span></td>
-            <td class="text-muted small">{{ p.data_entrada.strftime('%d/%m/%Y') if p.data_entrada else '—' }}</td>
-            <td>
-              <a href="{{ url_for('processos_detail', pid=p.id) }}" class="btn btn-sm btn-outline-primary">
+            <td class="text-center"><span class="badge bg-{{ p.situacao_badge }}">{{ p.situacao }}</span></td>
+            <td class="text-center">{{ p.data_entrada.strftime('%d/%m/%Y') if p.data_entrada else '—' }}</td>
+            <td class="text-end px-2">
+              <a href="{{ url_for('processos_detail', pid=p.id) }}" class="btn btn-xs btn-outline-primary" title="Visualizar">
                 <i class="bi bi-eye"></i>
               </a>
             </td>
           </tr>
           {% else %}
           <tr><td colspan="6" class="text-center text-muted py-4">Nenhum processo cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{# ════════════════════════════════════════ TAC ════════════════════════════════════════ #}
+<div class="card border-0 shadow-sm mt-4">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-info rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0"><i class="bi bi-file-earmark-ruled" style="font-size:.65rem"></i></span>
+    <span class="fw-semibold">TAC – Termos de Ajustamento de Conduta</span>
+    <a href="{{ url_for('tac_index') }}" class="btn btn-sm btn-outline-primary ms-auto">
+      Ver todos<i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+  <div class="card-body">
+    <div class="row g-2 mb-3">
+      <div class="col-12">
+        <div class="text-muted small mb-1 ps-1">
+          <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ tac_totais.ano }}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
+          <div class="small text-muted">No Ano</div>
+          <div class="fw-bold text-primary">{{ tac_totais.qtd_ano }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-warning bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Em Andamento</div>
+          <div class="fw-bold" style="color:#7a5800">{{ tac_totais.em_andamento }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Concluídos</div>
+          <div class="fw-bold text-success">{{ tac_totais.concluidos }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Valor Total Calculado</div>
+          <div class="fw-bold">{{ tac_totais.vtot|brl }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center px-2" style="width:110px">Nº TAC</th>
+            <th>Compromissários</th>
+            <th>Endereço / Bairro</th>
+            <th class="text-center">Situação</th>
+            <th class="text-center">Abertura</th>
+            <th class="text-end">Valor (R$)</th>
+            <th class="px-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tac_recentes %}
+          <tr>
+            <td class="text-center px-2">
+              {% if t.numero %}
+                <span class="badge bg-dark">{{ t.numero }}</span>
+              {% else %}
+                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% set nomes = t.compromissarios|map(attribute='nome')|list %}
+              {{ nomes[0] if nomes else '—' }}
+            </td>
+            <td>
+              {% if t.obras %}{{ t.obras[0].bairro or t.obras[0].endereco or '—' }}{% else %}—{% endif %}
+            </td>
+            <td class="text-center"><span class="badge bg-{{ t.situacao_badge }}">{{ t.situacao }}</span></td>
+            <td class="text-center">{{ t.data_abertura.strftime('%d/%m/%Y') if t.data_abertura else '—' }}</td>
+            <td class="text-end fw-semibold text-success">
+              {% if t.calculo %}{{ t.calculo.vf_total|brl }}{% else %}<span class="text-muted fst-italic">Não calculado</span>{% endif %}
+            </td>
+            <td class="text-end px-2">
+              <a href="{{ url_for('tac_detail', tid=t.id) }}" class="btn btn-xs btn-outline-primary" title="Visualizar">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="7" class="text-center text-muted py-4">Nenhum TAC cadastrado.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{# ════════════════════════════════════════ Solo Criado ════════════════════════════════════════ #}
+<div class="card border-0 shadow-sm mt-4 mb-4">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-success rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0"><i class="bi bi-layers" style="font-size:.65rem"></i></span>
+    <span class="fw-semibold">Solo Criado – Outorga Onerosa</span>
+    <a href="{{ url_for('sc_index') }}" class="btn btn-sm btn-outline-primary ms-auto">
+      Ver todos<i class="bi bi-arrow-right ms-1"></i>
+    </a>
+  </div>
+  <div class="card-body">
+    <div class="row g-2 mb-3">
+      <div class="col-12">
+        <div class="text-muted small mb-1 ps-1">
+          <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ sc_totais.ano }}
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
+          <div class="small text-muted">No Ano</div>
+          <div class="fw-bold text-primary">{{ sc_totais.qtd_ano }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-warning bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Em Andamento</div>
+          <div class="fw-bold" style="color:#7a5800">{{ sc_totais.em_andamento }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Aprovados</div>
+          <div class="fw-bold text-success">{{ sc_totais.aprovados }}</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
+          <div class="small text-muted">Valor Total Geral</div>
+          <div class="fw-bold">{{ sc_totais.vtot|brl }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center px-2" style="width:90px">Nº SC</th>
+            <th>Proprietário</th>
+            <th>Endereço / Bairro</th>
+            <th class="text-center">Situação</th>
+            <th class="text-end">Valor Total</th>
+            <th class="px-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in sc_recentes %}
+          <tr>
+            <td class="text-center px-2">
+              {% if r.numero %}
+                <span class="badge bg-dark">{{ r.numero }}</span>
+              {% else %}
+                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
+              {% endif %}
+            </td>
+            <td class="fw-semibold">{{ r.pessoa.nome if r.pessoa else (r.nome_empreendimento or '—') }}</td>
+            <td>
+              <div>{{ r.endereco_imovel or '—' }}</div>
+              {% if r.bairro_imovel %}<div class="text-muted" style="font-size:.75rem">{{ r.bairro_imovel }}</div>{% endif %}
+            </td>
+            <td class="text-center"><span class="badge bg-{{ r.situacao_badge }}">{{ r.situacao }}</span></td>
+            <td class="text-end fw-bold">
+              {% set vtot = (r.von or 0) + (r.vin or 0) %}
+              {% if vtot > 0 %}{{ vtot|brl }}{% else %}<span class="text-muted fst-italic">Não calculado</span>{% endif %}
+            </td>
+            <td class="text-end px-2">
+              <a href="{{ url_for('sc_detail', sid=r.id) }}" class="btn btn-xs btn-outline-primary" title="Visualizar">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr><td colspan="6" class="text-center text-muted py-4">Nenhum registro cadastrado.</td></tr>
           {% endfor %}
         </tbody>
       </table>

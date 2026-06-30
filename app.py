@@ -167,13 +167,56 @@ def logout():
 @app.route('/')
 @login_required
 def dashboard():
-    total = Processo.query.count()
-    em_analise = Processo.query.filter_by(situacao='Em análise').count()
-    aprovados = Processo.query.filter_by(situacao='Aprovado').count()
-    recentes = Processo.query.order_by(Processo.criado_em.desc()).limit(10).all()
+    ano_atual = date.today().year
     cub_atual = CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).first()
-    return render_template('dashboard.html', total=total, em_analise=em_analise,
-                           aprovados=aprovados, recentes=recentes, cub_atual=cub_atual)
+
+    # ── CMAIU / Processos ──
+    processos = Processo.query.all()
+    proc_ano = [p for p in processos if p.criado_em and p.criado_em.year == ano_atual]
+    proc_totais = {
+        'ano': ano_atual,
+        'total': len(processos),
+        'qtd_ano': len(proc_ano),
+        'em_analise': sum(1 for p in processos if p.situacao == 'Em análise'),
+        'aprovados': sum(1 for p in processos if p.situacao == 'Aprovado'),
+        'vcomp': sum(p.ultimo_calculo.valor_compensacao or 0 for p in proc_ano
+                     if p.ultimo_calculo and p.ultimo_calculo.nivel_selecionado),
+    }
+    proc_recentes = Processo.query.order_by(Processo.criado_em.desc()).limit(5).all()
+
+    # ── TAC ──
+    tacs = TAC.query.all()
+    tacs_ano = [t for t in tacs if t.criado_em and t.criado_em.year == ano_atual]
+    tac_totais = {
+        'ano': ano_atual,
+        'total': len(tacs),
+        'qtd_ano': len(tacs_ano),
+        'em_andamento': sum(1 for t in tacs if t.situacao not in
+                             ('Assinado', 'Publicado', 'Cancelado')),
+        'concluidos': sum(1 for t in tacs if t.situacao in ('Assinado', 'Publicado')),
+        'vtot': sum(t.calculo.vf_total for t in tacs_ano if t.calculo),
+    }
+    tac_recentes = TAC.query.order_by(TAC.criado_em.desc()).limit(5).all()
+
+    # ── Solo Criado ──
+    registros_sc = SoloCriado.query.all()
+    sc_ano = [r for r in registros_sc if r.criado_em and r.criado_em.year == ano_atual]
+    sc_totais = {
+        'ano': ano_atual,
+        'total': len(registros_sc),
+        'qtd_ano': len(sc_ano),
+        'em_andamento': sum(1 for r in registros_sc if r.situacao not in
+                             ('Aprovado', 'Encaminhado à Receita', 'Guia emitida', 'Cancelado', 'Substituído por nova versão')),
+        'aprovados': sum(1 for r in registros_sc if r.situacao in
+                          ('Aprovado', 'Encaminhado à Receita', 'Guia emitida')),
+        'vtot': sum((r.von or 0) + (r.vin or 0) for r in sc_ano),
+    }
+    sc_recentes = SoloCriado.query.order_by(SoloCriado.criado_em.desc()).limit(5).all()
+
+    return render_template('dashboard.html', ano_atual=ano_atual, cub_atual=cub_atual,
+                           proc_totais=proc_totais, proc_recentes=proc_recentes,
+                           tac_totais=tac_totais, tac_recentes=tac_recentes,
+                           sc_totais=sc_totais, sc_recentes=sc_recentes)
 
 
 # ─── Processos ───────────────────────────────────────────────────────────────
