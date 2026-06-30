@@ -1,74 +1,171 @@
 {% extends 'base.html' %}
 {% set editing = tac is not none %}
-{% block title %}{% if editing %}Editar TAC{% else %}Novo TAC{% endif %} – CMAIU{% endblock %}
-{% block page_title %}{% if editing %}Editar TAC{% else %}Novo TAC{% endif %}{% endblock %}
+{% block title %}{{ 'Editar' if editing else 'Novo' }} TAC – CMAIU{% endblock %}
+{% block page_title %}{{ 'Editar TAC' if editing else 'Novo TAC' }}{% endblock %}
 {% block content %}
-<form method="POST">
+
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{{ url_for('tac_index') if not editing else url_for('tac_detail', tid=tac.id) }}"
+     class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  {% if editing %}
+  <a href="{{ url_for('tac_detail', tid=tac.id) }}" class="btn btn-sm btn-outline-info">
+    <i class="bi bi-eye me-1"></i>Visualizar
+  </a>
+  {% endif %}
+  <span class="text-muted small ms-auto">
+    <i class="bi bi-asterisk text-danger me-1" style="font-size:.6rem;vertical-align:middle"></i>Campo obrigatório
+  </span>
+</div>
+
+<form method="POST" autocomplete="off">
 <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-<div class="card border-0 shadow-sm mt-2">
-  <div class="card-header section-header"><i class="bi bi-file-earmark-ruled me-2"></i>Identificação do TAC</div>
-  <div class="card-body">
+
+{# ── SEÇÃO 1 – IDENTIFICAÇÃO ── #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">1</span>
+    <i class="bi bi-file-earmark-ruled"></i>
+    <span class="fw-semibold">Identificação do TAC</span>
+  </div>
+  <div class="card-body py-3">
     <div class="row g-3">
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Nº do TAC</label>
-        <input type="text" name="numero" class="form-control" placeholder="Gerado após assinatura"
-          value="{{ tac.numero if editing else '' }}">
+
+      {% if editing and tac.numero %}
+      <div class="col-12">
+        <div class="alert alert-secondary py-2 mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-lock-fill text-muted"></i>
+          <span class="small">Nº TAC:</span>
+          <span class="badge bg-dark fs-6">{{ tac.numero }}</span>
+          <span class="text-muted small ms-1">— gerado automaticamente, não pode ser alterado.</span>
+        </div>
       </div>
+      {% endif %}
+
       <div class="col-md-4">
-        <label class="form-label small fw-semibold">Nº do Processo Administrativo</label>
-        <input type="text" name="num_processo_adm" class="form-control"
-          value="{{ tac.num_processo_adm if editing else '' }}">
+        <label class="form-label small fw-semibold">Nº do Processo Administrativo <span class="text-danger">*</span></label>
+        <input type="text" name="num_processo_adm" class="form-control form-control-sm" required
+               placeholder="Ex.: 12345/2024"
+               value="{{ tac.num_processo_adm if editing else '' }}">
       </div>
+
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Data de Abertura</label>
-        <input type="date" name="data_abertura" class="form-control"
-          value="{{ tac.data_abertura.isoformat() if editing and tac.data_abertura else '' }}">
+        <label class="form-label small fw-semibold">Data de Abertura <span class="text-danger">*</span></label>
+        <input type="date" name="data_abertura" class="form-control form-control-sm" required
+               value="{{ tac.data_abertura.isoformat() if editing and tac.data_abertura else '' }}">
       </div>
+
       {% if editing %}
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Data de Assinatura</label>
-        <input type="date" name="data_assinatura" class="form-control"
-          value="{{ tac.data_assinatura.isoformat() if tac.data_assinatura else '' }}">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Data de Publicação</label>
-        <input type="date" name="data_publicacao" class="form-control"
-          value="{{ tac.data_publicacao.isoformat() if tac.data_publicacao else '' }}">
-      </div>
-      <div class="col-md-3">
         <label class="form-label small fw-semibold">Situação</label>
-        <select name="situacao" class="form-select">
+        <select name="situacao" class="form-select form-select-sm">
           {% for s in ['Rascunho','Em análise','Cálculo concluído','Aguardando parecer jurídico','Pronto para assinatura','Assinado','Publicado','Cancelado'] %}
           <option value="{{ s }}" {% if tac.situacao == s %}selected{% endif %}>{{ s }}</option>
           {% endfor %}
         </select>
       </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Data de Assinatura</label>
+        <input type="date" name="data_assinatura" class="form-control form-control-sm"
+               value="{{ tac.data_assinatura.isoformat() if tac.data_assinatura else '' }}">
+      </div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Data de Publicação</label>
+        <input type="date" name="data_publicacao" class="form-control form-control-sm"
+               value="{{ tac.data_publicacao.isoformat() if tac.data_publicacao else '' }}">
+      </div>
       {% endif %}
-      <div class="col-md-4">
-        <label class="form-label small fw-semibold">CUB de Referência <span class="text-danger">*</span></label>
-        <select name="cub_id" class="form-select" required>
-          <option value="">Selecione...</option>
-          {% for cu in cubs %}
-          <option value="{{ cu.id }}" {% if editing and tac.cub_id == cu.id %}selected{% endif %}>
-            {{ cu.mes_ano_str }} – R$ {{ '%.2f'|format(cu.valor) }}/m²
-          </option>
-          {% endfor %}
-        </select>
-        <div class="form-text">CUB vigente no mês da celebração do TAC (Lei 5.031/2021)</div>
-      </div>
-      <div class="col-12">
-        <label class="form-label small fw-semibold">Observações</label>
-        <textarea name="observacoes" class="form-control" rows="2">{{ tac.observacoes if editing else '' }}</textarea>
-      </div>
+
     </div>
   </div>
 </div>
-<div class="d-flex gap-2 mt-3">
-  <button type="submit" class="btn btn-primary">
-    <i class="bi bi-check-circle me-1"></i>{% if editing %}Salvar{% else %}Criar TAC{% endif %}
-  </button>
-  <a href="{{ url_for('tac_index') if not editing else url_for('tac_detail', tid=tac.id) }}"
-     class="btn btn-outline-secondary">Cancelar</a>
+
+{# ── SEÇÃO 2 – CUB DE REFERÊNCIA ── #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">2</span>
+    <i class="bi bi-currency-dollar"></i>
+    <span class="fw-semibold">CUB de Referência</span>
+  </div>
+  <div class="card-body py-3">
+    <div class="row g-3 align-items-end">
+
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">CUB <span class="text-danger">*</span></label>
+        <div class="input-group input-group-sm">
+          <select name="cub_id" id="selectCub" class="form-select form-select-sm" required>
+            <option value="">— Selecione o CUB —</option>
+            {% for cu in cubs %}
+            <option value="{{ cu.id }}" {% if editing and tac.cub_id == cu.id %}selected{% endif %}>
+              {{ cu.mes_ano_str }} – R$ {{ '%.2f'|format(cu.valor) }}/m²
+            </option>
+            {% endfor %}
+          </select>
+          <a href="{{ url_for('cub_novo') }}" target="_blank"
+             class="btn btn-outline-secondary btn-sm" title="Cadastrar novo CUB">
+            <i class="bi bi-plus-lg"></i>
+          </a>
+        </div>
+        <div class="form-text">
+          CUB vigente no mês da celebração do TAC (Lei 5.031/2021).
+          CUB não listado? <a href="{{ url_for('cub_novo') }}" target="_blank">Cadastre aqui</a> e depois
+          <a href="#" onclick="recarregarCubs(); return false;">atualize a lista</a>.
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
+
+{# ── SEÇÃO 3 – OBSERVAÇÕES ── #}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">3</span>
+    <i class="bi bi-chat-left-text"></i>
+    <span class="fw-semibold">Observações</span>
+  </div>
+  <div class="card-body py-3">
+    <textarea name="observacoes" class="form-control form-control-sm" rows="3"
+              placeholder="Observações relevantes sobre o TAC…">{{ tac.observacoes if editing else '' }}</textarea>
+  </div>
+</div>
+
+{# ── Ações ── #}
+<div class="d-flex gap-2 justify-content-end pb-4">
+  <a href="{{ url_for('tac_index') if not editing else url_for('tac_detail', tid=tac.id) }}"
+     class="btn btn-outline-secondary">
+    <i class="bi bi-x-lg me-1"></i>Cancelar
+  </a>
+  <button type="submit" class="btn btn-primary px-5">
+    <i class="bi bi-floppy me-1"></i>{{ 'Salvar alterações' if editing else 'Criar TAC' }}
+  </button>
+</div>
+
 </form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function recarregarCubs() {
+  const sel = document.getElementById('selectCub');
+  const val = sel.value;
+  try {
+    const r = await fetch('/api/cubs/lista');
+    const lista = await r.json();
+    sel.innerHTML = '<option value="">— Selecione o CUB —</option>';
+    lista.forEach(c => {
+      const opt = new Option(c.label, c.id);
+      if (String(c.id) === String(val)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    if (!val && lista.length > 0) sel.value = lista[0].id;
+  } catch(e) { alert('Erro ao atualizar lista de CUBs.'); }
+}
+</script>
 {% endblock %}

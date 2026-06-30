@@ -2,48 +2,144 @@
 {% block title %}TAC – CMAIU{% endblock %}
 {% block page_title %}Termos de Ajustamento de Conduta{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mt-2 mb-3">
+
+{# ── Barra de filtros + botão novo ── #}
+<div class="d-flex flex-wrap gap-2 align-items-center mt-2 mb-3">
+  <form class="d-flex gap-2 flex-wrap flex-grow-1" method="GET">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm"
+           placeholder="Nº TAC, processo administrativo…" style="min-width:240px;max-width:340px">
+    <select name="situacao" class="form-select form-select-sm" style="width:220px">
+      <option value="">Todas as situações</option>
+      {% for s in situacoes %}
+      <option value="{{ s }}" {% if s == sit %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-search me-1"></i>Filtrar
+    </button>
+    {% if q or sit %}
+    <a href="{{ url_for('tac_index') }}" class="btn btn-sm btn-outline-danger">
+      <i class="bi bi-x-lg me-1"></i>Limpar
+    </a>
+    {% endif %}
+  </form>
   {% if current_user.is_tecnico %}
-  <a href="{{ url_for('tac_novo') }}" class="btn btn-sm btn-primary">
-    <i class="bi bi-plus-circle me-1"></i>Novo TAC
+  <a href="{{ url_for('tac_novo') }}" class="btn btn-sm btn-primary ms-auto">
+    <i class="bi bi-plus-lg me-1"></i>Novo TAC
   </a>
-  {% else %}<span></span>{% endif %}
+  {% endif %}
 </div>
 
+{# ── Totalizadores anuais ── #}
+{% if tacs %}
+<div class="row g-2 mb-3">
+  <div class="col-12">
+    <div class="text-muted small mb-1 ps-1">
+      <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ totais_ano.ano }}
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
+      <div class="small text-muted">TACs no Ano</div>
+      <div class="fw-bold text-primary">{{ totais_ano.qtd }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-8">
+    <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
+      <div class="small text-muted">Valor Total Calculado</div>
+      <div class="fw-bold text-success">{{ totais_ano.vtot|brl }}</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Tabela principal ── #}
 <div class="card border-0 shadow-sm">
   <div class="card-body p-0">
-    <table class="table table-sm mb-0 align-middle">
-      <thead class="table-light">
-        <tr>
-          <th>Nº TAC</th>
-          <th>Processo Adm.</th>
-          <th>Abertura</th>
-          <th>Compromissários</th>
-          <th>Situação</th>
-          <th>Valor Total</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for t in tacs %}
-        <tr>
-          <td class="fw-semibold">{{ t.numero or '—' }}</td>
-          <td class="small">{{ t.num_processo_adm or '—' }}</td>
-          <td class="small">{{ t.data_abertura.strftime('%d/%m/%Y') if t.data_abertura else '—' }}</td>
-          <td class="small">{{ t.compromissarios|map(attribute='nome')|join(', ') or '—' }}</td>
-          <td><span class="badge bg-{{ t.situacao_badge }}">{{ t.situacao }}</span></td>
-          <td class="small">{% if t.calculo %}{{ t.calculo.vf_total|brl }}{% else %}—{% endif %}</td>
-          <td>
-            <a href="{{ url_for('tac_detail', tid=t.id) }}" class="btn btn-sm btn-outline-primary">
-              <i class="bi bi-eye"></i>
-            </a>
-          </td>
-        </tr>
-        {% else %}
-        <tr><td colspan="7" class="text-center text-muted py-3 small">Nenhum TAC cadastrado.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center px-2" style="width:110px">Nº TAC</th>
+            <th>Processo Adm.</th>
+            <th>Compromissários</th>
+            <th class="text-center">Situação</th>
+            <th class="text-center">Abertura</th>
+            <th class="text-center">Obras</th>
+            <th class="text-end">Valor (R$)</th>
+            <th class="px-2"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in tacs %}
+          <tr>
+            <td class="text-center px-2">
+              {% if t.numero %}
+                <span class="badge bg-dark">{{ t.numero }}</span>
+              {% else %}
+                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
+              {% endif %}
+            </td>
+            <td class="fw-semibold">{{ t.num_processo_adm or '—' }}</td>
+            <td>
+              {% set nomes = t.compromissarios|map(attribute='nome')|list %}
+              {% if nomes %}
+                <div>{{ nomes[0] }}</div>
+                {% if nomes|length > 1 %}
+                  <div class="text-muted" style="font-size:.75rem">+{{ nomes|length - 1 }} outro(s)</div>
+                {% endif %}
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <span class="badge bg-{{ t.situacao_badge }}">{{ t.situacao }}</span>
+            </td>
+            <td class="text-center">
+              {{ t.data_abertura.strftime('%d/%m/%Y') if t.data_abertura else '—' }}
+            </td>
+            <td class="text-center">
+              {% set n = t.obras|length %}
+              {% if n > 0 %}
+                <span class="badge bg-secondary bg-opacity-75">{{ n }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end fw-semibold text-success">
+              {% if t.calculo %}{{ t.calculo.vf_total|brl }}{% else %}<span class="text-muted fst-italic">Não calculado</span>{% endif %}
+            </td>
+            <td class="text-end px-2">
+              <a href="{{ url_for('tac_detail', tid=t.id) }}"
+                 class="btn btn-xs btn-outline-primary" title="Visualizar">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center text-muted py-5">
+              <i class="bi bi-file-earmark-ruled fs-2 d-block mb-2 opacity-25"></i>
+              Nenhum TAC encontrado.
+              {% if current_user.is_tecnico %}
+              <div class="mt-2">
+                <a href="{{ url_for('tac_novo') }}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus-lg me-1"></i>Criar o primeiro TAC
+                </a>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+  {% if tacs %}
+  <div class="card-footer text-muted small py-2">
+    {{ tacs|length }} registro{{ 's' if tacs|length != 1 }}
+    {% if q or sit %} (filtrado{{ 's' if tacs|length != 1 }}){% endif %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

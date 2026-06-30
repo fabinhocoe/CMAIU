@@ -1298,8 +1298,29 @@ def processo_pessoas(pid):
 @app.route('/tac')
 @login_required
 def tac_index():
-    tacs = TAC.query.order_by(TAC.criado_em.desc()).all()
-    return render_template('tac/index.html', tacs=tacs)
+    q   = request.args.get('q', '').strip()
+    sit = request.args.get('situacao', '')
+    qs  = TAC.query.order_by(TAC.criado_em.desc())
+    if q:
+        qs = qs.filter(db.or_(
+            TAC.num_processo_adm.ilike(f'%{q}%'),
+            TAC.numero.ilike(f'%{q}%'),
+        ))
+    if sit:
+        qs = qs.filter(TAC.situacao == sit)
+    tacs = qs.all()
+    situacoes_tac = ['Rascunho','Em análise','Cálculo concluído',
+                     'Aguardando parecer jurídico','Pronto para assinatura',
+                     'Assinado','Publicado','Cancelado']
+    ano_atual = date.today().year
+    tacs_ano  = [t for t in tacs if t.criado_em and t.criado_em.year == ano_atual]
+    totais_ano = {
+        'vtot': sum(t.calculo.vf_total for t in tacs_ano if t.calculo),
+        'qtd':  len(tacs_ano),
+        'ano':  ano_atual,
+    }
+    return render_template('tac/index.html', tacs=tacs, q=q, sit=sit,
+                           situacoes=situacoes_tac, totais_ano=totais_ano)
 
 
 @app.route('/tac/novo', methods=['GET', 'POST'])
