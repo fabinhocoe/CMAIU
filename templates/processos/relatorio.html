@@ -90,8 +90,7 @@
       </td></tr>
       <tr><th>Empreendimento</th><td colspan="3">{{ emp.nome if emp else '—' }}</td></tr>
       <tr><th>Endereço</th><td colspan="3">{{ emp.endereco if emp else '—' }}, {{ emp.bairro if emp else '—' }}</td></tr>
-      <tr><th>Zoneamento</th><td>{{ emp.zoneamento.codigo if emp and emp.zoneamento else '—' }}</td>
-          <th>Resp. Técnico</th><td>{{ emp.responsavel_tecnico if emp else '—' }}</td></tr>
+      <tr><th>Zoneamento</th><td colspan="3">{{ emp.zoneamento.codigo if emp and emp.zoneamento else '—' }}</td></tr>
     </table>
 
     <h6 class="section-title mt-3">2 – DADOS DO EMPREENDIMENTO</h6>
@@ -101,12 +100,7 @@
         <th>Área Construída</th><td>{{ emp.area_construida|fmt_area if emp and emp.area_construida else '—' }}</td>
       </tr>
       <tr>
-        <th>Área Computável</th><td>{{ emp.area_computavel|fmt_area if emp and emp.area_computavel else '—' }}</td>
-        <th>Nº de Pavimentos</th><td>{{ emp.num_pavimentos or '—' }}</td>
-      </tr>
-      <tr>
-        <th>Coef. Básico (CAB)</th><td>{{ emp.cab or '—' }}</td>
-        <th>Coef. do Projeto</th><td>{{ '%.4f'|format(emp.area_computavel / emp.area_terreno) if emp and emp.area_computavel and emp.area_terreno else '—' }}</td>
+        <th>Nº de Pavimentos</th><td colspan="3">{{ emp.num_pavimentos or '—' }}</td>
       </tr>
       <tr>
         <th>Unidades Habitacionais</th><td>{{ emp.num_uh or 0 }}</td>
