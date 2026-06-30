@@ -196,9 +196,10 @@
           <input type="text" name="emp_cep" id="empCep" class="form-control form-control-sm"
                  placeholder="00000-000" maxlength="9"
                  value="{{ emp.cep if emp and emp.cep else '' }}">
-          <span class="input-group-text" id="cepSpinner" style="display:none">
-            <span class="spinner-border spinner-border-sm text-secondary"></span>
-          </span>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="btnBuscarCep" title="Buscar CEP">
+            <span id="cepSpinnerIcon"><i class="bi bi-search"></i></span>
+            <span id="cepSpinner" style="display:none" class="spinner-border spinner-border-sm text-secondary"></span>
+          </button>
         </div>
         <div id="cepErro" class="form-text text-danger" style="display:none">CEP não encontrado.</div>
       </div>
@@ -455,37 +456,56 @@ document.addEventListener('click', e => {
 });
 
 // ── Busca CEP (ViaCEP) ──
-function buscarCep(cepRaw) {
-  const cep = cepRaw.replace(/\D/g, '');
-  const erro    = document.getElementById('cepErro');
-  const spinner = document.getElementById('cepSpinner');
-  const end     = document.getElementById('empEndereco');
-  const bairro  = document.getElementById('empBairro');
-  erro.style.display = 'none';
-  if (cep.length !== 8) return;
-  spinner.style.display = '';
-  fetch(`https://viacep.com.br/ws/${cep}/json/`)
-    .then(r => r.json())
-    .then(d => {
-      spinner.style.display = 'none';
-      if (d.erro) { erro.style.display = ''; return; }
-      end.value    = d.logradouro || '';
-      bairro.value = d.bairro     || '';
-      document.getElementById('empCep').value = d.cep || cepRaw;
-    })
-    .catch(() => { spinner.style.display = 'none'; });
+function setSpinnerCep(on) {
+  const sp   = document.getElementById('cepSpinner');
+  const icon = document.getElementById('cepSpinnerIcon');
+  if (sp)   sp.style.display   = on ? '' : 'none';
+  if (icon) icon.style.display = on ? 'none' : '';
 }
 
-document.getElementById('empCep')?.addEventListener('input', function() {
-  let v = this.value.replace(/\D/g, '');
-  if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5,8);
-  this.value = v;
-  if (v.replace(/\D/g,'').length === 8) buscarCep(v);
-});
+function buscarCep(cepRaw) {
+  const cep  = (cepRaw || '').replace(/\D/g, '');
+  const erro = document.getElementById('cepErro');
+  const end  = document.getElementById('empEndereco');
+  const bairro = document.getElementById('empBairro');
+  if (erro) erro.style.display = 'none';
+  if (cep.length !== 8) return;
+  setSpinnerCep(true);
+  fetch('https://viacep.com.br/ws/' + cep + '/json/')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      setSpinnerCep(false);
+      if (d.erro) { if (erro) erro.style.display = ''; return; }
+      if (end)    end.value    = d.logradouro || '';
+      if (bairro) bairro.value = d.bairro     || '';
+      var cepInput = document.getElementById('empCep');
+      if (cepInput && d.cep) cepInput.value = d.cep;
+    })
+    .catch(function(e) {
+      setSpinnerCep(false);
+      console.error('Erro ao buscar CEP:', e);
+    });
+}
 
-document.getElementById('empCep')?.addEventListener('blur', function() {
-  buscarCep(this.value);
-});
+var empCepInput = document.getElementById('empCep');
+if (empCepInput) {
+  empCepInput.addEventListener('input', function() {
+    var digits = this.value.replace(/\D/g, '');
+    var masked = digits.length > 5 ? digits.slice(0,5) + '-' + digits.slice(5,8) : digits;
+    this.value = masked;
+    if (digits.length === 8) buscarCep(this.value);
+  });
+  empCepInput.addEventListener('blur', function() {
+    buscarCep(this.value);
+  });
+}
+
+var btnBuscarCep = document.getElementById('btnBuscarCep');
+if (btnBuscarCep) {
+  btnBuscarCep.addEventListener('click', function() {
+    buscarCep(document.getElementById('empCep').value);
+  });
+}
 
 // ── Nova pessoa inline ──
 document.getElementById('btnNovaPessoa')?.addEventListener('click', () => {
