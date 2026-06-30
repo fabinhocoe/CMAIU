@@ -106,33 +106,76 @@
     <span class="fw-semibold">Proprietário / Empreendedor</span>
   </div>
   <div class="card-body py-3">
-    <div class="row g-3">
+
+    {# ── Pessoas já vinculadas (modo edição) ── #}
+    <div id="pessoasSelecionadas" class="d-flex flex-wrap gap-2 mb-3">
+      {% if editing %}
+        {% for vp in processo.pessoas_vinculadas %}
+        <div class="chip-pessoa d-flex align-items-center gap-1 px-2 py-1 rounded-pill border bg-primary bg-opacity-10"
+             style="font-size:.82rem" data-id="{{ vp.pessoa_id }}">
+          <i class="bi bi-person-fill text-primary"></i>
+          <span class="fw-semibold">{{ vp.pessoa.nome }}</span>
+          {% if vp.pessoa.cpf_cnpj %}<span class="text-muted">· {{ vp.pessoa.cpf_cnpj }}</span>{% endif %}
+          <input type="hidden" name="pessoa_id" value="{{ vp.pessoa_id }}">
+          <button type="button" class="btn-close btn-close-sm ms-1" style="font-size:.6rem"
+                  onclick="removerPessoa(this)" title="Remover"></button>
+        </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    {# ── Campo de busca ── #}
+    <div class="row g-2 align-items-end mb-2">
       <div class="col-md-6">
-        <label class="form-label small fw-semibold">Nome ou Razão Social</label>
-        <input type="text" name="prop_nome" class="form-control form-control-sm"
-               value="{{ prop.nome if prop else '' }}">
+        <label class="form-label small fw-semibold">Buscar pessoa cadastrada</label>
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" id="buscaPessoa" class="form-control form-control-sm"
+                 placeholder="Digite nome ou CPF/CNPJ…" autocomplete="off">
+        </div>
+        <div id="buscaResultados" class="list-group shadow-sm mt-1" style="display:none;position:absolute;z-index:999;min-width:340px"></div>
       </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">CPF / CNPJ</label>
-        <input type="text" name="prop_cpf_cnpj" class="form-control form-control-sm"
-               value="{{ prop.cpf_cnpj if prop else '' }}">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Telefone</label>
-        <input type="text" name="prop_telefone" class="form-control form-control-sm"
-               value="{{ prop.telefone if prop else '' }}">
-      </div>
-      <div class="col-md-6">
-        <label class="form-label small fw-semibold">Endereço</label>
-        <input type="text" name="prop_endereco" class="form-control form-control-sm"
-               value="{{ prop.endereco if prop else '' }}">
-      </div>
-      <div class="col-md-6">
-        <label class="form-label small fw-semibold">E-mail</label>
-        <input type="email" name="prop_email" class="form-control form-control-sm"
-               value="{{ prop.email if prop else '' }}">
+      <div class="col-auto">
+        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnNovaPessoa">
+          <i class="bi bi-person-plus me-1"></i>Cadastrar nova pessoa
+        </button>
       </div>
     </div>
+
+    {# ── Mini-formulário inline para nova pessoa ── #}
+    <div id="novaPessoaForm" style="display:none" class="border rounded p-3 bg-light mt-2">
+      <div class="small fw-semibold mb-2 text-primary"><i class="bi bi-person-plus me-1"></i>Nova Pessoa</div>
+      <div class="row g-2">
+        <div class="col-md-5">
+          <label class="form-label small">Nome / Razão Social <span class="text-danger">*</span></label>
+          <input type="text" name="nova_pessoa_nome" id="novaNome" class="form-control form-control-sm"
+                 placeholder="Nome completo ou razão social">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small">CPF / CNPJ</label>
+          <input type="text" name="nova_pessoa_cpf_cnpj" class="form-control form-control-sm" placeholder="000.000.000-00">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Telefone</label>
+          <input type="text" name="nova_pessoa_telefone" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">E-mail</label>
+          <input type="email" name="nova_pessoa_email" class="form-control form-control-sm">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small">Endereço</label>
+          <input type="text" name="nova_pessoa_endereco" class="form-control form-control-sm">
+        </div>
+        <div class="col-auto d-flex align-items-end">
+          <button type="button" class="btn btn-sm btn-outline-danger" id="btnCancelarNovaPessoa">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+        </div>
+      </div>
+      <div class="form-text mt-1">Esta pessoa será cadastrada no banco ao salvar o processo.</div>
+    </div>
+
   </div>
 </div>
 
@@ -325,6 +368,7 @@
 
 {% block scripts %}
 <script>
+// ── Zoneamento autocomplete ──
 document.getElementById('zoneamentoSelect')?.addEventListener('change', function() {
   const opt = this.options[this.selectedIndex];
   if (opt.value) {
@@ -333,6 +377,7 @@ document.getElementById('zoneamentoSelect')?.addEventListener('change', function
   }
 });
 
+// ── Cálculo de população ──
 function calcPop() {
   const dorms = parseInt(document.getElementById('dormitorios').value) || 0;
   const popRes = dorms * 2;
@@ -342,5 +387,85 @@ function calcPop() {
 }
 document.getElementById('dormitorios')?.addEventListener('input', calcPop);
 document.getElementById('popNaoRes')?.addEventListener('input', calcPop);
+
+// ── Busca de pessoas ──
+const buscaInput   = document.getElementById('buscaPessoa');
+const buscaRes     = document.getElementById('buscaResultados');
+const selecionados = document.getElementById('pessoasSelecionadas');
+
+function idsSelecionados() {
+  return Array.from(selecionados.querySelectorAll('input[name=pessoa_id]'))
+              .map(i => parseInt(i.value));
+}
+
+function adicionarChip(pessoa) {
+  if (idsSelecionados().includes(pessoa.id)) return;
+  const chip = document.createElement('div');
+  chip.className = 'chip-pessoa d-flex align-items-center gap-1 px-2 py-1 rounded-pill border bg-primary bg-opacity-10';
+  chip.style.fontSize = '.82rem';
+  chip.dataset.id = pessoa.id;
+  chip.innerHTML = `
+    <i class="bi bi-person-fill text-primary"></i>
+    <span class="fw-semibold">${pessoa.nome}</span>
+    ${pessoa.cpf_cnpj ? `<span class="text-muted">· ${pessoa.cpf_cnpj}</span>` : ''}
+    <input type="hidden" name="pessoa_id" value="${pessoa.id}">
+    <button type="button" class="btn-close btn-close-sm ms-1" style="font-size:.6rem"
+            onclick="removerPessoa(this)" title="Remover"></button>`;
+  selecionados.appendChild(chip);
+}
+
+function removerPessoa(btn) {
+  btn.closest('.chip-pessoa').remove();
+}
+
+let buscaTimer;
+buscaInput?.addEventListener('input', function() {
+  clearTimeout(buscaTimer);
+  const q = this.value.trim();
+  if (q.length < 2) { buscaRes.style.display = 'none'; return; }
+  buscaTimer = setTimeout(() => {
+    fetch(`{{ url_for('processos_pessoas_buscar') }}?q=${encodeURIComponent(q)}`)
+      .then(r => r.json())
+      .then(data => {
+        buscaRes.innerHTML = '';
+        if (!data.resultados.length) {
+          buscaRes.innerHTML = '<div class="list-group-item list-group-item-action text-muted small py-2">Nenhuma pessoa encontrada</div>';
+        } else {
+          data.resultados.forEach(p => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'list-group-item list-group-item-action py-2';
+            btn.style.fontSize = '.82rem';
+            btn.innerHTML = `<i class="bi bi-person-fill text-primary me-1"></i>
+              <strong>${p.nome}</strong>
+              ${p.cpf_cnpj ? ` <span class="text-muted">· ${p.cpf_cnpj}</span>` : ''}
+              ${p.telefone ? ` <span class="text-muted ms-2"><i class="bi bi-telephone"></i> ${p.telefone}</span>` : ''}`;
+            btn.addEventListener('click', () => {
+              adicionarChip(p);
+              buscaInput.value = '';
+              buscaRes.style.display = 'none';
+            });
+            buscaRes.appendChild(btn);
+          });
+        }
+        buscaRes.style.display = 'block';
+      });
+  }, 250);
+});
+
+document.addEventListener('click', e => {
+  if (!buscaRes.contains(e.target) && e.target !== buscaInput)
+    buscaRes.style.display = 'none';
+});
+
+// ── Nova pessoa inline ──
+document.getElementById('btnNovaPessoa')?.addEventListener('click', () => {
+  document.getElementById('novaPessoaForm').style.display = 'block';
+  document.getElementById('novaNome').focus();
+});
+document.getElementById('btnCancelarNovaPessoa')?.addEventListener('click', () => {
+  document.getElementById('novaPessoaForm').style.display = 'none';
+  document.querySelectorAll('#novaPessoaForm input').forEach(i => i.value = '');
+});
 </script>
 {% endblock %}

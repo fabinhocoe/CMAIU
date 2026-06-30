@@ -249,11 +249,55 @@ def processos_index():
                            q=q, sit=sit, situacoes=SITUACOES_PROCESSO, totais_ano=totais_ano)
 
 
+@app.route('/processos/pessoas/buscar')
+@login_required
+def processos_pessoas_buscar():
+    q = request.args.get('q', '').strip()
+    if len(q) < 2:
+        return {'resultados': []}
+    like = f'%{q}%'
+    pessoas = Pessoa.query.filter(
+        Pessoa.nome.ilike(like) | Pessoa.cpf_cnpj.ilike(like)
+    ).order_by(Pessoa.nome).limit(10).all()
+    return {'resultados': [
+        {'id': p.id, 'nome': p.nome, 'cpf_cnpj': p.cpf_cnpj or '',
+         'telefone': p.telefone or '', 'email': p.email or ''}
+        for p in pessoas
+    ]}
+
+
+def _salvar_pessoas_processo(processo_id, form):
+    """Vincula pessoas selecionadas e/ou cria nova pessoa inline."""
+    ids_selecionados = form.getlist('pessoa_id')
+    for pid_str in ids_selecionados:
+        pid = _int(pid_str)
+        if pid and not ProcessoPessoa.query.filter_by(
+                processo_id=processo_id, pessoa_id=pid).first():
+            db.session.add(ProcessoPessoa(
+                processo_id=processo_id, pessoa_id=pid, papel='Proprietário'))
+
+    # Cadastro inline de nova pessoa
+    novo_nome = form.get('nova_pessoa_nome', '').strip()
+    if novo_nome:
+        nova = Pessoa(
+            nome=novo_nome,
+            cpf_cnpj=form.get('nova_pessoa_cpf_cnpj', '').strip() or None,
+            telefone=form.get('nova_pessoa_telefone', '').strip() or None,
+            email=form.get('nova_pessoa_email', '').strip() or None,
+            endereco=form.get('nova_pessoa_endereco', '').strip() or None,
+        )
+        db.session.add(nova)
+        db.session.flush()
+        db.session.add(ProcessoPessoa(
+            processo_id=processo_id, pessoa_id=nova.id, papel='Proprietário'))
+
+
 @app.route('/processos/novo', methods=['GET', 'POST'])
 @login_required
 @tecnico_required
 def processos_novo():
     zoneamentos = Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all()
+    pessoas = Pessoa.query.order_by(Pessoa.nome).all()
     if request.method == 'POST':
         f = request.form
         p = Processo(
@@ -269,15 +313,7 @@ def processos_novo():
         db.session.add(p)
         db.session.flush()
 
-        prop = Proprietario(
-            processo_id=p.id,
-            nome=f.get('prop_nome'),
-            cpf_cnpj=f.get('prop_cpf_cnpj'),
-            endereco=f.get('prop_endereco'),
-            telefone=f.get('prop_telefone'),
-            email=f.get('prop_email'),
-        )
-        db.session.add(prop)
+        _salvar_pessoas_processo(p.id, f)
 
         zon_id = _int(f.get('zoneamento_id'))
         zon = Zoneamento.query.get(zon_id) if zon_id else None
@@ -315,7 +351,7 @@ def processos_novo():
 
     return render_template('processos/form.html', processo=None, prop=None, emp=None,
                            zoneamentos=zoneamentos, situacoes=SITUACOES_PROCESSO,
-                           usos=USOS, padroes=PADROES_IMPACTO)
+                           usos=USOS, padroes=PADROES_IMPACTO, pessoas=pessoas)
 
 
 @app.route('/processos/<int:pid>')
@@ -330,9 +366,9 @@ def processos_detail(pid):
 @tecnico_required
 def processos_editar(pid):
     p = Processo.query.get_or_404(pid)
-    prop = p.proprietario or Proprietario(processo_id=pid)
     emp = p.empreendimento or Empreendimento(processo_id=pid)
     zoneamentos = Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all()
+    pessoas = Pessoa.query.order_by(Pessoa.nome).all()
 
     if request.method == 'POST':
         f = request.form
@@ -344,14 +380,10 @@ def processos_editar(pid):
         p.situacao = f.get('situacao', p.situacao)
         p.observacoes = f.get('observacoes')
 
-        if not p.proprietario:
-            prop.processo_id = pid
-            db.session.add(prop)
-        prop.nome = f.get('prop_nome')
-        prop.cpf_cnpj = f.get('prop_cpf_cnpj')
-        prop.endereco = f.get('prop_endereco')
-        prop.telefone = f.get('prop_telefone')
-        prop.email = f.get('prop_email')
+        # Remove vínculos existentes e reconstrói a partir do formulário
+        ProcessoPessoa.query.filter_by(processo_id=pid).delete()
+        db.session.flush()
+        _salvar_pessoas_processo(pid, f)
 
         if not p.empreendimento:
             emp.processo_id = pid
@@ -387,9 +419,9 @@ def processos_editar(pid):
         flash('Processo atualizado.', 'success')
         return redirect(url_for('processos_detail', pid=pid))
 
-    return render_template('processos/form.html', processo=p, prop=prop, emp=emp,
+    return render_template('processos/form.html', processo=p, prop=None, emp=emp,
                            zoneamentos=zoneamentos, situacoes=SITUACOES_PROCESSO,
-                           usos=USOS, padroes=PADROES_IMPACTO)
+                           usos=USOS, padroes=PADROES_IMPACTO, pessoas=pessoas)
 
 
 # ─── Impactos ────────────────────────────────────────────────────────────────
