@@ -130,7 +130,7 @@
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Área do Terreno (m²) <span class="text-danger">*</span></label>
         <input type="number" step="0.01" name="area_terreno" id="at" class="form-control"
-          value="{{ c.area_basica / emp.cab if c and c.area_basica and emp and emp.cab else (emp.area_terreno if emp and emp.area_terreno else '') }}">
+          value="{{ emp.area_terreno if emp and emp.area_terreno else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Coef. Básico (CAB) <span class="text-danger">*</span></label>
@@ -291,7 +291,6 @@
 </button>
 </form>
 
-{% block scripts %}
 <script>
 const limOn  = {{ params.get('limite_oneroso', 40) }};
 const limInf = {{ params.get('limite_infra', 5) }};
@@ -407,5 +406,4 @@ calcBase();
 calcSolo();
 calcCompensacao();
 </script>
-{% endblock %}
 {% endblock %}

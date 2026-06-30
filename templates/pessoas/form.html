@@ -85,7 +85,7 @@
             <ul class="list-group list-group-flush small">
               {% for v in pessoa.vinculos_processo %}
               <li class="list-group-item px-0 py-1 d-flex justify-content-between">
-                <a href="{{ url_for('processo_detail', pid=v.processo_id) }}">{{ v.processo.num_processo or 'Processo #'~v.processo_id }}</a>
+                <a href="{{ url_for('processos_detail', pid=v.processo_id) }}">{{ v.processo.num_processo or 'Processo #'~v.processo_id }}</a>
                 <span class="badge bg-secondary">{{ v.papel }}</span>
               </li>
               {% endfor %}

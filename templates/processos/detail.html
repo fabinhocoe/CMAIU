@@ -341,10 +341,10 @@
             <tr><th>Nível</th><th class="text-end">Valor</th></tr>
           </thead>
           <tbody>
-            <tr {% if calc.nivel_selecionado == 25 %}class="table-primary"{% endif %}><td>25%</td><td class="text-end">{{ calc.valor_25|brl }}</td></tr>
-            <tr {% if calc.nivel_selecionado == 50 %}class="table-primary"{% endif %}><td>50%</td><td class="text-end">{{ calc.valor_50|brl }}</td></tr>
-            <tr {% if calc.nivel_selecionado == 75 %}class="table-primary"{% endif %}><td>75%</td><td class="text-end">{{ calc.valor_75|brl }}</td></tr>
-            <tr {% if calc.nivel_selecionado == 100 %}class="table-primary"{% endif %}><td>100%</td><td class="text-end">{{ calc.valor_100|brl }}</td></tr>
+            <tr {% if calc.nivel_selecionado == '25' %}class="table-primary"{% endif %}><td>25%</td><td class="text-end">{{ calc.valor_25|brl }}</td></tr>
+            <tr {% if calc.nivel_selecionado == '50' %}class="table-primary"{% endif %}><td>50%</td><td class="text-end">{{ calc.valor_50|brl }}</td></tr>
+            <tr {% if calc.nivel_selecionado == '75' %}class="table-primary"{% endif %}><td>75%</td><td class="text-end">{{ calc.valor_75|brl }}</td></tr>
+            <tr {% if calc.nivel_selecionado == '100' %}class="table-primary"{% endif %}><td>100%</td><td class="text-end">{{ calc.valor_100|brl }}</td></tr>
           </tbody>
         </table>
       </div>
