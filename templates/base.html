@@ -22,11 +22,16 @@
     </a>
     <hr class="m-0 border-secondary">
     <ul class="nav nav-pills flex-column mb-auto px-2 py-2 gap-1">
+
+      {# ── Início ── #}
       <li class="nav-item">
         <a href="{{ url_for('dashboard') }}" class="nav-link sidebar-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
           <i class="bi bi-speedometer2 me-2"></i>Dashboard
         </a>
       </li>
+
+      {# ── CMAIU ── #}
+      <li class="mt-2 mb-1 px-2" style="font-size:.65rem;opacity:.55;letter-spacing:.08em;text-transform:uppercase">CMAIU</li>
       <li class="nav-item">
         <a href="{{ url_for('processos_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'processos' in request.endpoint %}active{% endif %}">
           <i class="bi bi-folder2-open me-2"></i>Processos
@@ -38,13 +43,16 @@
         </a>
       </li>
       <li class="nav-item">
-        <a href="{{ url_for('pessoas_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'pessoas' in request.endpoint %}active{% endif %}">
-          <i class="bi bi-people me-2"></i>Pessoas
-        </a>
-      </li>
-      <li class="nav-item">
         <a href="{{ url_for('sc_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'sc_' in request.endpoint %}active{% endif %}">
           <i class="bi bi-layers me-2"></i>Solo Criado
+        </a>
+      </li>
+
+      {# ── Cadastros ── #}
+      <li class="mt-2 mb-1 px-2" style="font-size:.65rem;opacity:.55;letter-spacing:.08em;text-transform:uppercase">Cadastros</li>
+      <li class="nav-item">
+        <a href="{{ url_for('pessoas_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'pessoas' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-people me-2"></i>Pessoas
         </a>
       </li>
       <li class="nav-item">
@@ -52,6 +60,9 @@
           <i class="bi bi-person-badge me-2"></i>Resp. Técnicos
         </a>
       </li>
+
+      {# ── Referências ── #}
+      <li class="mt-2 mb-1 px-2" style="font-size:.65rem;opacity:.55;letter-spacing:.08em;text-transform:uppercase">Referências</li>
       <li class="nav-item">
         <a href="{{ url_for('cub_index') }}" class="nav-link sidebar-link {% if request.endpoint and 'cub' in request.endpoint %}active{% endif %}">
           <i class="bi bi-currency-dollar me-2"></i>CUB
@@ -62,8 +73,10 @@
           <i class="bi bi-map me-2"></i>Zoneamentos
         </a>
       </li>
+
+      {# ── Administração ── #}
       {% if current_user.is_admin %}
-      <li><hr class="border-secondary my-1"></li>
+      <li class="mt-2 mb-1 px-2" style="font-size:.65rem;opacity:.55;letter-spacing:.08em;text-transform:uppercase">Administração</li>
       <li class="nav-item">
         <a href="{{ url_for('admin_usuarios') }}" class="nav-link sidebar-link {% if request.endpoint and 'usuarios' in request.endpoint %}active{% endif %}">
           <i class="bi bi-people me-2"></i>Usuários
@@ -80,6 +93,7 @@
         </a>
       </li>
       {% endif %}
+
     </ul>
     <hr class="m-0 border-secondary">
     <div class="px-3 py-2 d-flex align-items-center gap-2" style="font-size:.78rem">
