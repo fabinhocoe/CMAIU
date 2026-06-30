@@ -41,8 +41,8 @@
       </div>
 
       <div class="col-md-4">
-        <label class="form-label small fw-semibold">Número de Protocolo de Aprovação</label>
-        <input type="text" name="protocolo_aprovacao" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Número de Protocolo de Aprovação <span class="text-danger">*</span></label>
+        <input type="text" name="protocolo_aprovacao" class="form-control form-control-sm" required
                value="{{ processo.protocolo_aprovacao if editing else '' }}">
       </div>
 
@@ -86,6 +86,15 @@
     <span class="fw-semibold">Proprietário / Empreendedor</span>
   </div>
   <div class="card-body py-3">
+
+    <div class="d-flex align-items-center gap-1 mb-2">
+      <span class="form-label small fw-semibold mb-0">Proprietário / Empreendedor <span class="text-danger">*</span></span>
+    </div>
+    {# hidden sentinela – preenchido via JS ao adicionar chip #}
+    <input type="hidden" id="pessoaObrigatorio" value="" required>
+    <div id="pessoaErro" class="text-danger small mb-2" style="display:none">
+      <i class="bi bi-exclamation-circle me-1"></i>Adicione ao menos um proprietário / empreendedor.
+    </div>
 
     {# ── Pessoas já vinculadas ── #}
     <div id="pessoasSelecionadas" class="d-flex flex-wrap gap-2 mb-3">
@@ -204,24 +213,24 @@
         <div id="cepErro" class="form-text text-danger" style="display:none">CEP não encontrado.</div>
       </div>
       <div class="col-md-7">
-        <label class="form-label small fw-semibold">Endereço</label>
-        <input type="text" name="emp_endereco" id="empEndereco" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Endereço <span class="text-danger">*</span></label>
+        <input type="text" name="emp_endereco" id="empEndereco" class="form-control form-control-sm" required
                value="{{ emp.endereco if emp else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Bairro</label>
-        <input type="text" name="emp_bairro" id="empBairro" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Bairro <span class="text-danger">*</span></label>
+        <input type="text" name="emp_bairro" id="empBairro" class="form-control form-control-sm" required
                value="{{ emp.bairro if emp else '' }}">
       </div>
 
       <div class="col-md-6">
-        <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
-        <input type="text" name="emp_inscricao" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Inscrição Imobiliária <span class="text-danger">*</span></label>
+        <input type="text" name="emp_inscricao" class="form-control form-control-sm" required
                value="{{ emp.inscricao if emp else '' }}">
       </div>
       <div class="col-md-6">
-        <label class="form-label small fw-semibold">Zoneamento</label>
-        <select name="zoneamento_id" class="form-select form-select-sm" id="zoneamentoSelect">
+        <label class="form-label small fw-semibold">Zoneamento <span class="text-danger">*</span></label>
+        <select name="zoneamento_id" class="form-select form-select-sm" id="zoneamentoSelect" required>
           <option value="">— Selecione —</option>
           {% for z in zoneamentos %}
           <option value="{{ z.id }}"
@@ -238,8 +247,8 @@
       <div class="col-12"><hr class="my-0"><p class="text-muted small fw-semibold mt-2 mb-0"><i class="bi bi-tag me-1"></i>Uso</p></div>
 
       <div class="col-md-6">
-        <label class="form-label small fw-semibold">Uso Predominante</label>
-        <select name="emp_uso_predominante" class="form-select form-select-sm">
+        <label class="form-label small fw-semibold">Uso Predominante <span class="text-danger">*</span></label>
+        <select name="emp_uso_predominante" class="form-select form-select-sm" required>
           <option value="">— Selecione —</option>
           {% for u in usos %}
           <option value="{{ u }}" {% if emp and emp.uso_predominante == u %}selected{% endif %}>{{ u }}</option>
@@ -275,13 +284,13 @@
       <div class="col-12"><p class="text-muted small fw-semibold mb-0"><i class="bi bi-aspect-ratio me-1"></i>Áreas e Estrutura</p><hr class="mt-1 mb-0"></div>
 
       <div class="col-md-4">
-        <label class="form-label small fw-semibold">Área do Terreno (m²)</label>
-        <input type="number" step="0.01" name="area_terreno" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Área do Terreno (m²) <span class="text-danger">*</span></label>
+        <input type="number" step="0.01" name="area_terreno" class="form-control form-control-sm" required
                value="{{ emp.area_terreno if emp and emp.area_terreno else '' }}">
       </div>
       <div class="col-md-4">
-        <label class="form-label small fw-semibold">Área Construída Total (m²)</label>
-        <input type="number" step="0.01" name="area_construida" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Área Construída Total (m²) <span class="text-danger">*</span></label>
+        <input type="number" step="0.01" name="area_construida" class="form-control form-control-sm" required
                value="{{ emp.area_construida if emp and emp.area_construida else '' }}">
       </div>
       <div class="col-md-4">
@@ -294,13 +303,13 @@
       <div class="col-12"><p class="text-muted small fw-semibold mb-0 mt-1"><i class="bi bi-grid me-1"></i>Unidades e Vagas</p><hr class="mt-1 mb-0"></div>
 
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">UH (Unidades Habitacionais)</label>
-        <input type="number" name="num_uh" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">UH (Unidades Habitacionais) <span class="text-danger">*</span></label>
+        <input type="number" name="num_uh" class="form-control form-control-sm" required min="0"
                value="{{ emp.num_uh if emp and emp.num_uh else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">UC (Unidades Comerciais)</label>
-        <input type="number" name="num_uc" class="form-control form-control-sm"
+        <input type="number" name="num_uc" class="form-control form-control-sm" min="0"
                value="{{ emp.num_uc if emp and emp.num_uc else '' }}">
       </div>
       <div class="col-md-3">
@@ -328,13 +337,13 @@
         <div class="form-text">Pop. Res. = dormitórios × 2</div>
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Pop. Residencial</label>
-        <input type="number" name="pop_residencial" id="popRes" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Pop. Residencial <span class="text-danger">*</span></label>
+        <input type="number" name="pop_residencial" id="popRes" class="form-control form-control-sm" required min="0"
                value="{{ emp.pop_residencial if emp and emp.pop_residencial else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Pop. Não Residencial</label>
-        <input type="number" name="pop_nao_residencial" id="popNaoRes" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Pop. Não Residencial <span class="text-danger">*</span></label>
+        <input type="number" name="pop_nao_residencial" id="popNaoRes" class="form-control form-control-sm" required min="0"
                value="{{ emp.pop_nao_residencial if emp and emp.pop_nao_residencial else '' }}">
       </div>
       <div class="col-md-3">
@@ -399,10 +408,20 @@ function adicionarChip(pessoa) {
     <button type="button" class="btn-close btn-close-sm ms-1" style="font-size:.6rem"
             onclick="removerPessoa(this)" title="Remover"></button>`;
   selecionados.appendChild(chip);
+  atualizarSentinela();
+  document.getElementById('pessoaErro').style.display = 'none';
 }
 
 function removerPessoa(btn) {
   btn.closest('.chip-pessoa').remove();
+  atualizarSentinela();
+}
+
+function atualizarSentinela() {
+  var total = document.querySelectorAll('#pessoasSelecionadas input[name=pessoa_id]').length;
+  var novaNome = (document.getElementById('novaNome') || {}).value || '';
+  var sentinela = document.getElementById('pessoaObrigatorio');
+  if (sentinela) sentinela.value = (total > 0 || novaNome.trim()) ? 'ok' : '';
 }
 
 let buscaTimer;
@@ -505,6 +524,23 @@ document.getElementById('btnNovaPessoa')?.addEventListener('click', () => {
 document.getElementById('btnCancelarNovaPessoa')?.addEventListener('click', () => {
   document.getElementById('novaPessoaForm').style.display = 'none';
   document.querySelectorAll('#novaPessoaForm input').forEach(i => i.value = '');
+  atualizarSentinela();
 });
+document.getElementById('novaNome')?.addEventListener('input', atualizarSentinela);
+
+// ── Validação proprietário no submit ──
+document.getElementById('processoForm')?.addEventListener('submit', function(e) {
+  atualizarSentinela();
+  var sentinela = document.getElementById('pessoaObrigatorio');
+  var erro = document.getElementById('pessoaErro');
+  if (sentinela && !sentinela.value) {
+    e.preventDefault();
+    if (erro) erro.style.display = '';
+    sentinela.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+});
+
+// Inicializa sentinela (modo edição já pode ter chips)
+atualizarSentinela();
 </script>
 {% endblock %}
