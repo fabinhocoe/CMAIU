@@ -1019,11 +1019,9 @@ class SoloCriado(db.Model):
             erros.append(f'Área total adquirida ({aat:.2f} m²) insuficiente para cobrir a área excedente ({aex:.2f} m²).')
         if iam and abp > 0:
             indice_final = iab + (iab * pt / 100)
-            if indice_final > iam:
+            if round(indice_final, 4) > round(iam, 4):
                 erros.append(f'Índice final estimado ({indice_final:.4f}) excede o IAM ({iam:.4f}).')
         if abp > 0 and aat > aex + 0.01:
             alertas.append(f'Área total adquirida ({aat:.2f} m²) superior à área excedente ({aex:.2f} m²).')
-        if abp > 0 and abs(pt - 50) < 0.01:
-            alertas.append('Projeto utiliza o limite total de 50%.')
 
         return erros, alertas
