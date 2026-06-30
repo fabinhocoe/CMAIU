@@ -273,18 +273,6 @@
                value="{{ emp.num_pavimentos if emp and emp.num_pavimentos else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">CAB</label>
-        <input type="number" step="0.0001" name="cab" id="cabField" class="form-control form-control-sm"
-               value="{{ emp.cab if emp and emp.cab else '' }}">
-        <div class="form-text">Coef. Aproveitamento Básico</div>
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">CMAX</label>
-        <input type="number" step="0.0001" name="cmax" id="cmaxField" class="form-control form-control-sm"
-               value="{{ emp.cmax if emp and emp.cmax else '' }}">
-        <div class="form-text">Coef. Máximo Permitido</div>
-      </div>
-      <div class="col-md-3">
         <label class="form-label small fw-semibold">UH (Unidades Habitacionais)</label>
         <input type="number" name="num_uh" class="form-control form-control-sm"
                value="{{ emp.num_uh if emp and emp.num_uh else '' }}">
@@ -351,13 +339,6 @@
 {% block scripts %}
 <script>
 // ── Zoneamento autocomplete ──
-document.getElementById('zoneamentoSelect')?.addEventListener('change', function() {
-  const opt = this.options[this.selectedIndex];
-  if (opt.value) {
-    document.getElementById('cabField').value = opt.dataset.cab || '';
-    document.getElementById('cmaxField').value = opt.dataset.cmax || '';
-  }
-});
 
 // ── Cálculo de população ──
 function calcPop() {
