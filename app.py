@@ -320,6 +320,7 @@ def processos_novo():
         emp = Empreendimento(
             processo_id=p.id,
             nome=f.get('emp_nome'),
+            cep=f.get('emp_cep'),
             endereco=f.get('emp_endereco'),
             bairro=f.get('emp_bairro'),
             inscricao=f.get('emp_inscricao'),
@@ -391,6 +392,7 @@ def processos_editar(pid):
         zon_id = _int(f.get('zoneamento_id'))
         zon = Zoneamento.query.get(zon_id) if zon_id else None
         emp.nome = f.get('emp_nome')
+        emp.cep = f.get('emp_cep')
         emp.endereco = f.get('emp_endereco')
         emp.bairro = f.get('emp_bairro')
         emp.inscricao = f.get('emp_inscricao')

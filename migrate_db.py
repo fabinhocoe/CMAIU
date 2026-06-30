@@ -7,6 +7,8 @@ from app import app, db
 import sqlalchemy as sa
 
 MIGRATIONS = [
+    # empreendimentos – CEP
+    ("empreendimentos", "cep", "ALTER TABLE empreendimentos ADD COLUMN cep VARCHAR(10)"),
     # solo_criado – novos campos
     ("solo_criado", "versao",               "ALTER TABLE solo_criado ADD COLUMN versao INTEGER DEFAULT 1"),
     ("solo_criado", "versao_anterior",      "ALTER TABLE solo_criado ADD COLUMN versao_anterior INTEGER REFERENCES solo_criado(id)"),

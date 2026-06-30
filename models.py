@@ -309,6 +309,7 @@ class Empreendimento(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     processo_id = db.Column(db.Integer, db.ForeignKey('processos.id'), unique=True)
     nome = db.Column(db.String(300))
+    cep = db.Column(db.String(10))
     endereco = db.Column(db.String(400))
     bairro = db.Column(db.String(200))
     inscricao = db.Column(db.String(100))

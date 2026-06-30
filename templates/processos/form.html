@@ -174,14 +174,26 @@
         <input type="text" name="emp_nome" class="form-control form-control-sm"
                value="{{ emp.nome if emp else '' }}">
       </div>
-      <div class="col-md-6">
+      <div class="col-md-2">
+        <label class="form-label small fw-semibold">CEP</label>
+        <div class="input-group input-group-sm">
+          <input type="text" name="emp_cep" id="empCep" class="form-control form-control-sm"
+                 placeholder="00000-000" maxlength="9"
+                 value="{{ emp.cep if emp and emp.cep else '' }}">
+          <span class="input-group-text" id="cepSpinner" style="display:none">
+            <span class="spinner-border spinner-border-sm text-secondary"></span>
+          </span>
+        </div>
+        <div id="cepErro" class="form-text text-danger" style="display:none">CEP não encontrado.</div>
+      </div>
+      <div class="col-md-4">
         <label class="form-label small fw-semibold">Endereço</label>
-        <input type="text" name="emp_endereco" class="form-control form-control-sm"
+        <input type="text" name="emp_endereco" id="empEndereco" class="form-control form-control-sm"
                value="{{ emp.endereco if emp else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Bairro</label>
-        <input type="text" name="emp_bairro" class="form-control form-control-sm"
+        <input type="text" name="emp_bairro" id="empBairro" class="form-control form-control-sm"
                value="{{ emp.bairro if emp else '' }}">
       </div>
       <div class="col-md-3">
@@ -436,6 +448,34 @@ buscaInput?.addEventListener('input', function() {
 document.addEventListener('click', e => {
   if (!buscaRes.contains(e.target) && e.target !== buscaInput)
     buscaRes.style.display = 'none';
+});
+
+// ── Busca CEP (ViaCEP) ──
+document.getElementById('empCep')?.addEventListener('blur', function() {
+  const cep = this.value.replace(/\D/g, '');
+  const erro = document.getElementById('cepErro');
+  const spinner = document.getElementById('cepSpinner');
+  erro.style.display = 'none';
+  if (cep.length !== 8) return;
+  spinner.style.display = '';
+  fetch(`https://viacep.com.br/ws/${cep}/json/`)
+    .then(r => r.json())
+    .then(d => {
+      spinner.style.display = 'none';
+      if (d.erro) { erro.style.display = ''; return; }
+      const end = document.getElementById('empEndereco');
+      const bairro = document.getElementById('empBairro');
+      if (!end.value) end.value = d.logradouro || '';
+      if (!bairro.value) bairro.value = d.bairro || '';
+      this.value = d.cep || this.value;
+    })
+    .catch(() => { spinner.style.display = 'none'; });
+});
+
+document.getElementById('empCep')?.addEventListener('input', function() {
+  let v = this.value.replace(/\D/g, '');
+  if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5,8);
+  this.value = v;
 });
 
 // ── Nova pessoa inline ──
