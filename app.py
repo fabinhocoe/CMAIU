@@ -1836,7 +1836,8 @@ def _sc_fill(sc, f):
     def s(k): return f.get(k, '').strip() or None
     def fi(k): return _float(f.get(k))
     sc.situacao              = f.get('situacao', 'Rascunho')
-    sc.numero                = s('numero')
+    if not sc.numero:                        # número imutável após gerado
+        sc.numero            = s('numero')
     sc.num_processo          = s('num_processo_adm')
     sc.cep_imovel            = s('cep_imovel')
     sc.endereco_imovel       = s('endereco_imovel')
