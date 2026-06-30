@@ -1715,7 +1715,7 @@ def sc_index():
     totais_ano = {
         'von':  sum(r.von or 0 for r in registros_ano),
         'vin':  sum(r.vin or 0 for r in registros_ano),
-        'vtot': sum((r.von or 0) + (r.vin or 0) + (r.vag or 0) for r in registros_ano),
+        'vtot': sum((r.von or 0) + (r.vin or 0) for r in registros_ano),
         'ano':  ano_atual,
     }
     return render_template('solo_criado/index.html', registros=registros,

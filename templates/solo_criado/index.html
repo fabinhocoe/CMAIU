@@ -175,7 +175,7 @@
 
             {# Valor Total #}
             <td class="text-end fw-bold" style="border-left:2px solid #33333330">
-              {% set vtot = (r.von or 0) + (r.vin or 0) + (r.vag or 0) %}
+              {% set vtot = (r.von or 0) + (r.vin or 0) %}
               {% if vtot > 0 %}
                 {{ vtot|brl }}
               {% else %}
