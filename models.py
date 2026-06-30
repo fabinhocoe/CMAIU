@@ -1013,15 +1013,9 @@ class SoloCriado(db.Model):
         if abp > 0 and pt > 50:
             erros.append(f'Total ({aon+ain+aag:.2f} m²) representa {pt:.2f}% da ABP — excede o limite de 50%.')
 
-        aex = max(0.0, acp - abp) if abp else 0
-        aat = aon + ain + aag
-        if abp > 0 and aat < aex - 0.01:
-            erros.append(f'Área total adquirida ({aat:.2f} m²) insuficiente para cobrir a área excedente ({aex:.2f} m²).')
         if iam and abp > 0:
             indice_final = iab + (iab * pt / 100)
             if round(indice_final, 4) > round(iam, 4):
                 erros.append(f'Índice final estimado ({indice_final:.4f}) excede o IAM ({iam:.4f}).')
-        if abp > 0 and aat > aex + 0.01:
-            alertas.append(f'Área total adquirida ({aat:.2f} m²) superior à área excedente ({aex:.2f} m²).')
 
         return erros, alertas
