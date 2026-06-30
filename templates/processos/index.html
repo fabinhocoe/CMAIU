@@ -1,73 +1,162 @@
 {% extends 'base.html' %}
-{% block title %}Processos – CMAIU{% endblock %}
-{% block page_title %}Processos{% endblock %}
+{% block title %}CMAIU – Processos{% endblock %}
+{% block page_title %}Processos CMAIU{% endblock %}
 {% block content %}
-<div class="d-flex align-items-center justify-content-between mt-2 mb-3">
-  <form class="d-flex gap-2 flex-wrap" method="GET">
-    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Pesquisar protocolo..." style="width:220px">
-    <select name="situacao" class="form-select form-select-sm" style="width:180px">
+
+{# ── Barra de filtros + botão novo ── #}
+<div class="d-flex flex-wrap gap-2 align-items-center mt-2 mb-3">
+  <form class="d-flex gap-2 flex-wrap flex-grow-1" method="GET">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm"
+           placeholder="Protocolo CMAIU, processo administrativo…" style="min-width:240px;max-width:360px">
+    <select name="situacao" class="form-select form-select-sm" style="width:220px">
       <option value="">Todas as situações</option>
       {% for s in situacoes %}
       <option value="{{ s }}" {% if s == sit %}selected{% endif %}>{{ s }}</option>
       {% endfor %}
     </select>
-    <button class="btn btn-sm btn-outline-secondary" type="submit"><i class="bi bi-search"></i></button>
-    {% if q or sit %}<a href="{{ url_for('processos_index') }}" class="btn btn-sm btn-outline-danger" title="Limpar"><i class="bi bi-x-circle"></i></a>{% endif %}
+    <button class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-search me-1"></i>Filtrar
+    </button>
+    {% if q or sit %}
+    <a href="{{ url_for('processos_index') }}" class="btn btn-sm btn-outline-danger">
+      <i class="bi bi-x-lg me-1"></i>Limpar
+    </a>
+    {% endif %}
   </form>
   {% if current_user.is_tecnico %}
-  <a href="{{ url_for('processos_novo') }}" class="btn btn-sm btn-primary">
-    <i class="bi bi-plus-circle me-1"></i>Novo Processo
+  <a href="{{ url_for('processos_novo') }}" class="btn btn-sm btn-primary ms-auto">
+    <i class="bi bi-plus-lg me-1"></i>Novo Processo
   </a>
   {% endif %}
 </div>
 
+{# ── Totalizadores anuais ── #}
+{% if processos %}
+<div class="row g-2 mb-3">
+  <div class="col-12">
+    <div class="text-muted small mb-1 ps-1">
+      <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ totais_ano.ano }}
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
+      <div class="small text-muted">Processos no Ano</div>
+      <div class="fw-bold text-primary">{{ totais_ano.qtd }}</div>
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
+    <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
+      <div class="small text-muted">Com Cálculo</div>
+      <div class="fw-bold text-success">{{ totais_ano.com_calculo }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-md-4">
+    <div class="card border-0 bg-warning bg-opacity-10 text-center py-2">
+      <div class="small text-muted">Valor Total Compensação</div>
+      <div class="fw-bold text-warning">{{ totais_ano.vcomp|brl }}</div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Tabela principal ── #}
 <div class="card border-0 shadow-sm">
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-hover mb-0 align-middle">
+      <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
         <thead class="table-light">
           <tr>
-            <th>#</th>
-            <th>Protocolo CMAIU</th>
-            <th>Nº Processo</th>
+            <th class="text-center px-2" style="width:140px">Protocolo CMAIU</th>
+            <th>Processo Adm.</th>
             <th>Proprietário</th>
             <th>Empreendimento</th>
             <th>Bairro / Zona</th>
-            <th>Situação</th>
-            <th>Data</th>
-            <th></th>
+            <th class="text-center">Situação</th>
+            <th class="text-center">Data Entrada</th>
+            <th class="px-2"></th>
           </tr>
         </thead>
         <tbody>
           {% for p in processos %}
           <tr>
-            <td class="text-muted small">{{ p.id }}</td>
-            <td><code>{{ p.protocolo_cmaiu or '—' }}</code></td>
-            <td class="text-muted small">{{ p.num_processo or '—' }}</td>
-            <td>{{ p.proprietario.nome if p.proprietario else '—' }}</td>
-            <td>{{ p.empreendimento.nome if p.empreendimento else '—' }}</td>
-            <td class="small">
-              {% if p.empreendimento %}
-                {{ p.empreendimento.bairro or '—' }}
-                {% if p.empreendimento.zoneamento %}
-                  <span class="badge bg-secondary ms-1">{{ p.empreendimento.zoneamento.codigo }}</span>
-                {% endif %}
-              {% else %}—{% endif %}
+            <td class="text-center px-2">
+              {% if p.protocolo_cmaiu %}
+                <span class="badge bg-dark">{{ p.protocolo_cmaiu }}</span>
+              {% else %}
+                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
+              {% endif %}
             </td>
-            <td><span class="badge bg-{{ p.situacao_badge }}">{{ p.situacao }}</span></td>
-            <td class="text-muted small">{{ p.data_entrada.strftime('%d/%m/%Y') if p.data_entrada else '—' }}</td>
+            <td class="fw-semibold">{{ p.num_processo or '—' }}</td>
             <td>
-              <a href="{{ url_for('processos_detail', pid=p.id) }}" class="btn btn-sm btn-outline-primary" title="Ver"><i class="bi bi-eye"></i></a>
+              {% set pessoas = p.pessoas_vinculadas if p.pessoas_vinculadas else [] %}
+              {% if pessoas %}
+                <div>{{ pessoas[0].nome }}</div>
+                {% if pessoas|length > 1 %}
+                  <div class="text-muted" style="font-size:.75rem">+{{ pessoas|length - 1 }} outro(s)</div>
+                {% endif %}
+              {% elif p.proprietario %}
+                <div>{{ p.proprietario.nome }}</div>
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.empreendimento %}
+                <div>{{ p.empreendimento.nome or '—' }}</div>
+                {% if p.empreendimento.endereco %}
+                  <div class="text-muted" style="font-size:.75rem">{{ p.empreendimento.endereco }}</div>
+                {% endif %}
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if p.empreendimento %}
+                <div>{{ p.empreendimento.bairro or '—' }}</div>
+                {% if p.empreendimento.zoneamento %}
+                  <span class="badge bg-secondary" style="font-size:.7rem">{{ p.empreendimento.zoneamento.codigo }}</span>
+                {% endif %}
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
+            <td class="text-center">
+              <span class="badge bg-{{ p.situacao_badge }}">{{ p.situacao }}</span>
+            </td>
+            <td class="text-center">
+              {{ p.data_entrada.strftime('%d/%m/%Y') if p.data_entrada else '—' }}
+            </td>
+            <td class="text-end px-2">
+              <a href="{{ url_for('processos_detail', pid=p.id) }}"
+                 class="btn btn-xs btn-outline-primary" title="Visualizar">
+                <i class="bi bi-eye"></i>
+              </a>
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="9" class="text-center text-muted py-5">
-            {% if q or sit %}Nenhum processo encontrado.{% else %}Nenhum processo cadastrado ainda.{% endif %}
-          </td></tr>
+          <tr>
+            <td colspan="8" class="text-center text-muted py-5">
+              <i class="bi bi-folder2-open fs-2 d-block mb-2 opacity-25"></i>
+              Nenhum processo encontrado.
+              {% if current_user.is_tecnico %}
+              <div class="mt-2">
+                <a href="{{ url_for('processos_novo') }}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus-lg me-1"></i>Cadastrar o primeiro processo
+                </a>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
+  {% if processos %}
+  <div class="card-footer text-muted small py-2">
+    {{ processos|length }} registro{{ 's' if processos|length != 1 }}
+    {% if q or sit %} (filtrado{{ 's' if processos|length != 1 }}){% endif %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

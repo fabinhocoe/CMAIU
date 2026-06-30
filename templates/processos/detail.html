@@ -1,177 +1,403 @@
 {% extends 'base.html' %}
 {% block title %}Processo {{ processo.protocolo_cmaiu or processo.id }} – CMAIU{% endblock %}
-{% block page_title %}Processo – {{ processo.protocolo_cmaiu or processo.id }}{% endblock %}
+{% block page_title %}Processo – {{ processo.protocolo_cmaiu or 'Rascunho #' ~ processo.id }}{% endblock %}
 {% block content %}
 {% set emp = processo.empreendimento %}
 {% set prop = processo.proprietario %}
 {% set calc = processo.ultimo_calculo %}
 
-<!-- Cabeçalho -->
-<div class="d-flex align-items-start justify-content-between mt-2 mb-3 flex-wrap gap-2">
-  <div>
-    <span class="badge bg-{{ processo.situacao_badge }} fs-6 me-2">{{ processo.situacao }}</span>
-    {% if emp and emp.zoneamento %}<span class="badge bg-secondary">{{ emp.zoneamento.codigo }}</span>{% endif %}
+{# ── Barra de ações ── #}
+<div class="d-flex gap-2 mb-4 mt-2 flex-wrap align-items-center">
+  <a href="{{ url_for('processos_index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+
+  {% if current_user.is_tecnico %}
+  <a href="{{ url_for('processos_editar', pid=processo.id) }}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-pencil me-1"></i>Editar
+  </a>
+  <a href="{{ url_for('processo_pessoas', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-people me-1"></i>Proprietários
+  </a>
+  <a href="{{ url_for('processos_impactos', pid=processo.id) }}" class="btn btn-sm btn-outline-warning">
+    <i class="bi bi-clipboard-check me-1"></i>Impactos
+  </a>
+  <a href="{{ url_for('processos_calculos', pid=processo.id) }}" class="btn btn-sm btn-success">
+    <i class="bi bi-calculator me-1"></i>Cálculos
+  </a>
+  {% endif %}
+
+  <span class="vr mx-1"></span>
+  <a href="{{ url_for('processos_relatorio', pid=processo.id) }}" class="btn btn-sm btn-outline-info">
+    <i class="bi bi-file-text me-1"></i>Relatório
+  </a>
+  <a href="{{ url_for('processos_exportar_excel', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-file-earmark-excel me-1"></i>Excel
+  </a>
+
+  <span class="ms-auto">
+    <span class="badge bg-{{ processo.situacao_badge }} fs-6 px-3 py-2">{{ processo.situacao }}</span>
+    {% if emp and emp.zoneamento %}
+    <span class="badge bg-secondary ms-1 fs-6 px-3 py-2">{{ emp.zoneamento.codigo }}</span>
+    {% endif %}
+  </span>
+</div>
+
+{# ── Seção 1 – Identificação ── #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">1</span>
+    <i class="bi bi-file-earmark-text"></i>
+    <span class="fw-semibold">Identificação</span>
   </div>
-  <div class="d-flex gap-2 flex-wrap">
+  <div class="card-body py-3">
+    <div class="row g-3" style="font-size:.88rem">
+      <div class="col-md-3">
+        <div class="text-muted small">Protocolo CMAIU</div>
+        {% if processo.protocolo_cmaiu %}
+          <span class="badge bg-dark fs-6 mt-1">{{ processo.protocolo_cmaiu }}</span>
+        {% else %}
+          <span class="fst-italic text-muted">Não gerado</span>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Processo Administrativo</div>
+        <div class="fw-semibold">{{ processo.num_processo or '—' }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Protocolo de Aprovação</div>
+        <div>{{ processo.protocolo_aprovacao or '—' }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Situação</div>
+        <span class="badge bg-{{ processo.situacao_badge }} mt-1">{{ processo.situacao }}</span>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Data de Entrada</div>
+        <div>{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Data da Análise</div>
+        <div>{{ processo.data_analise.strftime('%d/%m/%Y') if processo.data_analise else '—' }}</div>
+      </div>
+      {% if processo.observacoes %}
+      <div class="col-12">
+        <div class="text-muted small">Observações</div>
+        <div class="mt-1 p-2 bg-light rounded" style="font-size:.85rem">{{ processo.observacoes }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{# ── Seção 2 – Proprietários ── #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">2</span>
+    <i class="bi bi-people"></i>
+    <span class="fw-semibold">Proprietário / Empreendedor</span>
     {% if current_user.is_tecnico %}
-    <a href="{{ url_for('processos_editar', pid=processo.id) }}" class="btn btn-sm btn-outline-primary">
-      <i class="bi bi-pencil me-1"></i>Editar
-    </a>
-    <a href="{{ url_for('processo_pessoas', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-people me-1"></i>Proprietários
-    </a>
-    <a href="{{ url_for('processos_impactos', pid=processo.id) }}" class="btn btn-sm btn-outline-warning">
-      <i class="bi bi-clipboard-check me-1"></i>Impactos
-    </a>
-    <a href="{{ url_for('processos_calculos', pid=processo.id) }}" class="btn btn-sm btn-outline-success">
-      <i class="bi bi-calculator me-1"></i>Cálculos
-    </a>
-    <a href="{{ url_for('processos_relatorio', pid=processo.id) }}" class="btn btn-sm btn-outline-info">
-      <i class="bi bi-file-earmark-text me-1"></i>Relatório
+    <a href="{{ url_for('processo_pessoas', pid=processo.id) }}" class="btn btn-xs btn-outline-secondary ms-auto">
+      <i class="bi bi-pencil me-1"></i>Gerenciar
     </a>
     {% endif %}
-    <a href="{{ url_for('processos_exportar_excel', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
-      <i class="bi bi-file-earmark-excel me-1"></i>Excel
-    </a>
   </div>
-</div>
-
-<div class="row g-3">
-<!-- Processo -->
-<div class="col-lg-6">
-  <div class="card border-0 shadow-sm h-100">
-    <div class="card-header section-header"><i class="bi bi-file-earmark-text me-2"></i>Processo</div>
-    <div class="card-body">
-      <dl class="row mb-0 small">
-        <dt class="col-sm-5">Protocolo CMAIU</dt><dd class="col-sm-7"><code>{{ processo.protocolo_cmaiu or '—' }}</code></dd>
-        <dt class="col-sm-5">Processo Administrativo</dt><dd class="col-sm-7">{{ processo.num_processo or '—' }}</dd>
-        <dt class="col-sm-5">Protocolo de Aprovação</dt><dd class="col-sm-7">{{ processo.protocolo_aprovacao or '—' }}</dd>
-        <dt class="col-sm-5">Data de Entrada</dt><dd class="col-sm-7">{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</dd>
-        <dt class="col-sm-5">Data da Análise</dt><dd class="col-sm-7">{{ processo.data_analise.strftime('%d/%m/%Y') if processo.data_analise else '—' }}</dd>
-        {% if processo.observacoes %}<dt class="col-sm-5">Observações</dt><dd class="col-sm-7">{{ processo.observacoes }}</dd>{% endif %}
-      </dl>
-    </div>
-  </div>
-</div>
-
-<!-- Proprietário -->
-<div class="col-lg-6">
-  <div class="card border-0 shadow-sm h-100">
-    <div class="card-header section-header"><i class="bi bi-person me-2"></i>Proprietário / Empreendedor</div>
-    <div class="card-body">
-      {% if prop %}
-      <dl class="row mb-0 small">
-        <dt class="col-sm-5">Nome / Razão Social</dt><dd class="col-sm-7">{{ prop.nome or '—' }}</dd>
-        <dt class="col-sm-5">CPF / CNPJ</dt><dd class="col-sm-7">{{ prop.cpf_cnpj or '—' }}</dd>
-        <dt class="col-sm-5">Endereço</dt><dd class="col-sm-7">{{ prop.endereco or '—' }}</dd>
-        <dt class="col-sm-5">Telefone</dt><dd class="col-sm-7">{{ prop.telefone or '—' }}</dd>
-        <dt class="col-sm-5">E-mail</dt><dd class="col-sm-7">{{ prop.email or '—' }}</dd>
-      </dl>
-      {% else %}<p class="text-muted small mb-0">Não informado.</p>{% endif %}
-    </div>
-  </div>
-</div>
-
-<!-- Empreendimento -->
-<div class="col-12">
-  <div class="card border-0 shadow-sm">
-    <div class="card-header section-header"><i class="bi bi-buildings me-2"></i>Empreendimento</div>
-    <div class="card-body">
-      {% if emp %}
-      <div class="row g-2 small">
-        <div class="col-md-6"><strong>Nome:</strong> {{ emp.nome or '—' }}</div>
-        <div class="col-md-6"><strong>Endereço:</strong> {{ emp.endereco or '—' }}</div>
-        <div class="col-md-3"><strong>Bairro:</strong> {{ emp.bairro or '—' }}</div>
-        <div class="col-md-3"><strong>Zoneamento:</strong> {{ emp.zoneamento.codigo if emp.zoneamento else '—' }}</div>
-        <div class="col-md-3"><strong>Uso:</strong> {{ emp.uso_predominante or '—' }}</div>
-        <div class="col-md-3"><strong>Resp. Técnico:</strong> {{ emp.responsavel_tecnico or '—' }}</div>
-      </div>
-      <hr class="my-2">
-      <div class="row g-2 small">
-        <div class="col-md-2"><strong>Terreno:</strong><br>{{ emp.area_terreno|fmt_area if emp.area_terreno else '—' }}</div>
-        <div class="col-md-2"><strong>Área Construída:</strong><br>{{ emp.area_construida|fmt_area if emp.area_construida else '—' }}</div>
-        <div class="col-md-2"><strong>Área Computável:</strong><br>{{ emp.area_computavel|fmt_area if emp.area_computavel else '—' }}</div>
-        <div class="col-md-2"><strong>CAB / CMAX:</strong><br>{{ emp.cab }} / {{ emp.cmax }}</div>
-        <div class="col-md-2"><strong>UH / UC:</strong><br>{{ emp.num_uh or 0 }} / {{ emp.num_uc or 0 }}</div>
-        <div class="col-md-2"><strong>População Total:</strong><br>{{ emp.pop_total or '—' }} hab.</div>
-        <div class="col-md-2"><strong>Pavimentos:</strong><br>{{ emp.num_pavimentos or '—' }}</div>
-        <div class="col-md-2"><strong>Vagas:</strong><br>{{ emp.vagas or '—' }}</div>
-        <div class="col-md-4"><strong>Padrão de Impacto:</strong><br>{{ emp.padrao_impacto or '—' }}</div>
-      </div>
-      {% else %}<p class="text-muted small mb-0">Não informado.</p>{% endif %}
-    </div>
-  </div>
-</div>
-
-<!-- Último Cálculo -->
-{% if calc %}
-<div class="col-lg-6">
-  <div class="card border-0 shadow-sm">
-    <div class="card-header section-header"><i class="bi bi-calculator me-2"></i>Compensação Urbana</div>
-    <div class="card-body small">
-      <div class="row g-2">
-        <div class="col-6"><strong>CUB:</strong> {{ calc.cub_valor|brl }}/m² ({{ calc.cub_mes_ref }})</div>
-        <div class="col-6"><strong>População:</strong> {{ calc.populacao or '—' }} hab.</div>
-        <div class="col-6"><strong>Valor-base:</strong> {{ calc.valor_base|brl }}</div>
-        <div class="col-6">
-          <strong>Nível:</strong>
-          {% if calc.nivel_selecionado %}
-            <span class="badge bg-primary">{{ calc.nivel_label }}</span>
-            = {{ calc.valor_compensacao|brl }}
-          {% else %}—{% endif %}
-        </div>
-      </div>
-      <table class="table table-sm mt-2 mb-0">
-        <tr><td>25%</td><td class="text-end">{{ calc.valor_25|brl }}</td></tr>
-        <tr><td>50%</td><td class="text-end">{{ calc.valor_50|brl }}</td></tr>
-        <tr><td>75%</td><td class="text-end">{{ calc.valor_75|brl }}</td></tr>
-        <tr><td>100%</td><td class="text-end">{{ calc.valor_100|brl }}</td></tr>
-      </table>
-    </div>
-  </div>
-</div>
-<div class="col-lg-6">
-  <div class="card border-0 shadow-sm">
-    <div class="card-header section-header"><i class="bi bi-layers me-2"></i>Solo Criado</div>
-    <div class="card-body small">
-      <dl class="row mb-0">
-        <dt class="col-7">Área Básica (AB)</dt><dd class="col-5 text-end">{{ calc.area_basica|fmt_area }}</dd>
-        <dt class="col-7">Área Excedente (AE)</dt><dd class="col-5 text-end">{{ calc.area_excedente|fmt_area }}</dd>
-      </dl>
-      <table class="table table-sm mt-2 mb-0">
-        <thead class="table-light"><tr><th>Modalidade</th><th>%</th><th>Área</th><th>Valor</th></tr></thead>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0" style="font-size:.85rem">
+        <thead class="table-light">
+          <tr>
+            <th>Nome / Razão Social</th>
+            <th class="text-center">Tipo</th>
+            <th>CPF / CNPJ</th>
+            <th>Telefone</th>
+            <th>E-mail</th>
+          </tr>
+        </thead>
         <tbody>
-          <tr><td>Oneroso</td><td>{{ '%.2f'|format(calc.perc_oneroso) }}%</td><td>{{ calc.area_onerosa|fmt_area }}</td><td>{{ calc.valor_oneroso|brl }}</td></tr>
-          <tr><td>Infraestrutura</td><td>{{ '%.2f'|format(calc.perc_infra) }}%</td><td>{{ calc.area_infra|fmt_area }}</td><td>{{ calc.valor_infra|brl }}</td></tr>
-          <tr><td>Captação</td><td>{{ '%.2f'|format(calc.perc_captacao) }}%</td><td>{{ calc.area_captacao|fmt_area }}</td><td>{{ calc.valor_captacao|brl }}</td></tr>
-          <tr class="fw-bold"><td>Total</td><td>{{ '%.2f'|format(calc.perc_total) }}%</td><td>{{ calc.area_total_solo|fmt_area }}</td><td>{{ calc.valor_total_solo|brl }}</td></tr>
+          {% set pessoas = processo.pessoas_vinculadas if processo.pessoas_vinculadas else [] %}
+          {% if pessoas %}
+            {% for pv in pessoas %}
+            <tr>
+              <td class="fw-semibold">{{ pv.nome }}</td>
+              <td class="text-center"><span class="badge bg-secondary bg-opacity-75">{{ pv.tipo }}</span></td>
+              <td>{{ pv.cpf_cnpj or '—' }}</td>
+              <td>{{ pv.telefone or '—' }}</td>
+              <td>{{ pv.email or '—' }}</td>
+            </tr>
+            {% endfor %}
+          {% elif prop %}
+          <tr>
+            <td class="fw-semibold">{{ prop.nome or '—' }}</td>
+            <td class="text-center"><span class="badge bg-secondary bg-opacity-75">Proprietário</span></td>
+            <td>{{ prop.cpf_cnpj or '—' }}</td>
+            <td>{{ prop.telefone or '—' }}</td>
+            <td>{{ prop.email or '—' }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-3">
+              <i class="bi bi-people fs-4 d-block mb-1 opacity-25"></i>
+              Nenhum proprietário cadastrado.
+              {% if current_user.is_tecnico %}
+              <a href="{{ url_for('processo_pessoas', pid=processo.id) }}" class="btn btn-sm btn-outline-primary mt-2">
+                <i class="bi bi-plus-lg me-1"></i>Adicionar
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endif %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
-{% endif %}
 
-<!-- Impactos resumo -->
-{% if processo.impactos %}
-<div class="col-12">
-  <div class="card border-0 shadow-sm">
-    <div class="card-header section-header"><i class="bi bi-clipboard-check me-2"></i>Avaliação de Impactos</div>
-    <div class="card-body">
-      <div class="d-flex flex-wrap gap-2">
-        {% for imp in processo.impactos %}
-        <span class="badge bg-{{ imp.badge_cor }} text-dark-emphasis" title="{{ imp.justificativa or '' }}">
-          {{ imp.descricao|truncate(35) }}: {{ imp.classificacao }}
-        </span>
-        {% endfor %}
+{# ── Seção 3 – Empreendimento ── #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">3</span>
+    <i class="bi bi-buildings"></i>
+    <span class="fw-semibold">Empreendimento</span>
+    {% if current_user.is_tecnico %}
+    <a href="{{ url_for('processos_editar', pid=processo.id) }}" class="btn btn-xs btn-outline-secondary ms-auto">
+      <i class="bi bi-pencil me-1"></i>Editar
+    </a>
+    {% endif %}
+  </div>
+  {% if emp %}
+  <div class="card-body py-3">
+    <div class="row g-3" style="font-size:.88rem">
+      <div class="col-md-4">
+        <div class="text-muted small">Nome do Empreendimento</div>
+        <div class="fw-semibold">{{ emp.nome or '—' }}</div>
       </div>
-      {% if emp and emp.padrao_impacto %}
-      <p class="mt-2 mb-0 small"><strong>Padrão geral:</strong> {{ emp.padrao_impacto }}</p>
-      {% endif %}
+      <div class="col-md-4">
+        <div class="text-muted small">Endereço</div>
+        <div>{{ emp.endereco or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Bairro</div>
+        <div>{{ emp.bairro or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Zoneamento</div>
+        {% if emp.zoneamento %}
+          <span class="badge bg-secondary mt-1">{{ emp.zoneamento.codigo }}</span>
+        {% else %}
+          <span class="text-muted">—</span>
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Uso Predominante</div>
+        <div>{{ emp.uso_predominante or '—' }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Uso Secundário</div>
+        <div>{{ emp.uso_secundario or '—' }}</div>
+      </div>
+      <div class="col-md-4">
+        <div class="text-muted small">Responsável Técnico</div>
+        <div>{{ emp.responsavel_tecnico or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Reg. Profissional</div>
+        <div>{{ emp.registro_profissional or '—' }}</div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="card-body text-center text-muted py-4">
+    <i class="bi bi-buildings fs-3 d-block mb-2 opacity-25"></i>
+    Nenhum empreendimento cadastrado.
+  </div>
+  {% endif %}
+</div>
+
+{# ── Seção 4 – Dados Urbanísticos ── #}
+{% if emp %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">4</span>
+    <i class="bi bi-rulers"></i>
+    <span class="fw-semibold">Dados Urbanísticos</span>
+  </div>
+  <div class="card-body py-3">
+    <div class="row g-3" style="font-size:.88rem">
+      <div class="col-md-2">
+        <div class="text-muted small">Área Terreno</div>
+        <div class="fw-semibold">{{ emp.area_terreno|fmt_area if emp.area_terreno else '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Área Construída</div>
+        <div class="fw-semibold">{{ emp.area_construida|fmt_area if emp.area_construida else '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Área Computável</div>
+        <div class="fw-semibold">{{ emp.area_computavel|fmt_area if emp.area_computavel else '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">CAB / CMAX</div>
+        <div>{{ emp.cab }} / {{ emp.cmax }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Pavimentos</div>
+        <div>{{ emp.num_pavimentos or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Vagas</div>
+        <div>{{ emp.vagas or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">UH / UC</div>
+        <div>{{ emp.num_uh or 0 }} / {{ emp.num_uc or 0 }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Dormitórios</div>
+        <div>{{ emp.total_dormitorios or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Pop. Residencial</div>
+        <div>{{ emp.pop_residencial or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Pop. Não Residencial</div>
+        <div>{{ emp.pop_nao_residencial or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Pop. Total</div>
+        <div class="fw-semibold">{{ emp.pop_total or '—' }}</div>
+      </div>
+      <div class="col-md-2">
+        <div class="text-muted small">Padrão de Impacto</div>
+        {% if emp.padrao_impacto %}
+          <span class="badge bg-info text-dark mt-1">{{ emp.padrao_impacto }}</span>
+        {% else %}
+          <span class="text-muted">—</span>
+        {% endif %}
+      </div>
     </div>
   </div>
 </div>
 {% endif %}
 
-</div><!-- row -->
+{# ── Seção 5 – Resultado do Cálculo ── #}
+{% if calc %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-success rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">5</span>
+    <i class="bi bi-calculator"></i>
+    <span class="fw-semibold">Resultado do Cálculo</span>
+    <a href="{{ url_for('processos_calculos', pid=processo.id) }}" class="btn btn-xs btn-outline-success ms-auto">
+      <i class="bi bi-calculator me-1"></i>Ver cálculos
+    </a>
+  </div>
+  <div class="card-body py-3">
+    <div class="row g-3 mb-3">
+      <div class="col-md-3">
+        <div class="card border-0 bg-light text-center py-3">
+          <div class="small text-muted">CUB Utilizado</div>
+          <div class="fw-bold">{{ calc.cub_mes_ref }}</div>
+          <div class="small text-muted">{{ calc.cub_valor|brl }}/m²</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 bg-primary bg-opacity-10 text-center py-3">
+          <div class="small text-muted">População</div>
+          <div class="fw-bold fs-5 text-primary">{{ calc.populacao or '—' }} hab.</div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 bg-success bg-opacity-10 text-center py-3">
+          <div class="small text-muted">Valor Compensação</div>
+          <div class="fw-bold fs-5 text-success">
+            {% if calc.nivel_selecionado %}{{ calc.valor_compensacao|brl }}{% else %}<span class="text-muted fst-italic small">Não selecionado</span>{% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card border-0 bg-light text-center py-3">
+          <div class="small text-muted">Nível Selecionado</div>
+          {% if calc.nivel_selecionado %}
+            <span class="badge bg-primary fs-6 mt-1">{{ calc.nivel_label }}</span>
+          {% else %}
+            <span class="text-muted fst-italic small d-block mt-1">—</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    {# Tabela de níveis #}
+    <div class="row g-3">
+      <div class="col-md-5">
+        <div class="small text-muted mb-1">Tabela de Compensação</div>
+        <table class="table table-sm border rounded mb-0" style="font-size:.82rem">
+          <thead class="table-light">
+            <tr><th>Nível</th><th class="text-end">Valor</th></tr>
+          </thead>
+          <tbody>
+            <tr {% if calc.nivel_selecionado == 25 %}class="table-primary"{% endif %}><td>25%</td><td class="text-end">{{ calc.valor_25|brl }}</td></tr>
+            <tr {% if calc.nivel_selecionado == 50 %}class="table-primary"{% endif %}><td>50%</td><td class="text-end">{{ calc.valor_50|brl }}</td></tr>
+            <tr {% if calc.nivel_selecionado == 75 %}class="table-primary"{% endif %}><td>75%</td><td class="text-end">{{ calc.valor_75|brl }}</td></tr>
+            <tr {% if calc.nivel_selecionado == 100 %}class="table-primary"{% endif %}><td>100%</td><td class="text-end">{{ calc.valor_100|brl }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="col-md-7">
+        <div class="small text-muted mb-1">Solo Criado</div>
+        <table class="table table-sm border rounded mb-0" style="font-size:.82rem">
+          <thead class="table-light">
+            <tr><th>Área Básica (AB)</th><th class="text-end">{{ calc.area_basica|fmt_area }}</th></tr>
+            <tr><th>Área Excedente (AE)</th><th class="text-end">{{ calc.area_excedente|fmt_area }}</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Oneroso ({{ '%.2f'|format(calc.perc_oneroso) }}%)</td><td class="text-end">{{ calc.area_onerosa|fmt_area }} — {{ calc.valor_oneroso|brl }}</td></tr>
+            <tr><td>Infraestrutura ({{ '%.2f'|format(calc.perc_infra) }}%)</td><td class="text-end">{{ calc.area_infra|fmt_area }} — {{ calc.valor_infra|brl }}</td></tr>
+            <tr><td>Captação ({{ '%.2f'|format(calc.perc_captacao) }}%)</td><td class="text-end">{{ calc.area_captacao|fmt_area }} — {{ calc.valor_captacao|brl }}</td></tr>
+            <tr class="fw-bold table-light"><td>Total ({{ '%.2f'|format(calc.perc_total) }}%)</td><td class="text-end">{{ calc.area_total_solo|fmt_area }} — {{ calc.valor_total_solo|brl }}</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{# ── Seção 6 – Avaliação de Impactos ── #}
+{% if processo.impactos %}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">6</span>
+    <i class="bi bi-clipboard-check"></i>
+    <span class="fw-semibold">Avaliação de Impactos</span>
+    {% if current_user.is_tecnico %}
+    <a href="{{ url_for('processos_impactos', pid=processo.id) }}" class="btn btn-xs btn-outline-secondary ms-auto">
+      <i class="bi bi-pencil me-1"></i>Gerenciar
+    </a>
+    {% endif %}
+  </div>
+  <div class="card-body py-3">
+    <div class="d-flex flex-wrap gap-2 mb-2">
+      {% for imp in processo.impactos %}
+      <span class="badge bg-{{ imp.badge_cor }} text-dark-emphasis" title="{{ imp.justificativa or '' }}">
+        {{ imp.descricao|truncate(35) }}: {{ imp.classificacao }}
+      </span>
+      {% endfor %}
+    </div>
+    {% if emp and emp.padrao_impacto %}
+    <div class="small text-muted">
+      <strong>Padrão geral:</strong>
+      <span class="badge bg-info text-dark ms-1">{{ emp.padrao_impacto }}</span>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

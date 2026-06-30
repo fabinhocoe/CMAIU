@@ -194,8 +194,16 @@ def processos_index():
     if sit:
         query = query.filter_by(situacao=sit)
     processos = query.order_by(Processo.criado_em.desc()).all()
+    ano_atual = date.today().year
+    proc_ano = [p for p in processos if p.criado_em and p.criado_em.year == ano_atual]
+    totais_ano = {
+        'ano': ano_atual,
+        'qtd': len(proc_ano),
+        'com_calculo': sum(1 for p in proc_ano if p.ultimo_calculo),
+        'vcomp': sum(p.ultimo_calculo.valor_compensacao or 0 for p in proc_ano if p.ultimo_calculo and p.ultimo_calculo.nivel_selecionado),
+    }
     return render_template('processos/index.html', processos=processos,
-                           q=q, sit=sit, situacoes=SITUACOES_PROCESSO)
+                           q=q, sit=sit, situacoes=SITUACOES_PROCESSO, totais_ano=totais_ano)
 
 
 @app.route('/processos/novo', methods=['GET', 'POST'])

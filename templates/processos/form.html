@@ -1,122 +1,180 @@
 {% extends 'base.html' %}
 {% set editing = processo is not none %}
-{% block title %}{% if editing %}Editar Processo{% else %}Novo Processo{% endif %} – CMAIU{% endblock %}
-{% block page_title %}{% if editing %}Editar Processo{% else %}Novo Processo{% endif %}{% endblock %}
+{% block title %}{{ 'Editar' if editing else 'Novo' }} Processo – CMAIU{% endblock %}
+{% block page_title %}{{ 'Editar Processo' if editing else 'Novo Processo' }}{% endblock %}
 {% block content %}
-<form method="POST" id="processoForm">
-<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-<ul class="nav nav-tabs mt-2 mb-3" id="formTabs">
-  <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tab-processo">1 – Processo</a></li>
-  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-prop">2 – Proprietário</a></li>
-  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-emp">3 – Empreendimento</a></li>
-  <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tab-urban">4 – Dados Urbanísticos</a></li>
-</ul>
-<div class="tab-content">
 
-<!-- TAB 1 – Processo -->
-<div class="tab-pane fade show active" id="tab-processo">
-<div class="card border-0 shadow-sm">
-  <div class="card-header section-header"><i class="bi bi-file-earmark-text me-2"></i>Identificação do Processo</div>
-  <div class="card-body">
+<div class="d-flex align-items-center gap-2 mb-4">
+  <a href="{{ url_for('processos_index') if not editing else url_for('processos_detail', pid=processo.id) }}"
+     class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  {% if editing %}
+  <a href="{{ url_for('processos_detail', pid=processo.id) }}" class="btn btn-sm btn-outline-info">
+    <i class="bi bi-eye me-1"></i>Visualizar
+  </a>
+  {% endif %}
+  <span class="text-muted small ms-auto">
+    <i class="bi bi-asterisk text-danger me-1" style="font-size:.6rem;vertical-align:middle"></i>Campo obrigatório
+  </span>
+</div>
+
+<form method="POST" id="processoForm" autocomplete="off">
+<input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+{# ── SEÇÃO 1 – IDENTIFICAÇÃO DO PROCESSO ── #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">1</span>
+    <i class="bi bi-file-earmark-text"></i>
+    <span class="fw-semibold">Identificação do Processo</span>
+  </div>
+  <div class="card-body py-3">
     <div class="row g-3">
-      <div class="col-md-4">
-        <label class="form-label small fw-semibold">Nº do Processo Administrativo</label>
-        <input type="text" name="num_processo" class="form-control" value="{{ processo.num_processo if editing else '' }}">
+
+      {% if editing and processo.protocolo_cmaiu %}
+      <div class="col-12">
+        <div class="alert alert-secondary py-2 mb-0 d-flex align-items-center gap-2">
+          <i class="bi bi-lock-fill text-muted"></i>
+          <span class="small">Protocolo CMAIU:</span>
+          <span class="badge bg-dark fs-6">{{ processo.protocolo_cmaiu }}</span>
+          <span class="text-muted small ms-1">— gerado automaticamente, não pode ser alterado.</span>
+        </div>
       </div>
+      {% endif %}
+
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Nº do Processo Administrativo <span class="text-danger">*</span></label>
+        <input type="text" name="num_processo" class="form-control form-control-sm" required
+               placeholder="Ex.: 12345/2024"
+               value="{{ processo.num_processo if editing else '' }}">
+      </div>
+
+      {% if not (editing and processo.protocolo_cmaiu) %}
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Protocolo CMAIU</label>
-        <input type="text" name="protocolo_cmaiu" class="form-control" value="{{ processo.protocolo_cmaiu if editing else '' }}">
+        <input type="text" name="protocolo_cmaiu" class="form-control form-control-sm"
+               placeholder="Ex.: CMAIU-001/2024"
+               value="{{ processo.protocolo_cmaiu if editing else '' }}">
       </div>
+      {% endif %}
+
       <div class="col-md-4">
-        <label class="form-label small fw-semibold">Protocolo de Aprovação do Projeto</label>
-        <input type="text" name="protocolo_aprovacao" class="form-control" value="{{ processo.protocolo_aprovacao if editing else '' }}">
+        <label class="form-label small fw-semibold">Protocolo de Aprovação</label>
+        <input type="text" name="protocolo_aprovacao" class="form-control form-control-sm"
+               value="{{ processo.protocolo_aprovacao if editing else '' }}">
       </div>
+
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Data de Entrada</label>
-        <input type="date" name="data_entrada" class="form-control" value="{{ processo.data_entrada.isoformat() if editing and processo.data_entrada else '' }}">
+        <label class="form-label small fw-semibold">Data de Entrada <span class="text-danger">*</span></label>
+        <input type="date" name="data_entrada" class="form-control form-control-sm" required
+               value="{{ processo.data_entrada.isoformat() if editing and processo.data_entrada else '' }}">
       </div>
+
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Data da Análise</label>
-        <input type="date" name="data_analise" class="form-control" value="{{ processo.data_analise.isoformat() if editing and processo.data_analise else '' }}">
+        <input type="date" name="data_analise" class="form-control form-control-sm"
+               value="{{ processo.data_analise.isoformat() if editing and processo.data_analise else '' }}">
       </div>
+
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Situação</label>
-        <select name="situacao" class="form-select">
+        <select name="situacao" class="form-select form-select-sm">
           {% for s in situacoes %}
           <option value="{{ s }}" {% if editing and processo.situacao == s %}selected{% endif %}>{{ s }}</option>
           {% endfor %}
         </select>
       </div>
+
       <div class="col-12">
         <label class="form-label small fw-semibold">Observações</label>
-        <textarea name="observacoes" class="form-control" rows="2">{{ processo.observacoes if editing else '' }}</textarea>
+        <textarea name="observacoes" class="form-control form-control-sm" rows="2"
+                  placeholder="Observações relevantes sobre o processo…">{{ processo.observacoes if editing else '' }}</textarea>
       </div>
+
     </div>
   </div>
 </div>
-</div>
 
-<!-- TAB 2 – Proprietário -->
-<div class="tab-pane fade" id="tab-prop">
-<div class="card border-0 shadow-sm">
-  <div class="card-header section-header"><i class="bi bi-person me-2"></i>Identificação do Proprietário / Empreendedor</div>
-  <div class="card-body">
+{# ── SEÇÃO 2 – PROPRIETÁRIO / EMPREENDEDOR ── #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">2</span>
+    <i class="bi bi-person"></i>
+    <span class="fw-semibold">Proprietário / Empreendedor</span>
+  </div>
+  <div class="card-body py-3">
     <div class="row g-3">
       <div class="col-md-6">
         <label class="form-label small fw-semibold">Nome ou Razão Social</label>
-        <input type="text" name="prop_nome" class="form-control" value="{{ prop.nome if prop else '' }}">
+        <input type="text" name="prop_nome" class="form-control form-control-sm"
+               value="{{ prop.nome if prop else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">CPF / CNPJ</label>
-        <input type="text" name="prop_cpf_cnpj" class="form-control" value="{{ prop.cpf_cnpj if prop else '' }}">
+        <input type="text" name="prop_cpf_cnpj" class="form-control form-control-sm"
+               value="{{ prop.cpf_cnpj if prop else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Telefone</label>
-        <input type="text" name="prop_telefone" class="form-control" value="{{ prop.telefone if prop else '' }}">
+        <input type="text" name="prop_telefone" class="form-control form-control-sm"
+               value="{{ prop.telefone if prop else '' }}">
       </div>
       <div class="col-md-6">
         <label class="form-label small fw-semibold">Endereço</label>
-        <input type="text" name="prop_endereco" class="form-control" value="{{ prop.endereco if prop else '' }}">
+        <input type="text" name="prop_endereco" class="form-control form-control-sm"
+               value="{{ prop.endereco if prop else '' }}">
       </div>
       <div class="col-md-6">
         <label class="form-label small fw-semibold">E-mail</label>
-        <input type="email" name="prop_email" class="form-control" value="{{ prop.email if prop else '' }}">
+        <input type="email" name="prop_email" class="form-control form-control-sm"
+               value="{{ prop.email if prop else '' }}">
       </div>
     </div>
   </div>
 </div>
-</div>
 
-<!-- TAB 3 – Empreendimento -->
-<div class="tab-pane fade" id="tab-emp">
-<div class="card border-0 shadow-sm">
-  <div class="card-header section-header"><i class="bi bi-buildings me-2"></i>Identificação do Empreendimento</div>
-  <div class="card-body">
+{# ── SEÇÃO 3 – EMPREENDIMENTO ── #}
+<div class="card border-0 shadow-sm mb-3">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">3</span>
+    <i class="bi bi-buildings"></i>
+    <span class="fw-semibold">Empreendimento</span>
+  </div>
+  <div class="card-body py-3">
     <div class="row g-3">
       <div class="col-md-6">
         <label class="form-label small fw-semibold">Nome do Empreendimento</label>
-        <input type="text" name="emp_nome" class="form-control" value="{{ emp.nome if emp else '' }}">
+        <input type="text" name="emp_nome" class="form-control form-control-sm"
+               value="{{ emp.nome if emp else '' }}">
       </div>
       <div class="col-md-6">
-        <label class="form-label small fw-semibold">Endereço do Empreendimento</label>
-        <input type="text" name="emp_endereco" class="form-control" value="{{ emp.endereco if emp else '' }}">
+        <label class="form-label small fw-semibold">Endereço</label>
+        <input type="text" name="emp_endereco" class="form-control form-control-sm"
+               value="{{ emp.endereco if emp else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Bairro</label>
-        <input type="text" name="emp_bairro" class="form-control" value="{{ emp.bairro if emp else '' }}">
+        <input type="text" name="emp_bairro" class="form-control form-control-sm"
+               value="{{ emp.bairro if emp else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
-        <input type="text" name="emp_inscricao" class="form-control" value="{{ emp.inscricao if emp else '' }}">
+        <input type="text" name="emp_inscricao" class="form-control form-control-sm"
+               value="{{ emp.inscricao if emp else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Matrícula</label>
-        <input type="text" name="emp_matricula" class="form-control" value="{{ emp.matricula if emp else '' }}">
+        <input type="text" name="emp_matricula" class="form-control form-control-sm"
+               value="{{ emp.matricula if emp else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Zoneamento</label>
-        <select name="zoneamento_id" class="form-select" id="zoneamentoSelect">
-          <option value="">Selecione...</option>
+        <select name="zoneamento_id" class="form-select form-select-sm" id="zoneamentoSelect">
+          <option value="">— Selecione —</option>
           {% for z in zoneamentos %}
           <option value="{{ z.id }}"
             data-cab="{{ z.cab }}" data-cmax="{{ z.cmax }}"
@@ -129,8 +187,8 @@
       </div>
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Uso Predominante</label>
-        <select name="emp_uso_predominante" class="form-select">
-          <option value="">Selecione...</option>
+        <select name="emp_uso_predominante" class="form-select form-select-sm">
+          <option value="">— Selecione —</option>
           {% for u in usos %}
           <option value="{{ u }}" {% if emp and emp.uso_predominante == u %}selected{% endif %}>{{ u }}</option>
           {% endfor %}
@@ -138,7 +196,7 @@
       </div>
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Uso Secundário</label>
-        <select name="emp_uso_secundario" class="form-select">
+        <select name="emp_uso_secundario" class="form-select form-select-sm">
           <option value="">—</option>
           {% for u in usos %}
           <option value="{{ u }}" {% if emp and emp.uso_secundario == u %}selected{% endif %}>{{ u }}</option>
@@ -147,80 +205,100 @@
       </div>
       <div class="col-md-5">
         <label class="form-label small fw-semibold">Responsável Técnico</label>
-        <input type="text" name="emp_responsavel_tecnico" class="form-control" value="{{ emp.responsavel_tecnico if emp else '' }}">
+        <input type="text" name="emp_responsavel_tecnico" class="form-control form-control-sm"
+               value="{{ emp.responsavel_tecnico if emp else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Nº do Registro Profissional</label>
-        <input type="text" name="emp_registro_profissional" class="form-control" value="{{ emp.registro_profissional if emp else '' }}">
+        <label class="form-label small fw-semibold">Nº Registro Profissional</label>
+        <input type="text" name="emp_registro_profissional" class="form-control form-control-sm"
+               value="{{ emp.registro_profissional if emp else '' }}">
       </div>
     </div>
   </div>
 </div>
-</div>
 
-<!-- TAB 4 – Dados Urbanísticos -->
-<div class="tab-pane fade" id="tab-urban">
-<div class="card border-0 shadow-sm">
-  <div class="card-header section-header"><i class="bi bi-rulers me-2"></i>Dados Urbanísticos</div>
-  <div class="card-body">
+{# ── SEÇÃO 4 – DADOS URBANÍSTICOS ── #}
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">4</span>
+    <i class="bi bi-rulers"></i>
+    <span class="fw-semibold">Dados Urbanísticos</span>
+  </div>
+  <div class="card-body py-3">
     <div class="row g-3">
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Área do Terreno (m²)</label>
-        <input type="number" step="0.01" name="area_terreno" class="form-control" value="{{ emp.area_terreno if emp and emp.area_terreno else '' }}">
+        <input type="number" step="0.01" name="area_terreno" class="form-control form-control-sm"
+               value="{{ emp.area_terreno if emp and emp.area_terreno else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Área Construída Total (m²)</label>
-        <input type="number" step="0.01" name="area_construida" class="form-control" value="{{ emp.area_construida if emp and emp.area_construida else '' }}">
+        <input type="number" step="0.01" name="area_construida" class="form-control form-control-sm"
+               value="{{ emp.area_construida if emp and emp.area_construida else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Área Computável do Projeto (m²)</label>
-        <input type="number" step="0.01" name="area_computavel" id="areaComputavel" class="form-control" value="{{ emp.area_computavel if emp and emp.area_computavel else '' }}">
+        <label class="form-label small fw-semibold">Área Computável (m²)</label>
+        <input type="number" step="0.01" name="area_computavel" id="areaComputavel" class="form-control form-control-sm"
+               value="{{ emp.area_computavel if emp and emp.area_computavel else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Nº de Pavimentos</label>
-        <input type="number" name="num_pavimentos" class="form-control" value="{{ emp.num_pavimentos if emp and emp.num_pavimentos else '' }}">
+        <input type="number" name="num_pavimentos" class="form-control form-control-sm"
+               value="{{ emp.num_pavimentos if emp and emp.num_pavimentos else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Coef. Aproveitamento Básico (CAB)</label>
-        <input type="number" step="0.0001" name="cab" id="cabField" class="form-control" value="{{ emp.cab if emp and emp.cab else '' }}">
+        <label class="form-label small fw-semibold">CAB</label>
+        <input type="number" step="0.0001" name="cab" id="cabField" class="form-control form-control-sm"
+               value="{{ emp.cab if emp and emp.cab else '' }}">
+        <div class="form-text">Coef. Aproveitamento Básico</div>
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Coef. Máximo Permitido (CMAX)</label>
-        <input type="number" step="0.0001" name="cmax" id="cmaxField" class="form-control" value="{{ emp.cmax if emp and emp.cmax else '' }}">
+        <label class="form-label small fw-semibold">CMAX</label>
+        <input type="number" step="0.0001" name="cmax" id="cmaxField" class="form-control form-control-sm"
+               value="{{ emp.cmax if emp and emp.cmax else '' }}">
+        <div class="form-text">Coef. Máximo Permitido</div>
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Unidades Habitacionais (UH)</label>
-        <input type="number" name="num_uh" class="form-control" value="{{ emp.num_uh if emp and emp.num_uh else '' }}">
+        <label class="form-label small fw-semibold">UH (Unidades Habitacionais)</label>
+        <input type="number" name="num_uh" class="form-control form-control-sm"
+               value="{{ emp.num_uh if emp and emp.num_uh else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Unidades Comerciais (UC)</label>
-        <input type="number" name="num_uc" class="form-control" value="{{ emp.num_uc if emp and emp.num_uc else '' }}">
+        <label class="form-label small fw-semibold">UC (Unidades Comerciais)</label>
+        <input type="number" name="num_uc" class="form-control form-control-sm"
+               value="{{ emp.num_uc if emp and emp.num_uc else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Total de Dormitórios</label>
-        <input type="number" name="total_dormitorios" id="dormitorios" class="form-control" value="{{ emp.total_dormitorios if emp and emp.total_dormitorios else '' }}">
-        <div class="form-text">Residencial: PR = dormitórios × 2</div>
+        <input type="number" name="total_dormitorios" id="dormitorios" class="form-control form-control-sm"
+               value="{{ emp.total_dormitorios if emp and emp.total_dormitorios else '' }}">
+        <div class="form-text">Pop. Res. = dormitórios × 2</div>
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">População Residencial</label>
-        <input type="number" name="pop_residencial" id="popRes" class="form-control" value="{{ emp.pop_residencial if emp and emp.pop_residencial else '' }}">
+        <label class="form-label small fw-semibold">Pop. Residencial</label>
+        <input type="number" name="pop_residencial" id="popRes" class="form-control form-control-sm"
+               value="{{ emp.pop_residencial if emp and emp.pop_residencial else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">População Não Residencial</label>
-        <input type="number" name="pop_nao_residencial" id="popNaoRes" class="form-control" value="{{ emp.pop_nao_residencial if emp and emp.pop_nao_residencial else '' }}">
+        <label class="form-label small fw-semibold">Pop. Não Residencial</label>
+        <input type="number" name="pop_nao_residencial" id="popNaoRes" class="form-control form-control-sm"
+               value="{{ emp.pop_nao_residencial if emp and emp.pop_nao_residencial else '' }}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">População Total</label>
-        <input type="number" name="pop_total" id="popTotal" class="form-control fw-bold" value="{{ emp.pop_total if emp and emp.pop_total else '' }}" readonly>
+        <input type="number" name="pop_total" id="popTotal" class="form-control form-control-sm fw-bold bg-light"
+               value="{{ emp.pop_total if emp and emp.pop_total else '' }}" readonly>
         <div class="form-text">Calculado automaticamente</div>
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Nº de Vagas</label>
-        <input type="number" name="vagas" class="form-control" value="{{ emp.vagas if emp and emp.vagas else '' }}">
+        <input type="number" name="vagas" class="form-control form-control-sm"
+               value="{{ emp.vagas if emp and emp.vagas else '' }}">
       </div>
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Padrão de Impacto</label>
-        <select name="padrao_impacto" class="form-select">
+        <select name="padrao_impacto" class="form-select form-select-sm">
           <option value="">—</option>
           {% for pad in padroes %}
           <option value="{{ pad }}" {% if emp and emp.padrao_impacto == pad %}selected{% endif %}>{{ pad }}</option>
@@ -230,21 +308,23 @@
     </div>
   </div>
 </div>
-</div>
 
-</div><!-- tab-content -->
-
-<div class="d-flex gap-2 mt-3">
-  <button type="submit" class="btn btn-primary">
-    <i class="bi bi-check-circle me-2"></i>{% if editing %}Salvar Alterações{% else %}Cadastrar Processo{% endif %}
+{# ── Ações ── #}
+<div class="d-flex gap-2 justify-content-end pb-4">
+  <a href="{{ url_for('processos_index') if not editing else url_for('processos_detail', pid=processo.id) }}"
+     class="btn btn-outline-secondary">
+    <i class="bi bi-x-lg me-1"></i>Cancelar
+  </a>
+  <button type="submit" class="btn btn-primary px-5">
+    <i class="bi bi-floppy me-1"></i>{{ 'Salvar alterações' if editing else 'Cadastrar Processo' }}
   </button>
-  <a href="{{ url_for('processos_index') }}" class="btn btn-outline-secondary">Cancelar</a>
 </div>
+
 </form>
+{% endblock %}
 
 {% block scripts %}
 <script>
-// Auto-preencher CAB/CMAX ao selecionar zoneamento
 document.getElementById('zoneamentoSelect')?.addEventListener('change', function() {
   const opt = this.options[this.selectedIndex];
   if (opt.value) {
@@ -253,7 +333,6 @@ document.getElementById('zoneamentoSelect')?.addEventListener('change', function
   }
 });
 
-// Calcular população automaticamente
 function calcPop() {
   const dorms = parseInt(document.getElementById('dormitorios').value) || 0;
   const popRes = dorms * 2;
@@ -264,5 +343,4 @@ function calcPop() {
 document.getElementById('dormitorios')?.addEventListener('input', calcPop);
 document.getElementById('popNaoRes')?.addEventListener('input', calcPop);
 </script>
-{% endblock %}
 {% endblock %}
