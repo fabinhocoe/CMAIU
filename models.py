@@ -985,6 +985,17 @@ class SoloCriado(db.Model):
         pon, pin, pag = self._percentuais()
         pt  = pon + pin + pag
 
+        # Campos obrigatórios de identificação e localização
+        if not self.num_processo:         erros.append('Processo administrativo não informado.')
+        if not self.pessoa_id:            erros.append('Proprietário não selecionado.')
+        if not self.cep_imovel:           erros.append('CEP do imóvel não informado.')
+        if not self.endereco_imovel:      erros.append('Logradouro não informado.')
+        if not self.numero_imovel:        erros.append('Número do imóvel não informado.')
+        if not self.bairro_imovel:        erros.append('Bairro não informado.')
+        if not self.cidade_imovel:        erros.append('Cidade não informada.')
+        if not self.inscricao_imob:       erros.append('Inscrição imobiliária não informada.')
+        if not self.parecer_tecnico:      erros.append('Parecer técnico não informado.')
+        # Campos de cálculo
         if not at:   erros.append('Área do terreno não informada.')
         if not iab:  erros.append('Índice de aproveitamento básico não informado.')
         if not acp:  erros.append('Área computável do projeto não informada.')
