@@ -238,6 +238,16 @@
           {% endfor %}
         </select>
       </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Padrão do Empreendimento</label>
+        <select name="emp_padrao_empreendimento" class="form-select form-select-sm">
+          <option value="">— Selecione —</option>
+          {% set padroes_emp = ['Baixo', 'Médio Baixo', 'Médio', 'Médio Alto', 'Alto'] %}
+          {% for pad in padroes_emp %}
+          <option value="{{ pad }}" {% if emp and emp.padrao_empreendimento == pad %}selected{% endif %}>{{ pad }}</option>
+          {% endfor %}
+        </select>
+      </div>
     </div>
   </div>
 </div>

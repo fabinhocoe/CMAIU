@@ -317,6 +317,7 @@ class Empreendimento(db.Model):
     zoneamento_id = db.Column(db.Integer, db.ForeignKey('zoneamentos.id'))
     uso_predominante = db.Column(db.String(100))
     uso_secundario = db.Column(db.String(100))
+    padrao_empreendimento = db.Column(db.String(50))
     responsavel_tecnico = db.Column(db.String(200))
     registro_profissional = db.Column(db.String(100))
     # Dados urbanísticos

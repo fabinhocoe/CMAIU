@@ -328,6 +328,7 @@ def processos_novo():
             zoneamento_id=zon_id,
             uso_predominante=f.get('emp_uso_predominante'),
             uso_secundario=f.get('emp_uso_secundario'),
+            padrao_empreendimento=f.get('emp_padrao_empreendimento'),
             responsavel_tecnico=f.get('emp_responsavel_tecnico'),
             registro_profissional=f.get('emp_registro_profissional'),
             area_terreno=_float(f.get('area_terreno')),
@@ -400,6 +401,7 @@ def processos_editar(pid):
         emp.zoneamento_id = zon_id
         emp.uso_predominante = f.get('emp_uso_predominante')
         emp.uso_secundario = f.get('emp_uso_secundario')
+        emp.padrao_empreendimento = f.get('emp_padrao_empreendimento')
         emp.responsavel_tecnico = f.get('emp_responsavel_tecnico')
         emp.registro_profissional = f.get('emp_registro_profissional')
         emp.area_terreno = _float(f.get('area_terreno'))
