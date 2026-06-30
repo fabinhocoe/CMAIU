@@ -1710,8 +1710,16 @@ def sc_index():
     if sit:
         qs = qs.filter(SoloCriado.situacao == sit)
     registros = qs.all()
+    ano_atual = date.today().year
+    registros_ano = [r for r in registros if r.criado_em and r.criado_em.year == ano_atual]
+    totais_ano = {
+        'von':  sum(r.von or 0 for r in registros_ano),
+        'vin':  sum(r.vin or 0 for r in registros_ano),
+        'vtot': sum((r.von or 0) + (r.vin or 0) + (r.vag or 0) for r in registros_ano),
+        'ano':  ano_atual,
+    }
     return render_template('solo_criado/index.html', registros=registros,
-                           q=q, sit=sit, situacoes=SITUACOES_SC)
+                           q=q, sit=sit, situacoes=SITUACOES_SC, totais_ano=totais_ano)
 
 
 @app.route('/solo-criado/novo', methods=['GET', 'POST'])

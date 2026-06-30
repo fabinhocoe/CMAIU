@@ -30,38 +30,30 @@
   {% endif %}
 </div>
 
-{# ── Totalizadores ── #}
+{# ── Totalizadores anuais ── #}
 {% if registros %}
-{% set ns = namespace(von=0, vin=0, vag=0, vtot=0) %}
-{% for r in registros %}
-  {% set ns.von  = ns.von  + (r.von or 0) %}
-  {% set ns.vin  = ns.vin  + (r.vin or 0) %}
-  {% set ns.vag  = ns.vag  + (r.vag or 0) %}
-  {% set ns.vtot = ns.vtot + (r.von or 0) + (r.vin or 0) + (r.vag or 0) %}
-{% endfor %}
 <div class="row g-2 mb-3">
-  <div class="col-6 col-md-3">
+  <div class="col-12">
+    <div class="text-muted small mb-1 ps-1">
+      <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ totais_ano.ano }}
+    </div>
+  </div>
+  <div class="col-6 col-md-4">
     <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
       <div class="small text-muted">Total Oneroso</div>
-      <div class="fw-bold text-success">{{ ns.von|brl }}</div>
+      <div class="fw-bold text-success">{{ totais_ano.von|brl }}</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
+  <div class="col-6 col-md-4">
     <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
       <div class="small text-muted">Total Infraestrutura</div>
-      <div class="fw-bold text-primary">{{ ns.vin|brl }}</div>
+      <div class="fw-bold text-primary">{{ totais_ano.vin|brl }}</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card border-0 bg-info bg-opacity-10 text-center py-2">
-      <div class="small text-muted">Total Águas Pluviais</div>
-      <div class="fw-bold text-info">{{ ns.vag|brl }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-md-3">
+  <div class="col-12 col-md-4">
     <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
       <div class="small text-muted">Valor Total Geral</div>
-      <div class="fw-bold">{{ ns.vtot|brl }}</div>
+      <div class="fw-bold">{{ totais_ano.vtot|brl }}</div>
     </div>
   </div>
 </div>
@@ -100,7 +92,7 @@
             <th class="text-center" style="border-left:2px solid #0d6efd">%</th>
             <th class="text-end">R$</th>
             <th class="text-center" style="border-left:2px solid #0dcaf0">%</th>
-            <th class="text-end">R$</th>
+            <th class="text-end">m²</th>
             <th class="text-end" style="border-left:2px solid #333"></th>
             <th></th>
           </tr>
@@ -169,7 +161,7 @@
               {{ r.vin|brl if r.vin else '—' }}
             </td>
 
-            {# Águas % e R$ #}
+            {# Águas % e m² #}
             <td class="text-center" style="border-left:2px solid #0dcaf030">
               {% if r.pag is not none and r.pag > 0 %}
                 <span class="{% if r.pag > 5 %}text-danger fw-bold{% else %}text-info{% endif %}">
@@ -178,7 +170,7 @@
               {% else %}<span class="text-muted">—</span>{% endif %}
             </td>
             <td class="text-end text-info">
-              {{ r.vag|brl if r.vag else '—' }}
+              {{ r.aag|fmt_area if r.aag else '—' }}
             </td>
 
             {# Valor Total #}
