@@ -66,8 +66,7 @@
       <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
         <thead class="table-light">
           <tr>
-            <th class="text-center px-2" style="width:140px">Protocolo CMAIU</th>
-            <th>Processo Adm.</th>
+            <th class="px-2">Processo Adm.</th>
             <th>Proprietário</th>
             <th>Empreendimento</th>
             <th>Bairro / Zona</th>
@@ -79,14 +78,7 @@
         <tbody>
           {% for p in processos %}
           <tr>
-            <td class="text-center px-2">
-              {% if p.protocolo_cmaiu %}
-                <span class="badge bg-dark">{{ p.protocolo_cmaiu }}</span>
-              {% else %}
-                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
-              {% endif %}
-            </td>
-            <td class="fw-semibold">{{ p.num_processo or '—' }}</td>
+            <td class="fw-semibold px-2">{{ p.num_processo or '—' }}</td>
             <td>
               {% set pessoas = p.pessoas_vinculadas if p.pessoas_vinculadas else [] %}
               {% if pessoas %}
@@ -154,7 +146,7 @@
   </div>
   {% if processos %}
   <div class="card-footer text-muted small py-2">
-    {{ processos|length }} registro{{ 's' if processos|length != 1 }}
+    {{ processos|length }} processo{{ 's' if processos|length != 1 }}
     {% if q or sit %} (filtrado{{ 's' if processos|length != 1 }}){% endif %}
   </div>
   {% endif %}

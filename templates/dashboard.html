@@ -114,7 +114,7 @@
       <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
         <thead class="table-light">
           <tr>
-            <th class="text-center px-2" style="width:140px">Protocolo CMAIU</th>
+            <th class="px-2">Processo Adm.</th>
             <th>Empreendimento</th>
             <th>Bairro</th>
             <th class="text-center">Situação</th>
@@ -125,12 +125,8 @@
         <tbody>
           {% for p in proc_recentes %}
           <tr>
-            <td class="text-center px-2">
-              {% if p.protocolo_cmaiu %}
-                <span class="badge bg-dark">{{ p.protocolo_cmaiu }}</span>
-              {% else %}
-                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
-              {% endif %}
+            <td class="px-2">
+              <span class="fw-semibold">{{ p.num_processo or '—' }}</span>
             </td>
             <td>{{ p.empreendimento.nome if p.empreendimento else '—' }}</td>
             <td>{{ p.empreendimento.bairro if p.empreendimento else '—' }}</td>

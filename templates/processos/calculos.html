@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Cálculos – CMAIU{% endblock %}
-{% block page_title %}Cálculos — {{ processo.protocolo_cmaiu or processo.id }}{% endblock %}
+{% block page_title %}Cálculos — {{ processo.num_processo or processo.id }}{% endblock %}
 {% block content %}
 {% set c = calc %}
 <form method="POST" id="calcForm">

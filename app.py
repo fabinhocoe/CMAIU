@@ -302,7 +302,6 @@ def processos_novo():
         f = request.form
         p = Processo(
             num_processo=f.get('num_processo'),
-            protocolo_cmaiu=f.get('protocolo_cmaiu'),
             protocolo_aprovacao=f.get('protocolo_aprovacao'),
             data_entrada=_parse_date(f.get('data_entrada')),
             data_analise=_parse_date(f.get('data_analise')),
@@ -375,7 +374,6 @@ def processos_editar(pid):
     if request.method == 'POST':
         f = request.form
         p.num_processo = f.get('num_processo')
-        p.protocolo_cmaiu = f.get('protocolo_cmaiu')
         p.protocolo_aprovacao = f.get('protocolo_aprovacao')
         p.data_entrada = _parse_date(f.get('data_entrada'))
         p.data_analise = _parse_date(f.get('data_analise'))
@@ -633,7 +631,7 @@ def processos_relatorio_pdf(pid):
         buf = io.BytesIO()
         pisa.CreatePDF(html.encode('utf-8'), dest=buf, encoding='utf-8')
         buf.seek(0)
-        nome = f"CMAIU_{p.protocolo_cmaiu or p.id}.pdf".replace('/', '-')
+        nome = f"CMAIU_{p.num_processo or p.id}.pdf".replace('/', '-')
         return send_file(buf, mimetype='application/pdf',
                          as_attachment=True, download_name=nome)
     except Exception as e:
@@ -661,7 +659,6 @@ def processos_exportar_excel(pid):
             ws.cell(r, 1, label).font = Font(bold=True)
             ws.cell(r, 2, value)
 
-        row('Protocolo CMAIU', p.protocolo_cmaiu)
         row('Processo Administrativo', p.num_processo)
         row('Protocolo de Aprovação', p.protocolo_aprovacao)
         row('Situação', p.situacao)
@@ -701,7 +698,7 @@ def processos_exportar_excel(pid):
         buf = io.BytesIO()
         wb.save(buf)
         buf.seek(0)
-        nome = f"CMAIU_{p.protocolo_cmaiu or p.id}.xlsx".replace('/', '-')
+        nome = f"CMAIU_{p.num_processo or p.id}.xlsx".replace('/', '-')
         return send_file(buf, mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                          as_attachment=True, download_name=nome)
     except Exception as e:

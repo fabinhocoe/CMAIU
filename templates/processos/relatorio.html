@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Relatório – CMAIU{% endblock %}
-{% block page_title %}Relatório — {{ processo.protocolo_cmaiu or processo.id }}{% endblock %}
+{% block page_title %}Relatório — {{ processo.num_processo or processo.id }}{% endblock %}
 {% block content %}
 {% set emp = processo.empreendimento %}
 {% set prop = processo.proprietario %}
@@ -79,8 +79,7 @@
 
     <h6 class="section-title">1 – IDENTIFICAÇÃO</h6>
     <table class="table table-sm table-bordered small">
-      <tr><th>Protocolo CMAIU</th><td>{{ processo.protocolo_cmaiu or '—' }}</td>
-          <th>Processo Administrativo</th><td>{{ processo.num_processo or '—' }}</td></tr>
+      <tr><th>Processo Administrativo</th><td colspan="3">{{ processo.num_processo or '—' }}</td></tr>
       <tr><th>Protocolo de Aprovação</th><td>{{ processo.protocolo_aprovacao or '—' }}</td>
           <th>Data de Entrada</th><td>{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</td></tr>
       <tr><th>Proprietário / Empreendedor</th><td colspan="3">

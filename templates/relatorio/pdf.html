@@ -31,25 +31,24 @@
 
 <h3>1 – Identificação</h3>
 <table>
-  <tr><th width="20%">Protocolo CMAIU</th><td>{{ processo.protocolo_cmaiu or '—' }}</td>
-      <th width="22%">Processo Administrativo</th><td>{{ processo.num_processo or '—' }}</td></tr>
-  <tr><th>Protocolo Aprovação</th><td>{{ processo.protocolo_aprovacao or '—' }}</td>
-      <th>Data de Entrada</th><td>{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</td></tr>
-  <tr><th>Proprietário</th><td colspan="3">{{ prop.nome if prop else '—' }}</td></tr>
+  <tr><th width="30%">Processo Administrativo</th><td colspan="3">{{ processo.num_processo or '—' }}</td></tr>
+  <tr><th>Protocolo de Aprovação</th><td>{{ processo.protocolo_aprovacao or '—' }}</td>
+      <th width="22%">Data de Entrada</th><td>{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</td></tr>
+  <tr><th>Proprietário / Empreendedor</th><td colspan="3">
+    {% set pp = processo.pessoas_vinculadas %}
+    {% if pp %}{{ pp | map(attribute='pessoa') | map(attribute='nome') | join(', ') }}
+    {% elif prop %}{{ prop.nome }}{% else %}—{% endif %}
+  </td></tr>
   <tr><th>Empreendimento</th><td colspan="3">{{ emp.nome if emp else '—' }}</td></tr>
   <tr><th>Endereço</th><td colspan="3">{{ emp.endereco if emp else '—' }}, {{ emp.bairro if emp else '—' }}</td></tr>
-  <tr><th>Zoneamento</th><td>{{ emp.zoneamento.codigo if emp and emp.zoneamento else '—' }}</td>
-      <th>Resp. Técnico</th><td>{{ emp.responsavel_tecnico if emp else '—' }}</td></tr>
+  <tr><th>Zoneamento</th><td colspan="3">{{ emp.zoneamento.codigo if emp and emp.zoneamento else '—' }}</td></tr>
 </table>
 
 <h3>2 – Dados do Empreendimento</h3>
 <table>
   <tr><th>Área do Terreno</th><td>{{ emp.area_terreno|fmt_area if emp and emp.area_terreno else '—' }}</td>
       <th>Área Construída Total</th><td>{{ emp.area_construida|fmt_area if emp and emp.area_construida else '—' }}</td></tr>
-  <tr><th>Área Computável</th><td>{{ emp.area_computavel|fmt_area if emp and emp.area_computavel else '—' }}</td>
-      <th>Nº de Pavimentos</th><td>{{ emp.num_pavimentos or '—' }}</td></tr>
-  <tr><th>Coef. Básico (CAB)</th><td>{{ emp.cab or '—' }}</td>
-      <th>Coef. do Projeto</th><td>{{ '%.4f'|format(emp.area_computavel / emp.area_terreno) if emp and emp.area_computavel and emp.area_terreno else '—' }}</td></tr>
+  <tr><th>Nº de Pavimentos</th><td colspan="3">{{ emp.num_pavimentos or '—' }}</td></tr>
   <tr><th>UH / UC</th><td>{{ emp.num_uh or 0 }} / {{ emp.num_uc or 0 }}</td>
       <th>Dormitórios</th><td>{{ emp.total_dormitorios or '—' }}</td></tr>
   <tr><th>Pop. Total</th><td>{{ emp.pop_total or '—' }} hab.</td>

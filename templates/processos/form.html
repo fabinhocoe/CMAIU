@@ -33,27 +33,20 @@
   <div class="card-body py-3">
     <div class="row g-3">
 
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Protocolo CMAIU</label>
-        <input type="text" name="protocolo_cmaiu" class="form-control form-control-sm"
-               placeholder="Ex.: CMAIU-001/2024"
-               value="{{ processo.protocolo_cmaiu if editing else '' }}">
-      </div>
-
-      <div class="col-md-4">
+      <div class="col-md-5">
         <label class="form-label small fw-semibold">Número do Processo Administrativo <span class="text-danger">*</span></label>
         <input type="text" name="num_processo" class="form-control form-control-sm" required
                placeholder="Ex.: 12345/2024"
                value="{{ processo.num_processo if editing else '' }}">
       </div>
 
-      <div class="col-md-3">
+      <div class="col-md-4">
         <label class="form-label small fw-semibold">Protocolo de Aprovação <span class="text-danger">*</span></label>
         <input type="text" name="protocolo_aprovacao" class="form-control form-control-sm" required
                value="{{ processo.protocolo_aprovacao if editing else '' }}">
       </div>
 
-      <div class="col-md-2">
+      <div class="col-md-3">
         <label class="form-label small fw-semibold">Situação</label>
         <select name="situacao" class="form-select form-select-sm">
           {% for s in situacoes %}

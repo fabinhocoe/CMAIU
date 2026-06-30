@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}Processo {{ processo.protocolo_cmaiu or processo.id }} – CMAIU{% endblock %}
-{% block page_title %}Processo – {{ processo.protocolo_cmaiu or 'Rascunho #' ~ processo.id }}{% endblock %}
+{% block title %}Processo {{ processo.num_processo or processo.id }} – CMAIU{% endblock %}
+{% block page_title %}Processo – {{ processo.num_processo or '#' ~ processo.id }}{% endblock %}
 {% block content %}
 {% set emp = processo.empreendimento %}
 {% set prop = processo.proprietario %}
@@ -54,16 +54,8 @@
   <div class="card-body py-3">
     <div class="row g-3" style="font-size:.88rem">
       <div class="col-md-3">
-        <div class="text-muted small">Protocolo CMAIU</div>
-        {% if processo.protocolo_cmaiu %}
-          <span class="badge bg-dark fs-6 mt-1">{{ processo.protocolo_cmaiu }}</span>
-        {% else %}
-          <span class="fst-italic text-muted">Não gerado</span>
-        {% endif %}
-      </div>
-      <div class="col-md-3">
         <div class="text-muted small">Processo Administrativo</div>
-        <div class="fw-semibold">{{ processo.num_processo or '—' }}</div>
+        <div class="fw-semibold fs-6 mt-1">{{ processo.num_processo or '—' }}</div>
       </div>
       <div class="col-md-3">
         <div class="text-muted small">Protocolo de Aprovação</div>
