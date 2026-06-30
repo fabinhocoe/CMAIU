@@ -63,9 +63,10 @@
             <th class="text-center px-2" style="width:110px">Nº TAC</th>
             <th>Processo Adm.</th>
             <th>Compromissários</th>
+            <th>Endereço / Bairro</th>
+            <th class="text-end">Área (m²)</th>
             <th class="text-center">Situação</th>
             <th class="text-center">Abertura</th>
-            <th class="text-center">Obras</th>
             <th class="text-end">Valor (R$)</th>
             <th class="px-2"></th>
           </tr>
@@ -92,19 +93,38 @@
                 <span class="text-muted fst-italic">—</span>
               {% endif %}
             </td>
+            {# Endereço / Bairro — primeira obra #}
+            <td>
+              {% if t.obras %}
+                {% set o = t.obras[0] %}
+                <div>{{ o.endereco or '—' }}</div>
+                {% if o.bairro %}
+                  <div class="text-muted" style="font-size:.75rem">{{ o.bairro }}</div>
+                {% endif %}
+                {% if t.obras|length > 1 %}
+                  <div class="text-muted" style="font-size:.75rem">+{{ t.obras|length - 1 }} obra(s)</div>
+                {% endif %}
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
+
+            {# Área total somada de todas as obras #}
+            <td class="text-end">
+              {% set ns = namespace(area=0) %}
+              {% for o in t.obras %}{% set ns.area = ns.area + (o.area_construida or 0) %}{% endfor %}
+              {% if ns.area > 0 %}
+                {{ ns.area|fmt_area }}
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+
             <td class="text-center">
               <span class="badge bg-{{ t.situacao_badge }}">{{ t.situacao }}</span>
             </td>
             <td class="text-center">
               {{ t.data_abertura.strftime('%d/%m/%Y') if t.data_abertura else '—' }}
-            </td>
-            <td class="text-center">
-              {% set n = t.obras|length %}
-              {% if n > 0 %}
-                <span class="badge bg-secondary bg-opacity-75">{{ n }}</span>
-              {% else %}
-                <span class="text-muted">—</span>
-              {% endif %}
             </td>
             <td class="text-end fw-semibold text-success">
               {% if t.calculo %}{{ t.calculo.vf_total|brl }}{% else %}<span class="text-muted fst-italic">Não calculado</span>{% endif %}
@@ -118,7 +138,7 @@
           </tr>
           {% else %}
           <tr>
-            <td colspan="8" class="text-center text-muted py-5">
+            <td colspan="9" class="text-center text-muted py-5">
               <i class="bi bi-file-earmark-ruled fs-2 d-block mb-2 opacity-25"></i>
               Nenhum TAC encontrado.
               {% if current_user.is_tecnico %}
