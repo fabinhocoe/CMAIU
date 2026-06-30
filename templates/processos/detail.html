@@ -163,19 +163,15 @@
   {% if emp %}
   <div class="card-body py-3">
     <div class="row g-3" style="font-size:.88rem">
-      <div class="col-md-4">
+      <div class="col-md-5">
         <div class="text-muted small">Nome do Empreendimento</div>
         <div class="fw-semibold">{{ emp.nome or '—' }}</div>
       </div>
       <div class="col-md-4">
-        <div class="text-muted small">Endereço</div>
-        <div>{{ emp.endereco or '—' }}</div>
+        <div class="text-muted small">Padrão do Empreendimento</div>
+        <div>{{ emp.padrao_empreendimento or '—' }}</div>
       </div>
-      <div class="col-md-2">
-        <div class="text-muted small">Bairro</div>
-        <div>{{ emp.bairro or '—' }}</div>
-      </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
         <div class="text-muted small">Zoneamento</div>
         {% if emp.zoneamento %}
           <span class="badge bg-secondary mt-1">{{ emp.zoneamento.codigo }}</span>
@@ -183,7 +179,11 @@
           <span class="text-muted">—</span>
         {% endif %}
       </div>
-      <div class="col-md-3">
+      <div class="col-md-5">
+        <div class="text-muted small">Endereço</div>
+        <div>{{ emp.endereco or '—' }}, {{ emp.bairro or '—' }}</div>
+      </div>
+      <div class="col-md-4">
         <div class="text-muted small">Uso Predominante</div>
         <div>{{ emp.uso_predominante or '—' }}</div>
       </div>
@@ -212,49 +212,56 @@
   </div>
   <div class="card-body py-3">
     <div class="row g-3" style="font-size:.88rem">
-      <div class="col-md-2">
-        <div class="text-muted small">Área Terreno</div>
+      {# Áreas #}
+      <div class="col-md-3">
+        <div class="text-muted small">Área do Terreno</div>
         <div class="fw-semibold">{{ emp.area_terreno|fmt_area if emp.area_terreno else '—' }}</div>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
         <div class="text-muted small">Área Construída</div>
         <div class="fw-semibold">{{ emp.area_construida|fmt_area if emp.area_construida else '—' }}</div>
       </div>
-      <div class="col-md-2">
-        <div class="text-muted small">Pavimentos</div>
+      <div class="col-md-3">
+        <div class="text-muted small">Nº de Pavimentos</div>
         <div>{{ emp.num_pavimentos or '—' }}</div>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
         <div class="text-muted small">Vagas</div>
         <div>{{ emp.vagas or '—' }}</div>
       </div>
-      <div class="col-md-2">
-        <div class="text-muted small">UH / UC</div>
-        <div>{{ emp.num_uh or 0 }} / {{ emp.num_uc or 0 }}</div>
+      {# Unidades #}
+      <div class="col-md-3">
+        <div class="text-muted small">Unidades Habitacionais</div>
+        <div>{{ emp.num_uh or 0 }}</div>
       </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
+        <div class="text-muted small">Unidades Comerciais</div>
+        <div>{{ emp.num_uc or 0 }}</div>
+      </div>
+      <div class="col-md-3">
         <div class="text-muted small">Dormitórios</div>
         <div>{{ emp.total_dormitorios or '—' }}</div>
       </div>
-      <div class="col-md-2">
-        <div class="text-muted small">Pop. Residencial</div>
-        <div>{{ emp.pop_residencial or '—' }}</div>
-      </div>
-      <div class="col-md-2">
-        <div class="text-muted small">Pop. Não Residencial</div>
-        <div>{{ emp.pop_nao_residencial or '—' }}</div>
-      </div>
-      <div class="col-md-2">
-        <div class="text-muted small">Pop. Total</div>
-        <div class="fw-semibold">{{ emp.pop_total or '—' }}</div>
-      </div>
-      <div class="col-md-2">
+      <div class="col-md-3">
         <div class="text-muted small">Padrão de Impacto</div>
         {% if emp.padrao_impacto %}
           <span class="badge bg-info text-dark mt-1">{{ emp.padrao_impacto }}</span>
         {% else %}
           <span class="text-muted">—</span>
         {% endif %}
+      </div>
+      {# População #}
+      <div class="col-md-3">
+        <div class="text-muted small">Pop. Residencial</div>
+        <div>{{ emp.pop_residencial or '—' }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Pop. Não Residencial</div>
+        <div>{{ emp.pop_nao_residencial or '—' }}</div>
+      </div>
+      <div class="col-md-3">
+        <div class="text-muted small">Pop. Total</div>
+        <div class="fw-semibold">{{ emp.pop_total or '—' }} hab.</div>
       </div>
     </div>
   </div>
