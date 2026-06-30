@@ -1207,6 +1207,20 @@ def api_pessoas_buscar():
                          'tipo': p.tipo} for p in pessoas]}
 
 
+@app.route('/api/pessoas/lista')
+@login_required
+def api_pessoas_lista():
+    pessoas = Pessoa.query.order_by(Pessoa.nome).all()
+    return jsonify([{'id': p.id, 'nome': p.nome} for p in pessoas])
+
+
+@app.route('/api/cubs/lista')
+@login_required
+def api_cubs_lista():
+    cubs = CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).all()
+    return jsonify([{'id': c.id, 'label': f'{c.mes_ano_str} – R$ {c.valor:,.2f}/m²'} for c in cubs])
+
+
 # ─── TAC – Vínculos de Pessoas ────────────────────────────────────────────────
 
 @app.route('/tac/<int:tid>/pessoas', methods=['GET', 'POST'])

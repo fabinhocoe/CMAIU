@@ -51,14 +51,25 @@
 
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Proprietário <span class="text-danger">*</span></label>
-          <select name="pessoa_id" class="form-select form-select-sm" required>
-            <option value="">— Selecione o proprietário —</option>
-            {% for p in pessoas %}
-            <option value="{{ p.id }}" {% if sc and sc.pessoa_id == p.id %}selected{% endif %}>
-              {{ p.nome }}
-            </option>
-            {% endfor %}
-          </select>
+          <div class="input-group input-group-sm">
+            <select name="pessoa_id" id="selectProprietario" class="form-select form-select-sm" required>
+              <option value="">— Selecione o proprietário —</option>
+              {% for p in pessoas %}
+              <option value="{{ p.id }}" {% if sc and sc.pessoa_id == p.id %}selected{% endif %}>
+                {{ p.nome }}
+              </option>
+              {% endfor %}
+            </select>
+            <a href="{{ url_for('pessoas_nova') }}" target="_blank" id="btnNovaPessoa"
+               class="btn btn-outline-secondary btn-sm" title="Cadastrar novo proprietário">
+              <i class="bi bi-plus-lg"></i>
+            </a>
+          </div>
+          <div class="form-text">
+            Não encontrou? <a href="{{ url_for('pessoas_nova') }}" target="_blank"
+              onclick="avisoNovaPessoa()">Cadastre aqui</a> e depois
+            <a href="#" onclick="recarregarPessoas(); return false;">atualize a lista</a>.
+          </div>
         </div>
 
         <div class="col-md-6">
@@ -287,14 +298,25 @@
 
         <div class="col-md-5">
           <label class="form-label small fw-semibold">CUB <span class="text-danger">*</span></label>
-          <select name="cub_id" class="form-select form-select-sm" required>
-            <option value="">— Selecione o CUB —</option>
-            {% for c in cubs %}
-            <option value="{{ c.id }}" {% if sc and sc.cub_id == c.id %}selected{% endif %}>
-              {{ c.mes_ano_str }} – R$ {{ '%.2f'|format(c.valor) }}/m²
-            </option>
-            {% endfor %}
-          </select>
+          <div class="input-group input-group-sm">
+            <select name="cub_id" id="selectCub" class="form-select form-select-sm" required>
+              <option value="">— Selecione o CUB —</option>
+              {% for c in cubs %}
+              <option value="{{ c.id }}" {% if sc and sc.cub_id == c.id %}selected{% endif %}>
+                {{ c.mes_ano_str }} – R$ {{ '%.2f'|format(c.valor) }}/m²
+              </option>
+              {% endfor %}
+            </select>
+            <a href="{{ url_for('cub_novo') }}" target="_blank"
+               class="btn btn-outline-secondary btn-sm" title="Cadastrar novo CUB">
+              <i class="bi bi-plus-lg"></i>
+            </a>
+          </div>
+          <div class="form-text">
+            CUB não listado?
+            <a href="{{ url_for('cub_novo') }}" target="_blank">Cadastre aqui</a> e depois
+            <a href="#" onclick="recarregarCubs(); return false;">atualize a lista</a>.
+          </div>
         </div>
 
         <div class="col-md-5">
@@ -622,5 +644,41 @@ async function buscarCEP(cep) {
 }
 
 document.addEventListener('DOMContentLoaded', () => { atualizarPercs(); });
+
+// ── Recarregar Proprietários ──────────────────────────────────────────────────
+async function recarregarPessoas() {
+  const sel = document.getElementById('selectProprietario');
+  const val = sel.value;
+  try {
+    const r = await fetch('/api/pessoas/lista');
+    const lista = await r.json();
+    // mantém a opção vazia
+    sel.innerHTML = '<option value="">— Selecione o proprietário —</option>';
+    lista.forEach(p => {
+      const opt = new Option(p.nome, p.id);
+      if (String(p.id) === String(val)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    // seleciona o último cadastrado se nenhum estava selecionado
+    if (!val && lista.length > 0) sel.value = lista[lista.length - 1].id;
+  } catch(e) { alert('Erro ao atualizar lista de proprietários.'); }
+}
+
+// ── Recarregar CUBs ───────────────────────────────────────────────────────────
+async function recarregarCubs() {
+  const sel = document.getElementById('selectCub');
+  const val = sel.value;
+  try {
+    const r = await fetch('/api/cubs/lista');
+    const lista = await r.json();
+    sel.innerHTML = '<option value="">— Selecione o CUB —</option>';
+    lista.forEach(c => {
+      const opt = new Option(c.label, c.id);
+      if (String(c.id) === String(val)) opt.selected = true;
+      sel.appendChild(opt);
+    });
+    if (!val && lista.length > 0) sel.value = lista[0].id;
+  } catch(e) { alert('Erro ao atualizar lista de CUBs.'); }
+}
 </script>
 {% endblock %}
