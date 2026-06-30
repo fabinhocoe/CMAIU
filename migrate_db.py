@@ -8,6 +8,8 @@ import sqlalchemy as sa
 
 MIGRATIONS = [
     # solo_criado – novos campos
+    ("solo_criado", "versao",             "ALTER TABLE solo_criado ADD COLUMN versao INTEGER DEFAULT 1"),
+    ("solo_criado", "versao_anterior",    "ALTER TABLE solo_criado ADD COLUMN versao_anterior INTEGER REFERENCES solo_criado(id)"),
     ("solo_criado", "numero",              "ALTER TABLE solo_criado ADD COLUMN numero VARCHAR(30)"),
     ("solo_criado", "resp_tecnico_id",     "ALTER TABLE solo_criado ADD COLUMN resp_tecnico_id INTEGER REFERENCES responsaveis_tecnicos(id)"),
     ("solo_criado", "cep_imovel",          "ALTER TABLE solo_criado ADD COLUMN cep_imovel VARCHAR(10)"),
