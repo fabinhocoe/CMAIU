@@ -2019,6 +2019,7 @@ def add_security_headers(response):
         "style-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; "
         "font-src 'self' https://cdn.jsdelivr.net; "
         "img-src 'self' data:; "
+        "connect-src 'self' https://viacep.com.br; "
         "frame-ancestors 'self';"
     )
     return response
