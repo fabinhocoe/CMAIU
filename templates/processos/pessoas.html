@@ -3,7 +3,7 @@
 {% block page_title %}Proprietários / Pessoas – Processo {{ processo.num_processo or '#' ~ processo.id }}{% endblock %}
 {% block content %}
 <div class="d-flex gap-2 mb-3 mt-2">
-  <a href="{{ url_for('processo_detail', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
+  <a href="{{ url_for('processos_detail', pid=processo.id) }}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>Voltar
   </a>
 </div>
