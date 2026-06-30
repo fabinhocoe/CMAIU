@@ -441,10 +441,12 @@ document.addEventListener('click', e => {
 });
 
 // ── Busca CEP (ViaCEP) ──
-document.getElementById('empCep')?.addEventListener('blur', function() {
-  const cep = this.value.replace(/\D/g, '');
-  const erro = document.getElementById('cepErro');
+function buscarCep(cepRaw) {
+  const cep = cepRaw.replace(/\D/g, '');
+  const erro    = document.getElementById('cepErro');
   const spinner = document.getElementById('cepSpinner');
+  const end     = document.getElementById('empEndereco');
+  const bairro  = document.getElementById('empBairro');
   erro.style.display = 'none';
   if (cep.length !== 8) return;
   spinner.style.display = '';
@@ -453,19 +455,22 @@ document.getElementById('empCep')?.addEventListener('blur', function() {
     .then(d => {
       spinner.style.display = 'none';
       if (d.erro) { erro.style.display = ''; return; }
-      const end = document.getElementById('empEndereco');
-      const bairro = document.getElementById('empBairro');
-      if (!end.value) end.value = d.logradouro || '';
-      if (!bairro.value) bairro.value = d.bairro || '';
-      this.value = d.cep || this.value;
+      end.value    = d.logradouro || '';
+      bairro.value = d.bairro     || '';
+      document.getElementById('empCep').value = d.cep || cepRaw;
     })
     .catch(() => { spinner.style.display = 'none'; });
-});
+}
 
 document.getElementById('empCep')?.addEventListener('input', function() {
   let v = this.value.replace(/\D/g, '');
   if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5,8);
   this.value = v;
+  if (v.replace(/\D/g,'').length === 8) buscarCep(v);
+});
+
+document.getElementById('empCep')?.addEventListener('blur', function() {
+  buscarCep(this.value);
 });
 
 // ── Nova pessoa inline ──
