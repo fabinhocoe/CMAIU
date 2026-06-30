@@ -191,14 +191,6 @@
         <div class="text-muted small">Uso Secundário</div>
         <div>{{ emp.uso_secundario or '—' }}</div>
       </div>
-      <div class="col-md-4">
-        <div class="text-muted small">Responsável Técnico</div>
-        <div>{{ emp.responsavel_tecnico or '—' }}</div>
-      </div>
-      <div class="col-md-2">
-        <div class="text-muted small">Reg. Profissional</div>
-        <div>{{ emp.registro_profissional or '—' }}</div>
-      </div>
     </div>
   </div>
   {% else %}
@@ -227,14 +219,6 @@
       <div class="col-md-2">
         <div class="text-muted small">Área Construída</div>
         <div class="fw-semibold">{{ emp.area_construida|fmt_area if emp.area_construida else '—' }}</div>
-      </div>
-      <div class="col-md-2">
-        <div class="text-muted small">Área Computável</div>
-        <div class="fw-semibold">{{ emp.area_computavel|fmt_area if emp.area_computavel else '—' }}</div>
-      </div>
-      <div class="col-md-2">
-        <div class="text-muted small">CAB / CMAX</div>
-        <div>{{ emp.cab }} / {{ emp.cmax }}</div>
       </div>
       <div class="col-md-2">
         <div class="text-muted small">Pavimentos</div>
