@@ -703,30 +703,37 @@ function atualizarPercs() {
   setPerc('percAin', 'limiteAin', ain, 5);
   setPerc('percAag', 'limiteAag', aag, 5);
 
-  // Total: verificar 50% da ABP e teto AEX
+  // Total: deve ser exatamente igual ao AEX, e respeitar 50% da ABP
   const divTot = document.getElementById('totalOutorga');
-  if (tot > 0 && abp > 0) {
-    const pt = tot / abp * 100;
-    const aexOk = aex <= 0 || tot <= aex + 0.005;
+  if (abp > 0) {
+    const pt    = tot / abp * 100;
+    const diff  = aex > 0 ? tot - aex : 0;
+    const aexOk = aex <= 0 || Math.abs(diff) <= 0.01;
     const ptOk  = pt <= 50;
     const onOk  = aon === 0 || (() => { const p = aon/abp*100; return p >= 20 && p <= 40; })();
-    const allOk = aexOk && ptOk && onOk;
-    divTot.className = 'alert small mt-3 mb-0 text-center fw-bold ' +
-      (allOk ? 'alert-success' : 'alert-danger');
-    let msg = `<i class="bi bi-${allOk ? 'check-circle' : 'exclamation-triangle'} me-2"></i>` +
-              `Total: ${fmtArea(tot)} = ${fmtPerc(pt)} da ABP`;
-    if (!aexOk)
-      msg += ` — <strong>⚠ ultrapassa o AEX (${fmtArea(aex)})! Reduza as áreas.</strong>`;
-    else if (!ptOk)
-      msg += ` — <strong>excede o limite de 50% da ABP!</strong>`;
-    else if (!onOk && aon > 0)
-      msg += ` — <strong>Onerosa fora da faixa 20–40%</strong>`;
-    else
-      msg += aex > 0
-        ? ` — dentro dos limites ✔ (AEX restante: ${fmtArea(aex - tot)})`
-        : ' — dentro dos limites ✔';
-    divTot.innerHTML = msg;
+    const allOk = aexOk && ptOk && onOk && tot > 0;
     divTot.classList.remove('d-none');
+    divTot.className = 'alert small mt-3 mb-0 text-center fw-bold ' +
+      (allOk ? 'alert-success' : (tot === 0 ? 'alert-secondary' : 'alert-danger'));
+    let msg = `<i class="bi bi-${allOk ? 'check-circle' : (tot === 0 ? 'info-circle' : 'exclamation-triangle')} me-2"></i>`;
+    if (tot === 0 && aex > 0) {
+      msg += `Preencha as áreas. O total deve ser exatamente <strong>${fmtArea(aex)}</strong> (= AEX).`;
+    } else {
+      msg += `Total: ${fmtArea(tot)} = ${fmtPerc(pt)} da ABP`;
+      if (aex > 0 && !aexOk) {
+        if (diff < 0)
+          msg += ` — <strong>⚠ faltam ${fmtArea(-diff)} para completar o AEX (${fmtArea(aex)})</strong>`;
+        else
+          msg += ` — <strong>⚠ excede o AEX em ${fmtArea(diff)} (${fmtArea(aex)}). Reduza as áreas.</strong>`;
+      } else if (!ptOk) {
+        msg += ` — <strong>excede o limite de 50% da ABP!</strong>`;
+      } else if (!onOk && aon > 0) {
+        msg += ` — <strong>Onerosa fora da faixa 20–40%</strong>`;
+      } else if (allOk) {
+        msg += ` — total igual ao AEX ✔`;
+      }
+    }
+    divTot.innerHTML = msg;
   } else {
     divTot.className = 'alert small mt-3 mb-0 d-none';
   }

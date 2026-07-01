@@ -291,27 +291,32 @@ function recalcPreview() {
   hint(aag, pag, 5, document.getElementById('previewAg'));
 
   const divTot = document.getElementById('previewTotal');
-  if (tot > 0) {
-    const onOk   = aon === 0 || (pon >= 20 && pon <= 40);
-    const totOk  = pt <= 50;
-    const aexOk  = AEX <= 0 || tot <= AEX + 0.005; // tolerância de arredondamento
-    const allOk  = onOk && totOk && aexOk;
+  const diff   = AEX > 0 ? tot - AEX : 0;
+  const aexOk  = AEX <= 0 || Math.abs(diff) <= 0.01;
+  const onOk   = aon === 0 || (pon >= 20 && pon <= 40);
+  const totOk  = pt <= 50;
+  const allOk  = aexOk && onOk && totOk && tot > 0;
+
+  if (tot === 0) {
+    divTot.className = 'alert alert-secondary py-2 small';
+    const aexInfo = AEX > 0 ? ` O total deve ser exatamente <strong>${fmtArea(AEX)}</strong> (= AEX).` : '';
+    divTot.innerHTML = 'Preencha as áreas acima.' + aexInfo;
+  } else {
     divTot.className = 'alert py-2 small ' + (allOk ? 'alert-success' : 'alert-danger');
     let msg = `<strong>Total: ${fmtArea(tot)} = ${fmtPerc(pt)} da ABP</strong>`;
-    if (!aexOk) {
-      msg += ` — <strong>⚠ ultrapassa a Área Excedente AEX (${fmtArea(AEX)})! Reduza as áreas.</strong>`;
+    if (AEX > 0 && !aexOk) {
+      if (diff < 0)
+        msg += ` — <strong>⚠ faltam ${fmtArea(-diff)} para completar o AEX (${fmtArea(AEX)})</strong>`;
+      else
+        msg += ` — <strong>⚠ excede o AEX em ${fmtArea(diff)}. Reduza as áreas.</strong>`;
     } else if (!onOk && aon > 0) {
       msg += ` — <strong>Onerosa fora da faixa 20–40%</strong>`;
     } else if (!totOk) {
       msg += ` — <strong>excede o limite de 50% da ABP!</strong>`;
     } else {
-      msg += AEX > 0 ? ` — dentro dos limites legais ✔ (AEX disponível: ${fmtArea(AEX - tot)})` : ' — dentro dos limites legais ✔';
+      msg += ` — total igual ao AEX ✔`;
     }
     divTot.innerHTML = msg;
-  } else {
-    divTot.className = 'alert alert-secondary py-2 small';
-    const aexInfo = AEX > 0 ? ` Área Excedente (AEX) disponível: <strong>${fmtArea(AEX)}</strong>.` : '';
-    divTot.innerHTML = 'Preencha as áreas acima para ver o preview dos percentuais.' + aexInfo;
   }
 }
 recalcPreview();

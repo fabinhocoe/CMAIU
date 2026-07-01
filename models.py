@@ -1067,11 +1067,17 @@ class SoloCriado(db.Model):
             erros.append(f'Área de águas ({aag:.2f} m²) representa {pag:.2f}% da ABP — excede o limite de 5%.')
         if abp > 0 and pt > 50:
             erros.append(f'Total ({aon+ain+aag:.2f} m²) representa {pt:.2f}% da ABP — excede o limite de 50%.')
-        # Somatória das áreas adquiridas não pode ultrapassar a área excedente (AEX)
-        if aex > 0 and (aon + ain + aag) > round(aex, 4):
-            erros.append(f'Total das áreas adquiridas ({aon+ain+aag:.2f} m²) ultrapassa a Área Excedente AEX ({aex:.2f} m²).')
-        elif aex == 0 and acp and abp and acp <= abp:
+        # Somatória deve ser exatamente igual ao AEX — não pode sobrar nem faltar
+        if aex == 0 and acp and abp and acp <= abp:
             erros.append('Área construída não excede a Área Básica (ABP) — não há excedente a adquirir.')
+        elif aex > 0:
+            total = aon + ain + aag
+            diff = abs(total - aex)
+            if diff > 0.01:  # tolerância de 1 cm²
+                if total < aex:
+                    erros.append(f'Total das áreas adquiridas ({total:.2f} m²) está abaixo da Área Excedente AEX ({aex:.2f} m²) — faltam {aex - total:.2f} m².')
+                else:
+                    erros.append(f'Total das áreas adquiridas ({total:.2f} m²) ultrapassa a Área Excedente AEX ({aex:.2f} m²) — sobram {total - aex:.2f} m².')
 
         if iam and abp > 0:
             indice_final = iab + (iab * pt / 100)
