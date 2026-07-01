@@ -376,6 +376,44 @@
 
 {% block scripts %}
 <script>
+// ── Bloqueio de campos vinculados à Obra ──
+const PROCESSO_OBRA_ID = {{ emp.obra_id if emp and emp.obra_id else 'null' }};
+
+const EMP_LOCK_INPUTS   = ['#empNome','#empCep','#empEndereco','#empBairro','#empInscricao','#areaTerreno','#areaConstruida','#numPavimentos'];
+const EMP_LOCK_SELECTS  = ['#empZoneamento'];
+
+function lockEmpFields(lock) {
+  EMP_LOCK_INPUTS.forEach(function(sel) {
+    var el = document.querySelector(sel);
+    if (!el) return;
+    lock ? el.setAttribute('readonly','') : el.removeAttribute('readonly');
+    el.classList.toggle('bg-light', lock);
+  });
+  EMP_LOCK_SELECTS.forEach(function(sel) {
+    var el = document.querySelector(sel);
+    if (!el) return;
+    el.style.pointerEvents = lock ? 'none' : '';
+    el.classList.toggle('bg-light', lock);
+  });
+  // Bloquear botão e input de CEP
+  var cepInput = document.getElementById('empCep');
+  var cepBtn   = document.getElementById('btnBuscarCep');
+  if (cepInput) {
+    if (lock) { cepInput.removeAttribute('oninput'); cepInput.removeAttribute('onblur'); }
+    else      { /* listeners já registrados via addEventListener, não precisam ser re-adicionados */ }
+  }
+  if (cepBtn) cepBtn.disabled = lock;
+}
+
+document.addEventListener('obraSelected', function(e) {
+  if (e.detail && e.detail._busca_id === 'emp') lockEmpFields(true);
+});
+document.addEventListener('obraCleared', function(e) {
+  if (e.detail && e.detail._busca_id === 'emp') lockEmpFields(false);
+});
+
+if (PROCESSO_OBRA_ID) { document.addEventListener('DOMContentLoaded', function() { lockEmpFields(true); }); }
+
 // ── Cálculo de população ──
 function calcPop() {
   const dorms = parseInt(document.getElementById('dormitorios').value) || 0;

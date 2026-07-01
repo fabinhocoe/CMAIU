@@ -95,14 +95,14 @@
       if(zel) zel.dispatchEvent(new Event('change'));
     }
     // Notificar outros scripts que uma obra foi selecionada
-    document.dispatchEvent(new CustomEvent('obraSelected', {detail: o}));
+    document.dispatchEvent(new CustomEvent('obraSelected', {detail: Object.assign({}, o, {_busca_id: '{{ obra_busca_id }}'})}));
   }
 
   window['obraLimpar_{{ obra_busca_id }}'] = function(){
     hidden.value = '';
     inp.value = '';
     selDiv.style.display = 'none';
-    document.dispatchEvent(new CustomEvent('obraCleared'));
+    document.dispatchEvent(new CustomEvent('obraCleared', {detail: {_busca_id: '{{ obra_busca_id }}'}}));
   };
 })();
 </script>

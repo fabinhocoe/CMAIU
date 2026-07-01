@@ -2,6 +2,35 @@
 {% set obra_busca_id = 'tac_' ~ (o.id if o else 'new') %}
 {% set obra_fill_map %}{"nome":"[name='descricao']","endereco":"[name='endereco']","bairro":"[name='bairro']","inscricao_imobiliaria":"[name='inscricao']","area_construida":"[name='area_construida']"}{% endset %}
 {% include '_obra_busca.html' %}
+<script>
+(function(){
+  var BID = '{{ obra_busca_id }}';
+  var TAC_OBRA_ID = {{ o.obra_id if o and o.obra_id else 'null' }};
+  var LOCK_NAMES = ['descricao','endereco','bairro','inscricao','area_construida'];
+
+  var widget = document.getElementById('obraBusca_' + BID);
+  var form = widget ? widget.closest('form') : null;
+  if (!form) return;
+
+  function lockFields(lock) {
+    LOCK_NAMES.forEach(function(name) {
+      var el = form.querySelector('[name="' + name + '"]');
+      if (!el) return;
+      lock ? el.setAttribute('readonly','') : el.removeAttribute('readonly');
+      el.classList.toggle('bg-light', lock);
+    });
+  }
+
+  document.addEventListener('obraSelected', function(e) {
+    if (e.detail && e.detail._busca_id === BID) lockFields(true);
+  });
+  document.addEventListener('obraCleared', function(e) {
+    if (e.detail && e.detail._busca_id === BID) lockFields(false);
+  });
+
+  if (TAC_OBRA_ID) lockFields(true);
+})();
+</script>
 <div class="row g-2">
   <div class="col-md-6">
     <label class="form-label small fw-semibold">Descrição</label>
