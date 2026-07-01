@@ -119,18 +119,18 @@
         <thead class="table-light">
           <tr>
             <th>Nome / Razão Social</th>
-            <th class="text-center">Tipo</th>
+            <th class="text-center">Papel</th>
             <th>CPF / CNPJ</th>
             <th>Telefone</th>
           </tr>
         </thead>
         <tbody>
-          {% for comp in tac.compromissarios %}
+          {% for v in tac.pessoas_vinculadas %}
           <tr>
-            <td class="fw-semibold">{{ comp.nome }}</td>
-            <td class="text-center"><span class="badge bg-secondary bg-opacity-75">{{ comp.tipo }}</span></td>
-            <td>{{ comp.cpf_cnpj or '—' }}</td>
-            <td>{{ comp.telefone or '—' }}</td>
+            <td class="fw-semibold">{{ v.pessoa.nome }}</td>
+            <td class="text-center"><span class="badge bg-secondary bg-opacity-75">{{ v.papel }}</span></td>
+            <td>{{ v.pessoa.doc_formatado }}</td>
+            <td>{{ v.pessoa.telefone|fmt_fone }}</td>
           </tr>
           {% else %}
           <tr>
