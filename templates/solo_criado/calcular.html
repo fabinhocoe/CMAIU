@@ -118,7 +118,7 @@
                 <small class="text-muted fw-normal">– pagamento em dinheiro ao município</small>
               </label>
               <input type="number" step="0.01" min="0" name="aon"
-                     class="form-control" id="inputAon"
+                     class="form-control bg-light" id="inputAon" readonly
                      value="{{ '%.2f'|format(sc.aon) if sc.aon else '' }}"
                      oninput="recalcPreview()">
               <div id="previewOn" class="form-text text-muted"></div>
@@ -129,7 +129,7 @@
                 <small class="text-muted fw-normal">– execução de obra de infra urbana</small>
               </label>
               <input type="number" step="0.01" min="0" name="ain"
-                     class="form-control" id="inputAin"
+                     class="form-control bg-light" id="inputAin" readonly
                      value="{{ '%.2f'|format(sc.ain) if sc.ain else '' }}"
                      oninput="recalcPreview()">
               <div id="previewIn" class="form-text text-muted"></div>
@@ -140,7 +140,7 @@
                 <small class="text-muted fw-normal">– sistema de retenção/tratamento de águas</small>
               </label>
               <input type="number" step="0.01" min="0" name="aag"
-                     class="form-control" id="inputAag"
+                     class="form-control bg-light" id="inputAag" readonly
                      value="{{ '%.2f'|format(sc.aag) if sc.aag else '' }}"
                      oninput="recalcPreview()">
               <div id="previewAg" class="form-text text-muted"></div>
@@ -150,6 +150,9 @@
             </div>
           </div>
 
+          <div class="form-text text-muted mb-2">
+            <i class="bi bi-info-circle me-1"></i>Para alterar as áreas, utilize o <a href="{{ url_for('sc_editar', sid=sc.id) }}">formulário de edição</a>.
+          </div>
           <button type="submit" class="btn btn-success mt-2 w-100" {% if erros %}disabled{% endif %}>
             <i class="bi bi-calculator me-1"></i>Executar Cálculo
           </button>
