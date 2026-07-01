@@ -1231,7 +1231,13 @@ def pessoas_nova():
             nome=f.get('nome', '').strip(),
             cpf_cnpj=f.get('cpf_cnpj', '').strip(),
             tipo=f.get('tipo', 'Pessoa Física'),
+            cep=f.get('cep', '').strip(),
             endereco=f.get('endereco', '').strip(),
+            numero=f.get('numero', '').strip(),
+            complemento=f.get('complemento', '').strip(),
+            bairro=f.get('bairro', '').strip(),
+            cidade=f.get('cidade', '').strip(),
+            estado=f.get('estado', '').strip(),
             telefone=f.get('telefone', '').strip(),
             email=f.get('email', '').strip(),
             observacoes=f.get('observacoes', '').strip(),
@@ -1256,7 +1262,13 @@ def pessoas_editar(pid):
         p.nome        = f.get('nome', '').strip()
         p.cpf_cnpj    = f.get('cpf_cnpj', '').strip()
         p.tipo        = f.get('tipo', p.tipo)
+        p.cep         = f.get('cep', '').strip()
         p.endereco    = f.get('endereco', '').strip()
+        p.numero      = f.get('numero', '').strip()
+        p.complemento = f.get('complemento', '').strip()
+        p.bairro      = f.get('bairro', '').strip()
+        p.cidade      = f.get('cidade', '').strip()
+        p.estado      = f.get('estado', '').strip()
         p.telefone    = f.get('telefone', '').strip()
         p.email       = f.get('email', '').strip()
         p.observacoes = f.get('observacoes', '').strip()

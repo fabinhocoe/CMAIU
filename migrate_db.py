@@ -55,6 +55,13 @@ MIGRATIONS = [
     ("vagas_tac", "justificativa_tecnica",      "ALTER TABLE vagas_tac ADD COLUMN justificativa_tecnica TEXT"),
     ("vagas_tac", "usuario_id",                 "ALTER TABLE vagas_tac ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id)"),
     ("vagas_tac", "data_calculo",               "ALTER TABLE vagas_tac ADD COLUMN data_calculo DATETIME"),
+    # pessoas – endereço detalhado
+    ("pessoas", "cep",         "ALTER TABLE pessoas ADD COLUMN cep VARCHAR(10)"),
+    ("pessoas", "numero",      "ALTER TABLE pessoas ADD COLUMN numero VARCHAR(20)"),
+    ("pessoas", "complemento", "ALTER TABLE pessoas ADD COLUMN complemento VARCHAR(200)"),
+    ("pessoas", "bairro",      "ALTER TABLE pessoas ADD COLUMN bairro VARCHAR(200)"),
+    ("pessoas", "cidade",      "ALTER TABLE pessoas ADD COLUMN cidade VARCHAR(200)"),
+    ("pessoas", "estado",      "ALTER TABLE pessoas ADD COLUMN estado VARCHAR(2)"),
 ]
 
 CREATE_TABLES = [

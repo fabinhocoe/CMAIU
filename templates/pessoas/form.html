@@ -6,65 +6,169 @@
   <a href="{{ url_for('pessoas_index') }}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-arrow-left me-1"></i>Voltar
   </a>
+  <span class="text-muted small ms-auto">
+    <i class="bi bi-asterisk text-danger me-1" style="font-size:.6rem;vertical-align:middle"></i>Campo obrigatório
+  </span>
 </div>
+
 <div class="row justify-content-center">
-  <div class="col-lg-7">
-    <div class="card border-0 shadow-sm">
-      <div class="card-header section-header">
-        <i class="bi bi-person me-2"></i>{{ 'Editar Pessoa' if pessoa else 'Cadastrar Nova Pessoa' }}
-      </div>
-      <div class="card-body">
-        <form method="POST">
-          <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+  <div class="col-lg-8">
+    <form method="POST" autocomplete="off">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+
+      {# ── SEÇÃO 1: Identificação ── #}
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+          <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">1</span>
+          <i class="bi bi-person-badge"></i>
+          <span class="fw-semibold">Identificação</span>
+        </div>
+        <div class="card-body py-3">
           <div class="row g-3">
+
             <div class="col-md-8">
               <label class="form-label small fw-semibold">Nome completo / Razão social <span class="text-danger">*</span></label>
-              <input type="text" name="nome" class="form-control form-control-sm"
-                value="{{ pessoa.nome if pessoa else '' }}" required>
+              <input type="text" name="nome" class="form-control form-control-sm" required
+                     value="{{ pessoa.nome if pessoa else '' }}" placeholder="Nome completo ou razão social">
             </div>
+
             <div class="col-md-4">
               <label class="form-label small fw-semibold">Tipo</label>
-              <select name="tipo" class="form-select form-select-sm">
-                <option value="Pessoa Física"  {% if not pessoa or pessoa.tipo == 'Pessoa Física' %}selected{% endif %}>Pessoa Física</option>
-                <option value="Pessoa Jurídica"{% if pessoa and pessoa.tipo == 'Pessoa Jurídica' %}selected{% endif %}>Pessoa Jurídica</option>
+              <select name="tipo" id="selectTipo" class="form-select form-select-sm" onchange="atualizarMascaraDoc()">
+                <option value="Pessoa Física"   {% if not pessoa or pessoa.tipo == 'Pessoa Física' %}selected{% endif %}>Pessoa Física</option>
+                <option value="Pessoa Jurídica" {% if pessoa and pessoa.tipo == 'Pessoa Jurídica' %}selected{% endif %}>Pessoa Jurídica</option>
               </select>
             </div>
+
             <div class="col-md-4">
               <label class="form-label small fw-semibold">CPF / CNPJ</label>
-              <input type="text" name="cpf_cnpj" class="form-control form-control-sm"
-                value="{{ pessoa.cpf_cnpj if pessoa else '' }}" placeholder="000.000.000-00">
+              <input type="text" name="cpf_cnpj" id="inputDoc" class="form-control form-control-sm"
+                     value="{{ pessoa.cpf_cnpj if pessoa else '' }}"
+                     placeholder="000.000.000-00" maxlength="18"
+                     oninput="mascaraDoc(this)">
             </div>
+
             <div class="col-md-4">
               <label class="form-label small fw-semibold">Telefone</label>
-              <input type="text" name="telefone" class="form-control form-control-sm"
-                value="{{ pessoa.telefone if pessoa else '' }}" placeholder="(48) 99999-9999">
+              <input type="text" name="telefone" id="inputTelefone" class="form-control form-control-sm"
+                     value="{{ pessoa.telefone if pessoa else '' }}"
+                     placeholder="(48) 99999-9999" maxlength="15"
+                     oninput="mascaraTelefone(this)">
             </div>
+
             <div class="col-md-4">
               <label class="form-label small fw-semibold">E-mail</label>
               <input type="email" name="email" class="form-control form-control-sm"
-                value="{{ pessoa.email if pessoa else '' }}">
+                     value="{{ pessoa.email if pessoa else '' }}" placeholder="email@exemplo.com">
             </div>
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Endereço</label>
-              <input type="text" name="endereco" class="form-control form-control-sm"
-                value="{{ pessoa.endereco if pessoa else '' }}" placeholder="Rua, número, bairro, cidade">
-            </div>
-            <div class="col-12">
-              <label class="form-label small fw-semibold">Observações</label>
-              <textarea name="observacoes" class="form-control form-control-sm" rows="2">{{ pessoa.observacoes if pessoa else '' }}</textarea>
-            </div>
-          </div>
-          <div class="d-flex gap-2 mt-3">
-            <button type="submit" class="btn btn-sm btn-primary">
-              <i class="bi bi-check-circle me-1"></i>{{ 'Salvar alterações' if pessoa else 'Cadastrar' }}
-            </button>
-            <a href="{{ url_for('pessoas_index') }}" class="btn btn-sm btn-outline-secondary">Cancelar</a>
-          </div>
-        </form>
 
-        {% if pessoa %}
-        <!-- Vínculos existentes -->
-        <hr class="my-3">
+          </div>
+        </div>
+      </div>
+
+      {# ── SEÇÃO 2: Endereço ── #}
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+          <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">2</span>
+          <i class="bi bi-geo-alt"></i>
+          <span class="fw-semibold">Endereço</span>
+        </div>
+        <div class="card-body py-3">
+          <div class="row g-3">
+
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">CEP</label>
+              <div class="input-group input-group-sm">
+                <input type="text" name="cep" id="inputCEP" class="form-control"
+                       placeholder="00000-000" maxlength="9"
+                       value="{{ pessoa.cep if pessoa else '' }}"
+                       oninput="mascaraCEP(this)" onblur="buscarCEP(this.value)">
+                <span class="input-group-text" id="spinnerCEP" style="display:none">
+                  <span class="spinner-border spinner-border-sm"></span>
+                </span>
+              </div>
+              <div id="msgCEP" class="form-text"></div>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Logradouro</label>
+              <input type="text" name="endereco" id="inputEndereco" class="form-control form-control-sm"
+                     placeholder="Rua, Avenida…"
+                     value="{{ pessoa.endereco if pessoa else '' }}">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Número</label>
+              <input type="text" name="numero" id="inputNumero" class="form-control form-control-sm"
+                     placeholder="S/N"
+                     value="{{ pessoa.numero if pessoa else '' }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Complemento</label>
+              <input type="text" name="complemento" class="form-control form-control-sm"
+                     placeholder="Apto, bloco, sala…"
+                     value="{{ pessoa.complemento if pessoa else '' }}">
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Bairro</label>
+              <input type="text" name="bairro" id="inputBairro" class="form-control form-control-sm"
+                     placeholder="Preenchido pelo CEP"
+                     value="{{ pessoa.bairro if pessoa else '' }}">
+            </div>
+
+            <div class="col-md-3">
+              <label class="form-label small fw-semibold">Cidade</label>
+              <input type="text" name="cidade" id="inputCidade" class="form-control form-control-sm bg-light" readonly
+                     placeholder="Preenchida pelo CEP"
+                     value="{{ pessoa.cidade if pessoa else '' }}">
+            </div>
+
+            <div class="col-md-1">
+              <label class="form-label small fw-semibold">UF</label>
+              <input type="text" name="estado" id="inputEstado" class="form-control form-control-sm bg-light text-center" readonly
+                     maxlength="2" placeholder="UF"
+                     value="{{ pessoa.estado if pessoa else '' }}">
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      {# ── SEÇÃO 3: Observações ── #}
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header section-header d-flex align-items-center gap-2 py-2">
+          <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">3</span>
+          <i class="bi bi-chat-left-text"></i>
+          <span class="fw-semibold">Observações</span>
+        </div>
+        <div class="card-body py-3">
+          <textarea name="observacoes" class="form-control form-control-sm" rows="3"
+                    placeholder="Informações adicionais relevantes…">{{ pessoa.observacoes if pessoa else '' }}</textarea>
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 justify-content-end pb-4">
+        <a href="{{ url_for('pessoas_index') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-x-lg me-1"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary px-5">
+          <i class="bi bi-floppy me-1"></i>{{ 'Salvar alterações' if pessoa else 'Cadastrar' }}
+        </button>
+      </div>
+
+    </form>
+
+    {% if pessoa and (pessoa.vinculos_tac or pessoa.vinculos_processo) %}
+    <div class="card border-0 shadow-sm mb-4">
+      <div class="card-header section-header py-2">
+        <i class="bi bi-link-45deg me-1"></i>Vínculos
+      </div>
+      <div class="card-body py-3">
         <div class="row g-3">
           {% if pessoa.vinculos_tac %}
           <div class="col-md-6">
@@ -93,9 +197,97 @@
           </div>
           {% endif %}
         </div>
-        {% endif %}
       </div>
     </div>
+    {% endif %}
+
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Máscara CPF / CNPJ ────────────────────────────────────────────────────────
+function mascaraDoc(input) {
+  var d = input.value.replace(/\D/g, '');
+  var tipo = document.getElementById('selectTipo').value;
+  if (tipo === 'Pessoa Jurídica') {
+    // CNPJ: 00.000.000/0000-00
+    d = d.slice(0, 14);
+    if (d.length > 12) d = d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8,12)+'-'+d.slice(12);
+    else if (d.length > 8) d = d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5,8)+'/'+d.slice(8);
+    else if (d.length > 5) d = d.slice(0,2)+'.'+d.slice(2,5)+'.'+d.slice(5);
+    else if (d.length > 2) d = d.slice(0,2)+'.'+d.slice(2);
+  } else {
+    // CPF: 000.000.000-00
+    d = d.slice(0, 11);
+    if (d.length > 9) d = d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6,9)+'-'+d.slice(9);
+    else if (d.length > 6) d = d.slice(0,3)+'.'+d.slice(3,6)+'.'+d.slice(6);
+    else if (d.length > 3) d = d.slice(0,3)+'.'+d.slice(3);
+  }
+  input.value = d;
+}
+
+function atualizarMascaraDoc() {
+  var input = document.getElementById('inputDoc');
+  if (input) { input.value = ''; input.placeholder = document.getElementById('selectTipo').value === 'Pessoa Jurídica' ? '00.000.000/0000-00' : '000.000.000-00'; }
+}
+
+// ── Máscara Telefone: (00) 00000-0000 ─────────────────────────────────────────
+function mascaraTelefone(input) {
+  var d = input.value.replace(/\D/g, '').slice(0, 11);
+  if (d.length > 10) {
+    // celular: (00) 00000-0000
+    d = '(' + d.slice(0,2) + ') ' + d.slice(2,7) + '-' + d.slice(7);
+  } else if (d.length > 6) {
+    // fixo: (00) 0000-0000
+    d = '(' + d.slice(0,2) + ') ' + d.slice(2,6) + '-' + d.slice(6);
+  } else if (d.length > 2) {
+    d = '(' + d.slice(0,2) + ') ' + d.slice(2);
+  } else if (d.length > 0) {
+    d = '(' + d;
+  }
+  input.value = d;
+}
+
+// ── CEP autocomplete ──────────────────────────────────────────────────────────
+function mascaraCEP(input) {
+  var d = input.value.replace(/\D/g, '').slice(0, 8);
+  if (d.length > 5) d = d.slice(0,5) + '-' + d.slice(5);
+  input.value = d;
+  if (d.replace('-','').length === 8) buscarCEP(d);
+}
+
+async function buscarCEP(cep) {
+  var limpo = cep.replace(/\D/g, '');
+  if (limpo.length !== 8) return;
+  var spinner = document.getElementById('spinnerCEP');
+  var msg     = document.getElementById('msgCEP');
+  spinner.style.display = '';
+  msg.textContent = '';
+  try {
+    var r = await fetch('/api/cep/' + limpo);
+    var d = await r.json();
+    if (d.erro) { msg.innerHTML = '<span class="text-danger">CEP não encontrado.</span>'; return; }
+    document.getElementById('inputEndereco').value = d.logradouro || '';
+    document.getElementById('inputBairro').value   = d.bairro     || '';
+    document.getElementById('inputCidade').value   = d.localidade || '';
+    document.getElementById('inputEstado').value   = d.uf         || '';
+    document.getElementById('inputNumero').focus();
+    msg.innerHTML = '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Endereço preenchido.</span>';
+  } catch(e) {
+    msg.innerHTML = '<span class="text-warning">Erro ao consultar CEP.</span>';
+  } finally {
+    spinner.style.display = 'none';
+  }
+}
+
+// Aplicar máscaras nos valores existentes ao carregar (modo edição)
+document.addEventListener('DOMContentLoaded', function() {
+  var doc = document.getElementById('inputDoc');
+  var tel = document.getElementById('inputTelefone');
+  if (doc && doc.value) mascaraDoc(doc);
+  if (tel && tel.value) mascaraTelefone(tel);
+});
+</script>
 {% endblock %}

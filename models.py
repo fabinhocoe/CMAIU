@@ -199,7 +199,13 @@ class Pessoa(db.Model):
     nome        = db.Column(db.String(300), nullable=False)
     cpf_cnpj    = db.Column(db.String(30), index=True)
     tipo        = db.Column(db.String(20), default='Pessoa Física')  # Pessoa Física / Pessoa Jurídica
+    cep         = db.Column(db.String(10))
     endereco    = db.Column(db.String(400))
+    numero      = db.Column(db.String(20))
+    complemento = db.Column(db.String(200))
+    bairro      = db.Column(db.String(200))
+    cidade      = db.Column(db.String(200))
+    estado      = db.Column(db.String(2))
     telefone    = db.Column(db.String(50))
     email       = db.Column(db.String(200))
     observacoes = db.Column(db.Text)
