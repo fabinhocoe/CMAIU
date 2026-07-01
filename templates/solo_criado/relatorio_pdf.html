@@ -63,14 +63,15 @@
   </tr>
   <tr>
     <td><strong>Área do Terreno (AT):</strong> {{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</td>
-    <td><strong>Área Computável (ACP):</strong> {{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</td>
+    {% set _acp_pdf = sc.area_computavel or sc.area_construida_total %}
+    <td><strong>Área Construída (ACP):</strong> {{ _acp_pdf|fmt_area if _acp_pdf else '—' }}</td>
     <td><strong>CUB:</strong> {% if sc.cub_valor %}{{ sc.cub_valor|brl }}/m²{% else %}—{% endif %}</td>
   </tr>
 </table>
 
 <h6>3. MEMÓRIA DE CÁLCULO</h6>
 <p style="margin:4px 0">ABP = AT × IAB = {{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }} × {{ '%.4f'|format(sc.iab) if sc.iab else '—' }} = <strong>{{ sc.abp|fmt_area if sc.abp is not none else '—' }}</strong></p>
-<p style="margin:4px 0">AEX = ACP − ABP = {{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }} − {{ sc.abp|fmt_area if sc.abp is not none else '—' }} = <strong>{{ sc.aex|fmt_area if sc.aex is not none else '—' }}</strong></p>
+<p style="margin:4px 0">AEX = ACP − ABP = {{ _acp_pdf|fmt_area if _acp_pdf else '—' }} − {{ sc.abp|fmt_area if sc.abp is not none else '—' }} = <strong>{{ sc.aex|fmt_area if sc.aex is not none else '—' }}</strong></p>
 <p style="margin:4px 0 8px">VU = CUB × 6% = {{ sc.cub_valor|brl if sc.cub_valor else '—' }} × 0,06 = <strong>{{ sc.vu|brl if sc.vu is not none else '—' }}/m²</strong></p>
 
 <table>

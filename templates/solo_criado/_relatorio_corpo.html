@@ -24,7 +24,8 @@
       <div class="col-md-3"><strong>IAM:</strong> {{ '%.4f'|format(sc.iam) if sc.iam else '—' }}</div>
       <div class="col-md-3"><strong>Permite Solo Criado:</strong> {{ 'Sim' if sc.permite_solo_criado else 'Não' }}</div>
       <div class="col-md-4"><strong>Área do Terreno (AT):</strong> {{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</div>
-      <div class="col-md-4"><strong>Área Computável (ACP):</strong> {{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</div>
+      {% set _acp_rel = sc.area_computavel or sc.area_construida_total %}
+      <div class="col-md-4"><strong>Área Construída (ACP):</strong> {{ _acp_rel|fmt_area if _acp_rel else '—' }}</div>
       <div class="col-md-4"><strong>CUB:</strong>
         {% if sc.cub %}{{ sc.cub.mes_ano_str }} – {{ sc.cub_valor|brl }}/m²
         {% elif sc.cub_valor %}{{ sc.cub_valor|brl }}/m²{% else %}—{% endif %}
@@ -38,7 +39,7 @@
         = <strong>{{ sc.abp|fmt_area if sc.abp is not none else '—' }}</strong>
       </p>
       <p class="mb-1">
-        <strong>Área Excedente (AEX)</strong> = ACP − ABP = {{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }} − {{ sc.abp|fmt_area if sc.abp is not none else '—' }}
+        <strong>Área Excedente (AEX)</strong> = ACP − ABP = {{ _acp_rel|fmt_area if _acp_rel else '—' }} − {{ sc.abp|fmt_area if sc.abp is not none else '—' }}
         = <strong>{{ sc.aex|fmt_area if sc.aex is not none else '—' }}</strong>
       </p>
       <p class="mb-3">

@@ -72,8 +72,8 @@
           <dd class="col-sm-7">{{ sc.zoneamento.codigo if sc.zoneamento else '—' }}</dd>
           <dt class="col-sm-5">Área Terreno</dt>
           <dd class="col-sm-7">{{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</dd>
-          <dt class="col-sm-5">Área Computável</dt>
-          <dd class="col-sm-7">{{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</dd>
+          <dt class="col-sm-5">Área Construída</dt>
+          <dd class="col-sm-7">{{ sc.area_construida_total|fmt_area if sc.area_construida_total else '—' }}</dd>
           <dt class="col-sm-5">IAB</dt><dd class="col-sm-7">{{ '%.4f'|format(sc.iab) if sc.iab else '—' }}</dd>
           <dt class="col-sm-5">IAM</dt><dd class="col-sm-7">{{ '%.4f'|format(sc.iam) if sc.iam else '—' }}</dd>
           <dt class="col-sm-5">Permite SC</dt>
