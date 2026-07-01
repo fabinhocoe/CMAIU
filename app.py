@@ -389,7 +389,7 @@ def processos_editar(pid):
         if not p.empreendimento:
             emp.processo_id = pid
             db.session.add(emp)
-        emp.obra_id = _get_or_create_obra(f, current_user.id) or emp.obra_id
+        emp.obra_id = _get_or_create_obra(f, current_user.id, existing_obra_id=emp.obra_id)
         zon_id = _int(f.get('zoneamento_id'))
         zon = Zoneamento.query.get(zon_id) if zon_id else None
         emp.nome = f.get('emp_nome')
@@ -1417,18 +1417,36 @@ def api_obras_buscar():
     } for o in obras])
 
 
-def _get_or_create_obra(f, criado_por, obra_id_field='obra_id'):
-    """Retorna obra_id a partir do formulário, criando nova Obra se necessário."""
-    oid = _int(f.get(obra_id_field))
+def _get_or_create_obra(f, criado_por, existing_obra_id=None):
+    """Retorna obra_id sem criar duplicatas.
+
+    Prioridade:
+    1. Seleção explícita pelo widget de busca (campo obra_id no form).
+    2. Vínculo já existente no registro — preserva sem alterar.
+    3. Busca por inscrição imobiliária — reutiliza se já cadastrada.
+    4. Cria nova obra somente se não há vínculo prévio e há dados suficientes.
+    """
+    # 1. Usuário selecionou obra pelo widget
+    oid = _int(f.get('obra_id'))
     if oid:
         return oid
-    inscricao = f.get('emp_inscricao') or f.get('inscricao') or f.get('inscricao_imob') or ''
-    inscricao = inscricao.strip()
+
+    # 2. Registro já vinculado — não cria duplicata ao editar
+    if existing_obra_id:
+        return existing_obra_id
+
+    # 3. Busca por inscrição imobiliária (todos os nomes possíveis por módulo)
+    inscricao = (
+        f.get('emp_inscricao') or f.get('inscricao') or
+        f.get('inscricao_imobiliaria') or f.get('inscricao_imob') or ''
+    ).strip()
     if inscricao:
         existing = Obra.query.filter_by(inscricao_imobiliaria=inscricao).first()
         if existing:
             return existing.id
-    nome = (f.get('emp_nome') or f.get('descricao') or f.get('nome_empreendimento') or '').strip()
+
+    # 4. Cria nova obra somente se há dados mínimos de identificação
+    nome     = (f.get('emp_nome') or f.get('descricao') or f.get('nome_empreendimento') or '').strip()
     endereco = (f.get('emp_endereco') or f.get('endereco') or f.get('endereco_imovel') or '').strip()
     if not inscricao and not nome and not endereco:
         return None
@@ -1598,7 +1616,7 @@ def tac_obras(tid):
             o = ObraTAC.query.get(oid)
             if o and o.tac_id == tid:
                 f = request.form
-                o.obra_id = _get_or_create_obra(f, current_user.id) or o.obra_id
+                o.obra_id = _get_or_create_obra(f, current_user.id, existing_obra_id=o.obra_id)
                 o.descricao = f.get('descricao', '').strip()
                 o.endereco = f.get('endereco', '').strip()
                 o.bairro = f.get('bairro', '').strip()
@@ -2122,9 +2140,9 @@ def sc_relatorio_pdf(sid):
 def _sc_fill(sc, f):
     def s(k): return f.get(k, '').strip() or None
     def fi(k): return _float(f.get(k))
-    # Obra unificada — obtém ou cria registro compartilhado
+    # Obra unificada — preserva vínculo existente; nunca cria duplicata ao editar
     from flask_login import current_user as _cu
-    sc.obra_id = _get_or_create_obra(f, _cu.id) or sc.obra_id
+    sc.obra_id = _get_or_create_obra(f, _cu.id, existing_obra_id=sc.obra_id)
     sc.situacao              = f.get('situacao', 'Rascunho')
     if not sc.numero:                        # número imutável após gerado
         sc.numero            = s('numero')
