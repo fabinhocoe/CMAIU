@@ -97,20 +97,37 @@
       </table>
 
       <div class="row g-2 mb-3">
-        <div class="col-md-6">
-          <div class="p-2 rounded border border-success-subtle bg-success bg-opacity-10 small">
-            <strong class="text-success">Valor a PAGAR ao Município:</strong>
-            <span class="fw-bold ms-1">{{ sc.von|brl if sc.von is not none else '—' }}</span>
+        <div class="col-md-4">
+          <div class="p-2 rounded border border-success-subtle bg-success bg-opacity-10 small h-100">
+            <div class="d-flex align-items-center gap-1 mb-1">
+              <i class="bi bi-cash-coin text-success"></i>
+              <strong class="text-success">A PAGAR ao Município</strong>
+            </div>
+            <div class="fw-bold">{{ sc.von|brl if sc.von is not none else '—' }}</div>
             <div class="text-muted">Outorga Onerosa — recolhimento ao erário municipal</div>
           </div>
         </div>
-        {% set v_investir = (sc.vin or 0) + (sc.vag or 0) %}
-        {% if v_investir > 0 %}
-        <div class="col-md-6">
-          <div class="p-2 rounded border border-primary-subtle bg-primary bg-opacity-10 small">
-            <strong class="text-primary">Valor a INVESTIR em Infraestrutura:</strong>
-            <span class="fw-bold ms-1">{{ v_investir|brl }}</span>
-            <div class="text-muted">Investimento aproximado — infraestrutura e/ou captação de águas</div>
+        {% if sc.pin %}
+        <div class="col-md-4">
+          <div class="p-2 rounded border border-primary-subtle bg-primary bg-opacity-10 small h-100">
+            <div class="d-flex align-items-center gap-1 mb-1">
+              <i class="bi bi-signpost-2 text-primary"></i>
+              <strong class="text-primary">A INVESTIR em Bem Público</strong>
+            </div>
+            <div class="fw-bold">{{ sc.vin|brl if sc.vin is not none else '—' }}</div>
+            <div class="text-muted">Infraestrutura pública — compensação pela área excedente utilizada</div>
+          </div>
+        </div>
+        {% endif %}
+        {% if sc.pag %}
+        <div class="col-md-4">
+          <div class="p-2 rounded border border-info-subtle bg-info bg-opacity-10 small h-100">
+            <div class="d-flex align-items-center gap-1 mb-1">
+              <i class="bi bi-droplet-half text-info"></i>
+              <strong class="text-info">A INVESTIR no Empreendimento</strong>
+            </div>
+            <div class="fw-bold">{{ sc.vag|brl if sc.vag is not none else '—' }}</div>
+            <div class="text-muted">Captação de águas pluviais no edifício — benefício de <strong>+5%</strong> de área adicional</div>
           </div>
         </div>
         {% endif %}
