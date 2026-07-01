@@ -149,8 +149,18 @@ def _fmt_doc(v):
         return f'{d[:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:]}'
     return v or '—'
 
-app.jinja_env.filters['fmt_fone'] = _fmt_fone
-app.jinja_env.filters['fmt_doc']  = _fmt_doc
+def _fmt_inscricao(v):
+    """Formata inscrição imobiliária para XX.XX.XXX.XXXX (11 dígitos)."""
+    if not v:
+        return '—'
+    d = re.sub(r'\D', '', str(v))
+    if len(d) == 11:
+        return f'{d[:2]}.{d[2:4]}.{d[4:7]}.{d[7:]}'
+    return v or '—'
+
+app.jinja_env.filters['fmt_fone']     = _fmt_fone
+app.jinja_env.filters['fmt_doc']      = _fmt_doc
+app.jinja_env.filters['fmt_inscricao'] = _fmt_inscricao
 
 
 # ─── Auth ────────────────────────────────────────────────────────────────────

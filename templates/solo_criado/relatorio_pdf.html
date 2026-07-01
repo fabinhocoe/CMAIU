@@ -50,7 +50,7 @@
   </tr>
   <tr>
     <td colspan="2"><strong>Endereço:</strong> {{ sc.endereco_imovel or '—' }}{% if sc.bairro_imovel %}, {{ sc.bairro_imovel }}{% endif %}</td>
-    <td><strong>Inscrição Imob.:</strong> {{ sc.inscricao_imob or '—' }}</td>
+    <td><strong>Inscrição Imob.:</strong> {{ sc.inscricao_imob|fmt_inscricao }}</td>
   </tr>
 </table>
 

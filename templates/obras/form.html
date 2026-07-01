@@ -70,7 +70,9 @@
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
           <input type="text" name="inscricao_imobiliaria" class="form-control form-control-sm"
-                 value="{{ obra.inscricao_imobiliaria or '' if obra else '' }}">
+                 placeholder="00.00.000.0000" maxlength="14"
+                 oninput="mascaraInscricao(this)"
+                 value="{{ obra.inscricao_imobiliaria|fmt_inscricao if obra and obra.inscricao_imobiliaria else '' }}">
         </div>
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Matrícula</label>

@@ -14,7 +14,7 @@
       <div class="col-md-6"><strong>Requerente:</strong> {{ sc.nome_empreendimento or '—' }}</div>
       <div class="col-md-6"><strong>Resp. Técnico:</strong> {{ sc.responsavel_tecnico or '—' }}</div>
       <div class="col-md-8"><strong>Endereço:</strong> {{ sc.endereco_imovel or '—' }}{% if sc.bairro_imovel %}, {{ sc.bairro_imovel }}{% endif %}</div>
-      <div class="col-md-4"><strong>Inscrição Imob.:</strong> {{ sc.inscricao_imob or '—' }}</div>
+      <div class="col-md-4"><strong>Inscrição Imob.:</strong> {{ sc.inscricao_imob|fmt_inscricao }}</div>
     </div>
 
     <h6 class="fw-bold border-bottom pb-1 mb-2">2. PARÂMETROS URBANÍSTICOS</h6>

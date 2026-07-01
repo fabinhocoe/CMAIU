@@ -55,7 +55,7 @@ nº 5.031/2021:
 <p class="clause" style="margin-left: 12pt;">
   <strong>Obra {{ loop.index }}:</strong> {{ obra.descricao or obra.endereco or 'Edificação' }} –
   Localizada em {{ obra.endereco or '—' }}, {{ obra.bairro or '' }}, Palhoça/SC.
-  Inscrição Imobiliária: {{ obra.inscricao_imobiliaria or '—' }}.
+  Inscrição Imobiliária: {{ obra.inscricao_imobiliaria|fmt_inscricao }}.
   Grupo: {{ obra.grupo_label }}. Área construída: {{ '%.2f'|format(obra.area_construida or 0) }} m².
 </p>
 {% endfor %}

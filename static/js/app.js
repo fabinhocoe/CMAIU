@@ -1,4 +1,13 @@
 // CMAIU – app.js
+
+// ── Máscara: Inscrição Imobiliária XX.XX.XXX.XXXX ─────────────────────────────
+function mascaraInscricao(input) {
+  var d = input.value.replace(/\D/g, '').slice(0, 11);
+  if (d.length > 7)      d = d.slice(0,2)+'.'+d.slice(2,4)+'.'+d.slice(4,7)+'.'+d.slice(7);
+  else if (d.length > 4) d = d.slice(0,2)+'.'+d.slice(2,4)+'.'+d.slice(4);
+  else if (d.length > 2) d = d.slice(0,2)+'.'+d.slice(2);
+  input.value = d;
+}
 document.addEventListener('DOMContentLoaded', function () {
   // Sidebar toggle for mobile
   const btn = document.getElementById('sidebarToggle');

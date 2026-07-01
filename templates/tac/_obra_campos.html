@@ -50,7 +50,9 @@
   <div class="col-md-4">
     <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
     <input type="text" name="inscricao" class="form-control form-control-sm"
-      value="{{ o.inscricao_imobiliaria or '' if o else '' }}">
+      placeholder="00.00.000.0000" maxlength="14"
+      oninput="mascaraInscricao(this)"
+      value="{{ o.inscricao_imobiliaria|fmt_inscricao if o and o.inscricao_imobiliaria else '' }}">
   </div>
   <div class="col-md-4">
     <label class="form-label small fw-semibold">Grupo <span class="text-danger">*</span></label>

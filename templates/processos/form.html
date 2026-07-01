@@ -231,7 +231,9 @@
       <div class="col-md-6">
         <label class="form-label small fw-semibold">Inscrição Imobiliária <span class="text-danger">*</span></label>
         <input type="text" name="emp_inscricao" id="empInscricao" class="form-control form-control-sm" required
-               value="{{ emp.inscricao if emp else '' }}">
+               placeholder="00.00.000.0000" maxlength="14"
+               oninput="mascaraInscricao(this)"
+               value="{{ emp.inscricao|fmt_inscricao if emp and emp.inscricao else '' }}">
       </div>
       <div class="col-md-6">
         <label class="form-label small fw-semibold">Zoneamento <span class="text-danger">*</span></label>
