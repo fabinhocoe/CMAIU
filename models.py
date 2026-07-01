@@ -971,7 +971,7 @@ class SoloCriado(db.Model):
         Entrada: áreas (aon, ain, aag). Percentuais são derivados da ABP."""
         at  = self.area_terreno or 0.0
         iab = self.iab or 0.0
-        acp = self.area_computavel or 0.0
+        acp = self.area_computavel or self.area_construida_total or 0.0
         cub = self.cub_valor or 0.0
         aon = self.aon or 0.0
         ain = self.ain or 0.0
@@ -1026,7 +1026,7 @@ class SoloCriado(db.Model):
         erros, alertas = [], []
         at  = self.area_terreno or 0
         iab = self.iab or 0
-        acp = self.area_computavel or 0
+        acp = self.area_computavel or self.area_construida_total or 0
         cub = self.cub_valor or 0
         aon = self.aon or 0
         ain = self.ain or 0
@@ -1050,7 +1050,7 @@ class SoloCriado(db.Model):
         # Campos de cálculo
         if not at:   erros.append('Área do terreno não informada.')
         if not iab:  erros.append('Índice de aproveitamento básico não informado.')
-        if not acp:  erros.append('Área computável do projeto não informada.')
+        if not acp:  erros.append('Área construída/computável do projeto não informada.')
         if not cub:  erros.append('CUB não selecionado.')
         if not self.permite_solo_criado:
             erros.append('Zoneamento não permite solo criado.')

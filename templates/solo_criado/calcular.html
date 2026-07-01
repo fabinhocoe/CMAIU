@@ -37,11 +37,12 @@
                 <strong>{{ (sc.area_terreno * sc.iab)|fmt_area }}</strong>
               {% else %}—{% endif %}
             </div>
-            <div class="col-6"><strong>Área Computável (ACP):</strong> {{ sc.area_computavel|fmt_area if sc.area_computavel else '—' }}</div>
+            {% set acp = sc.area_computavel or sc.area_construida_total %}
+            <div class="col-6"><strong>Área Computável / Construída (ACP):</strong> {{ acp|fmt_area if acp else '—' }}</div>
             <div class="col-12"><strong>Área Excedente (AEX = ACP−ABP):</strong>
-              {% if sc.area_terreno and sc.iab and sc.area_computavel %}
+              {% if sc.area_terreno and sc.iab and acp %}
                 {% set abp = sc.area_terreno * sc.iab %}
-                {% set aex = sc.area_computavel - abp if sc.area_computavel > abp else 0 %}
+                {% set aex = acp - abp if acp > abp else 0 %}
                 <strong class="text-danger">{{ aex|fmt_area }}</strong>
               {% else %}—{% endif %}
             </div>
