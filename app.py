@@ -2155,7 +2155,9 @@ def sc_calcular(sid):
         if not erros:
             sc.calcular()
             sc.calculado_por = current_user.id
-            sc.data_calculo = datetime.utcnow()
+            _now = datetime.utcnow()
+            sc.data_calculo = _now
+            sc.atualizado_em = _now
             if sc.situacao in ('Rascunho', 'Em preenchimento', 'Com pendências'):
                 sc.situacao = 'Aguardando parecer técnico'
             db.session.commit()
