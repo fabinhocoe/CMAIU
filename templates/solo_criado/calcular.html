@@ -64,29 +64,34 @@
               <thead class="table-light text-center">
                 <tr>
                   <th>Modalidade</th>
-                  <th>Limite legal</th>
-                  <th>Máx. em m² (sobre ABP)</th>
+                  <th>Faixa legal</th>
+                  <th>Mín. em m²</th>
+                  <th>Máx. em m²</th>
                 </tr>
               </thead>
               <tbody class="text-center">
                 <tr>
-                  <td class="text-start">Onerosa</td>
-                  <td>máx 40%</td>
+                  <td class="text-start">Onerosa <span class="text-danger">*</span></td>
+                  <td>mín 20% / máx 40%</td>
+                  <td class="fw-bold text-warning">{{ (abp_val * 0.20)|fmt_area }}</td>
                   <td class="fw-bold">{{ lim_on|fmt_area }}</td>
                 </tr>
                 <tr>
                   <td class="text-start">Infraestrutura</td>
                   <td>máx 5%</td>
+                  <td class="text-muted">—</td>
                   <td class="fw-bold">{{ lim_in|fmt_area }}</td>
                 </tr>
                 <tr>
                   <td class="text-start">Águas Pluviais</td>
                   <td>máx 5%</td>
+                  <td class="text-muted">—</td>
                   <td class="fw-bold">{{ lim_ag|fmt_area }}</td>
                 </tr>
                 <tr class="table-warning">
                   <td class="text-start fw-bold">Total</td>
                   <td>máx 50%</td>
+                  <td class="text-muted">—</td>
                   <td class="fw-bold">{{ lim_tot|fmt_area }}</td>
                 </tr>
               </tbody>
@@ -225,6 +230,7 @@
 {% block scripts %}
 <script>
 const ABP = {{ (sc.area_terreno * sc.iab) if sc.area_terreno and sc.iab else 0 }};
+const MIN_ON  = ABP * 0.20;
 const LIM_ON  = ABP * 0.40;
 const LIM_IN  = ABP * 0.05;
 const LIM_AG  = ABP * 0.05;
@@ -249,22 +255,38 @@ function recalcPreview() {
   const pag = aag / ABP * 100;
   const pt  = tot / ABP * 100;
 
+  // Onerosa: mínimo 20%, máximo 40%
+  const elOn = document.getElementById('previewOn');
+  if (!aon) {
+    elOn.textContent = '';
+  } else if (pon < 20) {
+    elOn.innerHTML = `→ ${fmtPerc(pon)} da ABP <span class="text-danger fw-bold">⚠ abaixo do mínimo de 20% (mín: ${fmtArea(MIN_ON)})</span>`;
+  } else if (pon > 40) {
+    elOn.innerHTML = `→ ${fmtPerc(pon)} da ABP <span class="text-danger fw-bold">⚠ excede 40%</span>`;
+  } else {
+    elOn.innerHTML = `→ ${fmtPerc(pon)} da ABP ✔`;
+  }
+
   function hint(area, perc, limit, el) {
     if (!area) { el.textContent = ''; return; }
     const ok = perc <= limit;
     el.innerHTML = `→ ${fmtPerc(perc)} da ABP ${ok ? '✔' : '<span class="text-danger fw-bold">⚠ excede ' + limit + '%</span>'}`;
   }
 
-  hint(aon, pon, 40, document.getElementById('previewOn'));
-  hint(ain, pin,  5, document.getElementById('previewIn'));
-  hint(aag, pag,  5, document.getElementById('previewAg'));
+  hint(ain, pin, 5, document.getElementById('previewIn'));
+  hint(aag, pag, 5, document.getElementById('previewAg'));
 
   const divTot = document.getElementById('previewTotal');
   if (tot > 0) {
-    const ok = pt <= 50;
-    divTot.className = 'alert py-2 small ' + (ok ? 'alert-success' : 'alert-danger');
-    divTot.innerHTML = `<strong>Total: ${fmtArea(tot)} = ${fmtPerc(pt)} da ABP</strong>` +
-      (ok ? ' — dentro do limite de 50%' : ' — <strong>excede o limite de 50%!</strong>');
+    const onOk  = aon === 0 || (pon >= 20 && pon <= 40);
+    const totOk = pt <= 50;
+    const allOk = onOk && totOk;
+    divTot.className = 'alert py-2 small ' + (allOk ? 'alert-success' : 'alert-danger');
+    let msg = `<strong>Total: ${fmtArea(tot)} = ${fmtPerc(pt)} da ABP</strong>`;
+    if (!onOk && aon > 0) msg += ` — <strong>Onerosa fora da faixa 20–40%</strong>`;
+    else if (!totOk) msg += ` — <strong>excede o limite de 50%!</strong>`;
+    else msg += ' — dentro dos limites legais ✔';
+    divTot.innerHTML = msg;
   } else {
     divTot.className = 'alert alert-secondary py-2 small';
     divTot.innerHTML = 'Preencha as áreas acima para ver o preview dos percentuais.';

@@ -1056,6 +1056,8 @@ class SoloCriado(db.Model):
             erros.append('Zoneamento não permite solo criado.')
         if aon <= 0:
             erros.append('Área onerosa não informada (obrigatória).')
+        if abp > 0 and aon > 0 and pon < 20:
+            erros.append(f'Área onerosa ({aon:.2f} m²) representa {pon:.2f}% da ABP — abaixo do mínimo de 20%.')
         if abp > 0 and pon > 40:
             erros.append(f'Área onerosa ({aon:.2f} m²) representa {pon:.2f}% da ABP — excede o limite de 40%.')
         if abp > 0 and pin > 5:
