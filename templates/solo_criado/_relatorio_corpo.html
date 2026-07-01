@@ -48,38 +48,46 @@
       <table class="table table-sm table-bordered">
         <thead class="table-light text-center">
           <tr>
-            <th>Modalidade</th><th>% Outorga</th><th>Índice</th>
-            <th>Área Outorgada (m²)</th><th>Valor de Outorga (R$)</th>
+            <th class="text-start">Modalidade</th>
+            <th>Obrigação</th>
+            <th>% Outorga</th>
+            <th>Índice</th>
+            <th>Área Outorgada (m²)</th>
+            <th>Valor (R$)</th>
           </tr>
         </thead>
         <tbody class="text-center">
           <tr>
             <td class="text-start">Onerosa (VON)</td>
+            <td><span class="badge bg-success">Pagamento ao Município</span></td>
             <td>{{ '%.2f'|format(sc.pon) if sc.pon else '—' }}%</td>
             <td>{{ '%.4f'|format(sc.ion) if sc.ion is not none else '—' }}</td>
             <td>{{ sc.aon|fmt_area if sc.aon is not none else '—' }}</td>
-            <td class="fw-bold">{{ sc.von|brl if sc.von is not none else '—' }}</td>
+            <td class="fw-bold text-success">{{ sc.von|brl if sc.von is not none else '—' }}</td>
           </tr>
           {% if sc.pin %}
           <tr>
             <td class="text-start">Infraestrutura (VIN)</td>
+            <td><span class="badge bg-primary">Investimento (aprox.)</span></td>
             <td>{{ '%.2f'|format(sc.pin) }}%</td>
             <td>{{ '%.4f'|format(sc.iin) if sc.iin is not none else '—' }}</td>
             <td>{{ sc.ain|fmt_area if sc.ain is not none else '—' }}</td>
-            <td>{{ sc.vin|brl if sc.vin is not none else '—' }}</td>
+            <td class="text-primary">{{ sc.vin|brl if sc.vin is not none else '—' }}</td>
           </tr>
           {% endif %}
           {% if sc.pag %}
           <tr>
             <td class="text-start">Águas Pluviais (VAG)</td>
+            <td><span class="badge bg-info text-dark">Investimento (aprox.)</span></td>
             <td>{{ '%.2f'|format(sc.pag) }}%</td>
             <td>{{ '%.4f'|format(sc.iag) if sc.iag is not none else '—' }}</td>
             <td>{{ sc.aag|fmt_area if sc.aag is not none else '—' }}</td>
-            <td>{{ sc.vag|brl if sc.vag is not none else '—' }}</td>
+            <td class="text-info">{{ sc.vag|brl if sc.vag is not none else '—' }}</td>
           </tr>
           {% endif %}
-          <tr class="table-success fw-bold">
-            <td class="text-start">TOTAL</td>
+          <tr class="table-dark fw-bold">
+            <td class="text-start">TOTAL GERAL</td>
+            <td></td>
             <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
             <td>{{ '%.4f'|format(sc.iat) if sc.iat is not none else '—' }}</td>
             <td>{{ sc.aat|fmt_area if sc.aat is not none else '—' }}</td>
@@ -87,7 +95,28 @@
           </tr>
         </tbody>
       </table>
-      <p class="mb-0"><strong>Índice de Aproveitamento Final:</strong> IAB + IAT = {{ '%.4f'|format(sc.iab) if sc.iab else '—' }} + {{ '%.4f'|format(sc.iat) if sc.iat is not none else '—' }} = <strong>{{ '%.4f'|format(sc.indice_final) if sc.indice_final is not none else '—' }}</strong></p>
+
+      <div class="row g-2 mb-3">
+        <div class="col-md-6">
+          <div class="p-2 rounded border border-success-subtle bg-success bg-opacity-10 small">
+            <strong class="text-success">Valor a PAGAR ao Município:</strong>
+            <span class="fw-bold ms-1">{{ sc.von|brl if sc.von is not none else '—' }}</span>
+            <div class="text-muted">Outorga Onerosa — recolhimento ao erário municipal</div>
+          </div>
+        </div>
+        {% set v_investir = (sc.vin or 0) + (sc.vag or 0) %}
+        {% if v_investir > 0 %}
+        <div class="col-md-6">
+          <div class="p-2 rounded border border-primary-subtle bg-primary bg-opacity-10 small">
+            <strong class="text-primary">Valor a INVESTIR em Infraestrutura:</strong>
+            <span class="fw-bold ms-1">{{ v_investir|brl }}</span>
+            <div class="text-muted">Investimento aproximado — infraestrutura e/ou captação de águas</div>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+
+      <p class="mb-0 small"><strong>Índice de Aproveitamento Final:</strong> IAB + IAT = {{ '%.4f'|format(sc.iab) if sc.iab else '—' }} + {{ '%.4f'|format(sc.iat) if sc.iat is not none else '—' }} = <strong>{{ '%.4f'|format(sc.indice_final) if sc.indice_final is not none else '—' }}</strong></p>
     </div>
 
     {% if sc.parecer_tecnico or sc.decisao_comissao or sc.condicionantes %}

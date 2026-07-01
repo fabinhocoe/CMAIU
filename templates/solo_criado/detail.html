@@ -115,42 +115,83 @@
             </div>
           </div>
         </div>
-        <table class="table table-sm">
+        <div class="row g-3 mb-3">
+          <div class="col-md-6">
+            <div class="p-3 rounded border border-success-subtle bg-success bg-opacity-10">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-cash-coin text-success fs-5"></i>
+                <span class="fw-semibold text-success">A PAGAR ao Município</span>
+              </div>
+              <div class="small text-muted mb-1">Outorga Onerosa (VON)</div>
+              <div class="fs-4 fw-bold text-success">{{ sc.von|brl }}</div>
+              <div class="small text-muted mt-1">Área: {{ sc.aon|fmt_area }} · {{ '%.2f'|format(sc.pon) }}%</div>
+            </div>
+          </div>
+          {% set v_investir = (sc.vin or 0) + (sc.vag or 0) %}
+          {% if v_investir > 0 %}
+          <div class="col-md-6">
+            <div class="p-3 rounded border border-primary-subtle bg-primary bg-opacity-10">
+              <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-building-gear text-primary fs-5"></i>
+                <span class="fw-semibold text-primary">A INVESTIR em Infraestrutura</span>
+              </div>
+              <div class="small text-muted mb-1">Valor aproximado de investimento</div>
+              <div class="fs-4 fw-bold text-primary">{{ v_investir|brl }}</div>
+              <div class="small text-muted mt-1">
+                {% if sc.pin %}Infraestrutura: {{ sc.vin|brl }} ({{ sc.ain|fmt_area }}){% endif %}
+                {% if sc.pag %}{% if sc.pin %} · {% endif %}Águas: {{ sc.vag|brl }} ({{ sc.aag|fmt_area }}){% endif %}
+              </div>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        <table class="table table-sm table-bordered">
           <thead class="table-light">
-            <tr><th>Modalidade</th><th>%</th><th>Índice</th><th>Área (m²)</th><th>Valor (R$)</th></tr>
+            <tr>
+              <th>Modalidade</th>
+              <th class="text-center">Obrigação</th>
+              <th class="text-center">%</th>
+              <th class="text-center">Índice</th>
+              <th class="text-end">Área (m²)</th>
+              <th class="text-end">Valor (R$)</th>
+            </tr>
           </thead>
           <tbody>
             <tr>
               <td>Onerosa</td>
-              <td>{{ '%.2f'|format(sc.pon) }}%</td>
-              <td>{{ '%.4f'|format(sc.ion) }}</td>
-              <td>{{ sc.aon|fmt_area }}</td>
-              <td class="fw-bold">{{ sc.von|brl }}</td>
+              <td class="text-center"><span class="badge bg-success">Pagamento</span></td>
+              <td class="text-center">{{ '%.2f'|format(sc.pon) }}%</td>
+              <td class="text-center">{{ '%.4f'|format(sc.ion) }}</td>
+              <td class="text-end">{{ sc.aon|fmt_area }}</td>
+              <td class="text-end fw-bold text-success">{{ sc.von|brl }}</td>
             </tr>
             {% if sc.pin %}
             <tr>
               <td>Infraestrutura</td>
-              <td>{{ '%.2f'|format(sc.pin) }}%</td>
-              <td>{{ '%.4f'|format(sc.iin) }}</td>
-              <td>{{ sc.ain|fmt_area }}</td>
-              <td>{{ sc.vin|brl }}</td>
+              <td class="text-center"><span class="badge bg-primary">Investimento</span></td>
+              <td class="text-center">{{ '%.2f'|format(sc.pin) }}%</td>
+              <td class="text-center">{{ '%.4f'|format(sc.iin) }}</td>
+              <td class="text-end">{{ sc.ain|fmt_area }}</td>
+              <td class="text-end text-primary">{{ sc.vin|brl }}</td>
             </tr>
             {% endif %}
             {% if sc.pag %}
             <tr>
-              <td>Águas</td>
-              <td>{{ '%.2f'|format(sc.pag) }}%</td>
-              <td>{{ '%.4f'|format(sc.iag) }}</td>
-              <td>{{ sc.aag|fmt_area }}</td>
-              <td>{{ sc.vag|brl }}</td>
+              <td>Águas Pluviais</td>
+              <td class="text-center"><span class="badge bg-info text-dark">Investimento</span></td>
+              <td class="text-center">{{ '%.2f'|format(sc.pag) }}%</td>
+              <td class="text-center">{{ '%.4f'|format(sc.iag) }}</td>
+              <td class="text-end">{{ sc.aag|fmt_area }}</td>
+              <td class="text-end text-info">{{ sc.vag|brl }}</td>
             </tr>
             {% endif %}
-            <tr class="table-success fw-bold">
-              <td>Total</td>
-              <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
-              <td>{{ '%.4f'|format(sc.iat) }}</td>
-              <td>{{ sc.aat|fmt_area }}</td>
-              <td>{{ (sc.von+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
+            <tr class="table-dark fw-bold">
+              <td>Total Geral</td>
+              <td></td>
+              <td class="text-center">{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
+              <td class="text-center">{{ '%.4f'|format(sc.iat) }}</td>
+              <td class="text-end">{{ sc.aat|fmt_area }}</td>
+              <td class="text-end">{{ (sc.von+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
             </tr>
           </tbody>
         </table>
