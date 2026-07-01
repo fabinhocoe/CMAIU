@@ -1,6 +1,6 @@
 {% set o = obra_edit if obra_edit is defined else none %}
 {% set obra_busca_id = 'tac_' ~ (o.id if o else 'new') %}
-{% set obra_fill_map %}{"nome":"[name='descricao']","endereco":"[name='endereco']","bairro":"[name='bairro']","inscricao_imobiliaria":"[name='inscricao']"}{% endset %}
+{% set obra_fill_map %}{"nome":"[name='descricao']","endereco":"[name='endereco']","bairro":"[name='bairro']","inscricao_imobiliaria":"[name='inscricao']","area_construida":"[name='area_construida']"}{% endset %}
 {% include '_obra_busca.html' %}
 <div class="row g-2">
   <div class="col-md-6">

@@ -319,6 +319,7 @@ class Obra(db.Model):
     matricula            = db.Column(db.String(200))
     zoneamento_id        = db.Column(db.Integer, db.ForeignKey('zoneamentos.id'))
     area_terreno         = db.Column(db.Float)
+    area_construida      = db.Column(db.Float)
     num_pavimentos       = db.Column(db.Integer)
     observacoes          = db.Column(db.Text)
     criado_em            = db.Column(db.DateTime, default=datetime.utcnow)

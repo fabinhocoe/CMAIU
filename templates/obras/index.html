@@ -28,6 +28,7 @@
           <th>Inscrição Imob.</th>
           <th>Zoneamento</th>
           <th class="text-end">Área Terreno</th>
+          <th class="text-end">Área Construída</th>
           <th class="text-center">Vínculos</th>
           <th></th>
         </tr>
@@ -43,6 +44,7 @@
           <td>{{ o.inscricao_imobiliaria or '—' }}</td>
           <td>{{ o.zoneamento.codigo if o.zoneamento else '—' }}</td>
           <td class="text-end">{{ o.area_terreno|fmt_area if o.area_terreno else '—' }}</td>
+          <td class="text-end">{{ o.area_construida|fmt_area if o.area_construida else '—' }}</td>
           <td class="text-center">
             {% set total = (o.empreendimentos_vinculados|length) + (o.tacs_vinculadas|length) + (o.solos_criados_vinculados|length) %}
             {% if total %}

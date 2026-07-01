@@ -15,6 +15,8 @@ MIGRATIONS = [
     ("obras_tac", "obra_id", "ALTER TABLE obras_tac ADD COLUMN obra_id INTEGER REFERENCES obras(id)"),
     # solo_criado – vínculo com obra unificada
     ("solo_criado", "obra_id", "ALTER TABLE solo_criado ADD COLUMN obra_id INTEGER REFERENCES obras(id)"),
+    # obras – área construída
+    ("obras", "area_construida", "ALTER TABLE obras ADD COLUMN area_construida FLOAT"),
     # solo_criado – novos campos
     ("solo_criado", "versao",               "ALTER TABLE solo_criado ADD COLUMN versao INTEGER DEFAULT 1"),
     ("solo_criado", "versao_anterior",      "ALTER TABLE solo_criado ADD COLUMN versao_anterior INTEGER REFERENCES solo_criado(id)"),
@@ -70,6 +72,7 @@ CREATE_TABLES = [
         matricula VARCHAR(200),
         zoneamento_id INTEGER REFERENCES zoneamentos(id),
         area_terreno FLOAT,
+        area_construida FLOAT,
         num_pavimentos INTEGER,
         observacoes TEXT,
         criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,

@@ -1411,6 +1411,7 @@ def api_obras_buscar():
         'zoneamento_id': o.zoneamento_id or '',
         'zoneamento_codigo': o.zoneamento.codigo if o.zoneamento else '',
         'area_terreno': o.area_terreno or '',
+        'area_construida': o.area_construida or '',
         'num_pavimentos': o.num_pavimentos or '',
         'label': o.label,
     } for o in obras])
@@ -1443,6 +1444,7 @@ def _get_or_create_obra(f, criado_por, obra_id_field='obra_id'):
         matricula=f.get('emp_matricula') or f.get('matricula') or '',
         zoneamento_id=_int(f.get('zoneamento_id')),
         area_terreno=_float(f.get('area_terreno')),
+        area_construida=_float(f.get('area_construida') or f.get('area_construida_total')),
         num_pavimentos=_int(f.get('num_pavimentos')),
         criado_por=criado_por,
     )
@@ -1910,6 +1912,7 @@ def obras_nova():
             matricula=f.get('matricula', '').strip() or None,
             zoneamento_id=_int(f.get('zoneamento_id')),
             area_terreno=_float(f.get('area_terreno')),
+            area_construida=_float(f.get('area_construida')),
             num_pavimentos=_int(f.get('num_pavimentos')),
             observacoes=f.get('observacoes', '').strip() or None,
             criado_por=current_user.id,
@@ -1940,6 +1943,7 @@ def obras_editar(oid):
         o.matricula           = f.get('matricula', '').strip() or None
         o.zoneamento_id       = _int(f.get('zoneamento_id'))
         o.area_terreno        = _float(f.get('area_terreno'))
+        o.area_construida     = _float(f.get('area_construida'))
         o.num_pavimentos      = _int(f.get('num_pavimentos'))
         o.observacoes         = f.get('observacoes', '').strip() or None
         db.session.commit()
