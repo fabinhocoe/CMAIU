@@ -178,12 +178,20 @@
                  value="{{ sc.cidade_imovel or '' if sc else '' }}">
         </div>
 
-        <div class="col-md-6">
+        <div class="col-md-4">
           <label class="form-label small fw-semibold">Inscrição Imobiliária <span class="text-danger">*</span></label>
           <input type="text" name="inscricao_imobiliaria" required
                  class="form-control form-control-sm"
                  placeholder="Ex.: 01.02.0003.0004"
                  value="{{ sc.inscricao_imob or '' if sc else '' }}">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Matrícula</label>
+          <input type="text" name="matricula"
+                 class="form-control form-control-sm"
+                 placeholder="Matrícula do imóvel"
+                 value="{{ sc.obra.matricula if sc and sc.obra else '' }}">
         </div>
 
       </div>
@@ -538,6 +546,57 @@
 
 {% block scripts %}
 <script>
+const SC_OBRA_ID = {{ sc.obra_id if sc and sc.obra_id else 'null' }};
+
+// Campos preenchidos pela obra — ficam bloqueados enquanto obra estiver selecionada
+const OBRA_LOCK_SELECTORS = [
+  '#inputCEP', '#inputEndereco', '#inputNumeroImovel',
+  "[name='complemento_imovel']", '#inputBairro',
+  "[name='inscricao_imobiliaria']", "[name='matricula']",
+  '[name="area_terreno"]', '#scAreaConstruida',
+];
+const OBRA_LOCK_SELECT_SELECTORS = ['#selectZoneamento'];
+
+function lockObraFields(lock) {
+  OBRA_LOCK_SELECTORS.forEach(function(sel) {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    if (lock) {
+      el.setAttribute('readonly', '');
+      el.classList.add('bg-light');
+    } else {
+      el.removeAttribute('readonly');
+      el.classList.remove('bg-light');
+    }
+  });
+  OBRA_LOCK_SELECT_SELECTORS.forEach(function(sel) {
+    const el = document.querySelector(sel);
+    if (!el) return;
+    if (lock) {
+      el.style.pointerEvents = 'none';
+      el.classList.add('bg-light');
+    } else {
+      el.style.pointerEvents = '';
+      el.classList.remove('bg-light');
+    }
+  });
+  // Bloquear o CEP lookup também quando locked
+  const cepInput = document.getElementById('inputCEP');
+  if (cepInput) {
+    if (lock) {
+      cepInput.removeAttribute('oninput');
+      cepInput.removeAttribute('onblur');
+    } else {
+      cepInput.setAttribute('oninput', 'mascaraCEP(this)');
+      cepInput.setAttribute('onblur', 'buscarCEP(this.value)');
+    }
+  }
+}
+
+document.addEventListener('obraSelected', function() { lockObraFields(true); });
+document.addEventListener('obraCleared',  function() { lockObraFields(false); });
+</script>
+<script>
 // ── Cálculo ABP / percentuais ─────────────────────────────────────────────────
 function getABP() {
   const at  = parseFloat(document.getElementById('area_terreno')?.value) || 0;
@@ -667,7 +726,10 @@ async function buscarCEP(cep) {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => { atualizarPercs(); });
+document.addEventListener('DOMContentLoaded', () => {
+  atualizarPercs();
+  if (SC_OBRA_ID) lockObraFields(true);
+});
 
 // ── Recarregar Proprietários ──────────────────────────────────────────────────
 async function recarregarPessoas() {
