@@ -94,12 +94,15 @@
       const zel = document.querySelector(fillMap['zoneamento_id']);
       if(zel) zel.dispatchEvent(new Event('change'));
     }
+    // Notificar outros scripts que uma obra foi selecionada
+    document.dispatchEvent(new CustomEvent('obraSelected', {detail: o}));
   }
 
   window['obraLimpar_{{ obra_busca_id }}'] = function(){
     hidden.value = '';
     inp.value = '';
     selDiv.style.display = 'none';
+    document.dispatchEvent(new CustomEvent('obraCleared'));
   };
 })();
 </script>
