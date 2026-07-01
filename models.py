@@ -1034,6 +1034,7 @@ class SoloCriado(db.Model):
         iam = self.iam or 0
 
         abp = at * iab if at and iab else 0
+        aex = max(0.0, acp - abp) if acp and abp else 0
         pon, pin, pag = self._percentuais()
         pt  = pon + pin + pag
 
@@ -1066,6 +1067,11 @@ class SoloCriado(db.Model):
             erros.append(f'Área de águas ({aag:.2f} m²) representa {pag:.2f}% da ABP — excede o limite de 5%.')
         if abp > 0 and pt > 50:
             erros.append(f'Total ({aon+ain+aag:.2f} m²) representa {pt:.2f}% da ABP — excede o limite de 50%.')
+        # Somatória das áreas adquiridas não pode ultrapassar a área excedente (AEX)
+        if aex > 0 and (aon + ain + aag) > round(aex, 4):
+            erros.append(f'Total das áreas adquiridas ({aon+ain+aag:.2f} m²) ultrapassa a Área Excedente AEX ({aex:.2f} m²).')
+        elif aex == 0 and acp and abp and acp <= abp:
+            erros.append('Área construída não excede a Área Básica (ABP) — não há excedente a adquirir.')
 
         if iam and abp > 0:
             indice_final = iab + (iab * pt / 100)

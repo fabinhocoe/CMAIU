@@ -94,6 +94,17 @@
                   <td class="text-muted">—</td>
                   <td class="fw-bold">{{ lim_tot|fmt_area }}</td>
                 </tr>
+                {% set acp_val = sc.area_computavel or sc.area_construida_total or 0 %}
+                {% if acp_val %}
+                {% set aex_val = [acp_val - abp_val, 0]|max %}
+                <tr class="table-danger">
+                  <td class="text-start fw-bold" colspan="2">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Área Excedente (AEX = ACP − ABP) — teto absoluto das compras
+                  </td>
+                  <td class="text-muted">—</td>
+                  <td class="fw-bold text-danger">{{ aex_val|fmt_area }}</td>
+                </tr>
+                {% endif %}
               </tbody>
             </table>
           </div>
@@ -230,6 +241,9 @@
 {% block scripts %}
 <script>
 const ABP = {{ (sc.area_terreno * sc.iab) if sc.area_terreno and sc.iab else 0 }};
+{% set _acp = sc.area_computavel or sc.area_construida_total or 0 %}
+{% set _abp = (sc.area_terreno * sc.iab) if sc.area_terreno and sc.iab else 0 %}
+const AEX = {{ [_acp - _abp, 0]|max if _acp and _abp else 0 }};
 const MIN_ON  = ABP * 0.20;
 const LIM_ON  = ABP * 0.40;
 const LIM_IN  = ABP * 0.05;
@@ -278,18 +292,26 @@ function recalcPreview() {
 
   const divTot = document.getElementById('previewTotal');
   if (tot > 0) {
-    const onOk  = aon === 0 || (pon >= 20 && pon <= 40);
-    const totOk = pt <= 50;
-    const allOk = onOk && totOk;
+    const onOk   = aon === 0 || (pon >= 20 && pon <= 40);
+    const totOk  = pt <= 50;
+    const aexOk  = AEX <= 0 || tot <= AEX + 0.005; // tolerância de arredondamento
+    const allOk  = onOk && totOk && aexOk;
     divTot.className = 'alert py-2 small ' + (allOk ? 'alert-success' : 'alert-danger');
     let msg = `<strong>Total: ${fmtArea(tot)} = ${fmtPerc(pt)} da ABP</strong>`;
-    if (!onOk && aon > 0) msg += ` — <strong>Onerosa fora da faixa 20–40%</strong>`;
-    else if (!totOk) msg += ` — <strong>excede o limite de 50%!</strong>`;
-    else msg += ' — dentro dos limites legais ✔';
+    if (!aexOk) {
+      msg += ` — <strong>⚠ ultrapassa a Área Excedente AEX (${fmtArea(AEX)})! Reduza as áreas.</strong>`;
+    } else if (!onOk && aon > 0) {
+      msg += ` — <strong>Onerosa fora da faixa 20–40%</strong>`;
+    } else if (!totOk) {
+      msg += ` — <strong>excede o limite de 50% da ABP!</strong>`;
+    } else {
+      msg += AEX > 0 ? ` — dentro dos limites legais ✔ (AEX disponível: ${fmtArea(AEX - tot)})` : ' — dentro dos limites legais ✔';
+    }
     divTot.innerHTML = msg;
   } else {
     divTot.className = 'alert alert-secondary py-2 small';
-    divTot.innerHTML = 'Preencha as áreas acima para ver o preview dos percentuais.';
+    const aexInfo = AEX > 0 ? ` Área Excedente (AEX) disponível: <strong>${fmtArea(AEX)}</strong>.` : '';
+    divTot.innerHTML = 'Preencha as áreas acima para ver o preview dos percentuais.' + aexInfo;
   }
 }
 recalcPreview();
