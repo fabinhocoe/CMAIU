@@ -410,7 +410,15 @@ function lockEmpFields(lock) {
 }
 
 document.addEventListener('obraSelected', function(e) {
-  if (e.detail && e.detail._busca_id === 'emp') lockEmpFields(true);
+  if (!e.detail || e.detail._busca_id !== 'emp') return;
+  lockEmpFields(true);
+  // Auto-fill proprietário from obra
+  if (e.detail.proprietario_id) {
+    var pid = parseInt(e.detail.proprietario_id);
+    if (!idsSelecionados().includes(pid)) {
+      adicionarChip({id: pid, nome: e.detail.proprietario_nome, cpf_cnpj: e.detail.proprietario_cpf_cnpj});
+    }
+  }
 });
 document.addEventListener('obraCleared', function(e) {
   if (e.detail && e.detail._busca_id === 'emp') lockEmpFields(false);

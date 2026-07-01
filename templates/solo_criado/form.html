@@ -586,7 +586,13 @@ function lockObraFields(lock) {
 }
 
 document.addEventListener('obraSelected', function(e) {
-  if (e.detail && e.detail._busca_id === 'sc') lockObraFields(true);
+  if (!e.detail || e.detail._busca_id !== 'sc') return;
+  lockObraFields(true);
+  // Auto-select proprietário from obra
+  if (e.detail.proprietario_id) {
+    var sel = document.getElementById('selectProprietario');
+    if (sel) sel.value = e.detail.proprietario_id;
+  }
 });
 document.addEventListener('obraCleared', function(e) {
   if (e.detail && e.detail._busca_id === 'sc') lockObraFields(false);

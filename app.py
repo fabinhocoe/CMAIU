@@ -1473,6 +1473,11 @@ def api_obras_buscar():
         'area_construida': o.area_construida or '',
         'num_pavimentos': o.num_pavimentos or '',
         'label': o.label,
+        'proprietario_id': o.proprietario_id or '',
+        'proprietario_nome': o.proprietario.nome if o.proprietario else '',
+        'proprietario_cpf_cnpj': o.proprietario.cpf_cnpj if o.proprietario else '',
+        'proprietario_telefone': o.proprietario.telefone if o.proprietario else '',
+        'proprietario_email': o.proprietario.email if o.proprietario else '',
     } for o in obras])
 
 
@@ -1668,6 +1673,14 @@ def tac_obras(tid):
                 observacoes=f.get('observacoes', '').strip(),
             )
             db.session.add(obra)
+            db.session.flush()
+            # Auto-link obra's proprietário as compromissário if not already linked
+            if obra.obra_id:
+                obra_obj = Obra.query.get(obra.obra_id)
+                if obra_obj and obra_obj.proprietario_id:
+                    pid = obra_obj.proprietario_id
+                    if not TACPessoa.query.filter_by(tac_id=tid, pessoa_id=pid).first():
+                        db.session.add(TACPessoa(tac_id=tid, pessoa_id=pid, papel='Compromissário'))
             db.session.commit()
             flash('Obra adicionada.', 'success')
         elif action == 'edit':
@@ -1988,6 +2001,7 @@ def obras_nova():
             inscricao_imobiliaria=f.get('inscricao_imobiliaria', '').strip() or None,
             matricula=f.get('matricula', '').strip() or None,
             zoneamento_id=_int(f.get('zoneamento_id')),
+            proprietario_id=_int(f.get('proprietario_id')),
             area_terreno=_float(f.get('area_terreno')),
             area_construida=_float(f.get('area_construida')),
             num_pavimentos=_int(f.get('num_pavimentos')),
@@ -1999,7 +2013,8 @@ def obras_nova():
         flash('Obra cadastrada com sucesso.', 'success')
         return redirect(url_for('obras_index'))
     return render_template('obras/form.html', obra=None,
-                           zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all())
+                           zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all(),
+                           pessoas=Pessoa.query.order_by(Pessoa.nome).all())
 
 
 @app.route('/obras/<int:oid>/editar', methods=['GET', 'POST'])
@@ -2019,6 +2034,7 @@ def obras_editar(oid):
         o.inscricao_imobiliaria = f.get('inscricao_imobiliaria', '').strip() or None
         o.matricula           = f.get('matricula', '').strip() or None
         o.zoneamento_id       = _int(f.get('zoneamento_id'))
+        o.proprietario_id     = _int(f.get('proprietario_id'))
         o.area_terreno        = _float(f.get('area_terreno'))
         o.area_construida     = _float(f.get('area_construida'))
         o.num_pavimentos      = _int(f.get('num_pavimentos'))
@@ -2027,7 +2043,8 @@ def obras_editar(oid):
         flash('Obra atualizada.', 'success')
         return redirect(url_for('obras_index'))
     return render_template('obras/form.html', obra=o,
-                           zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all())
+                           zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all(),
+                           pessoas=Pessoa.query.order_by(Pessoa.nome).all())
 
 
 @app.route('/obras/<int:oid>/excluir', methods=['POST'])

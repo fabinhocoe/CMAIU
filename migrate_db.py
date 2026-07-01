@@ -55,6 +55,8 @@ MIGRATIONS = [
     ("vagas_tac", "justificativa_tecnica",      "ALTER TABLE vagas_tac ADD COLUMN justificativa_tecnica TEXT"),
     ("vagas_tac", "usuario_id",                 "ALTER TABLE vagas_tac ADD COLUMN usuario_id INTEGER REFERENCES usuarios(id)"),
     ("vagas_tac", "data_calculo",               "ALTER TABLE vagas_tac ADD COLUMN data_calculo DATETIME"),
+    # obras – proprietário
+    ("obras", "proprietario_id", "ALTER TABLE obras ADD COLUMN proprietario_id INTEGER REFERENCES pessoas(id)"),
     # pessoas – endereço detalhado
     ("pessoas", "cep",         "ALTER TABLE pessoas ADD COLUMN cep VARCHAR(10)"),
     ("pessoas", "numero",      "ALTER TABLE pessoas ADD COLUMN numero VARCHAR(20)"),

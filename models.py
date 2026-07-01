@@ -324,6 +324,7 @@ class Obra(db.Model):
     inscricao_imobiliaria= db.Column(db.String(100), index=True)
     matricula            = db.Column(db.String(200))
     zoneamento_id        = db.Column(db.Integer, db.ForeignKey('zoneamentos.id'))
+    proprietario_id      = db.Column(db.Integer, db.ForeignKey('pessoas.id'))
     area_terreno         = db.Column(db.Float)
     area_construida      = db.Column(db.Float)
     num_pavimentos       = db.Column(db.Integer)
@@ -331,8 +332,9 @@ class Obra(db.Model):
     criado_em            = db.Column(db.DateTime, default=datetime.utcnow)
     criado_por           = db.Column(db.Integer, db.ForeignKey('usuarios.id'))
 
-    zoneamento = db.relationship('Zoneamento', backref='obras')
-    criador    = db.relationship('Usuario',    backref='obras_criadas')
+    zoneamento    = db.relationship('Zoneamento', backref='obras')
+    proprietario  = db.relationship('Pessoa',     backref='obras_como_proprietario', foreign_keys=[proprietario_id])
+    criador       = db.relationship('Usuario',    backref='obras_criadas')
 
     @property
     def label(self):
