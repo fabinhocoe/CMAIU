@@ -29,7 +29,7 @@
           <td class="fw-semibold">{{ rt.nome }}</td>
           <td>{{ rt.registro_prof or '—' }}</td>
           <td>{{ rt.especialidade or '—' }}</td>
-          <td>{{ rt.telefone or '—' }}</td>
+          <td>{{ rt.telefone|fmt_fone }}</td>
           <td>{{ rt.email or '—' }}</td>
           <td class="text-center">
             {% if rt.ativo %}

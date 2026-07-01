@@ -127,8 +127,8 @@
                 <tr>
                   <td class="fw-semibold">{{ pv.pessoa.nome }}</td>
                   <td class="text-center"><span class="badge bg-secondary bg-opacity-75">{{ pv.pessoa.tipo or pv.papel }}</span></td>
-                  <td>{{ pv.pessoa.cpf_cnpj or '—' }}</td>
-                  <td>{{ pv.pessoa.telefone or '—' }}</td>
+                  <td>{{ pv.pessoa.doc_formatado }}</td>
+                  <td>{{ pv.pessoa.telefone|fmt_fone }}</td>
                   <td>{{ pv.pessoa.email or '—' }}</td>
                 </tr>
                 {% endfor %}
@@ -136,8 +136,8 @@
               <tr>
                 <td class="fw-semibold">{{ prop.nome or '—' }}</td>
                 <td class="text-center"><span class="badge bg-secondary bg-opacity-75">Proprietário</span></td>
-                <td>{{ prop.cpf_cnpj or '—' }}</td>
-                <td>{{ prop.telefone or '—' }}</td>
+                <td>{{ prop.cpf_cnpj|fmt_doc }}</td>
+                <td>{{ prop.telefone|fmt_fone }}</td>
                 <td>{{ prop.email or '—' }}</td>
               </tr>
               {% else %}

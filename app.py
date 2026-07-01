@@ -127,6 +127,31 @@ app.jinja_env.filters['fmt_area'] = lambda v: f"{v:,.2f} m²".replace(',', 'X').
 app.jinja_env.filters['fmt_perc'] = lambda v: f"{v:.4f}%".rstrip('0').rstrip('.') + '%' if v else '0%'
 app.jinja_env.globals['now'] = datetime.now
 
+def _fmt_fone(v):
+    """Formata telefone para exibição: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX."""
+    if not v:
+        return '—'
+    d = re.sub(r'\D', '', str(v))
+    if len(d) == 11:
+        return f'({d[:2]}) {d[2:7]}-{d[7:]}'
+    if len(d) == 10:
+        return f'({d[:2]}) {d[2:6]}-{d[6:]}'
+    return v or '—'
+
+def _fmt_doc(v):
+    """Formata CPF (11 dígitos) ou CNPJ (14 dígitos) para exibição."""
+    if not v:
+        return '—'
+    d = re.sub(r'\D', '', str(v))
+    if len(d) == 11:
+        return f'{d[:3]}.{d[3:6]}.{d[6:9]}-{d[9:]}'
+    if len(d) == 14:
+        return f'{d[:2]}.{d[2:5]}.{d[5:8]}/{d[8:12]}-{d[12:]}'
+    return v or '—'
+
+app.jinja_env.filters['fmt_fone'] = _fmt_fone
+app.jinja_env.filters['fmt_doc']  = _fmt_doc
+
 
 # ─── Auth ────────────────────────────────────────────────────────────────────
 
