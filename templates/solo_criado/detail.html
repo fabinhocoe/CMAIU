@@ -15,12 +15,23 @@
   </a>
   {% endif %}
   {% if sc.von is not none %}
-  <a href="{{ url_for('sc_relatorio', sid=sc.id) }}" class="btn btn-sm btn-info">
-    <i class="bi bi-file-text me-1"></i>Relatório
-  </a>
-  <a href="{{ url_for('sc_relatorio_pdf', sid=sc.id) }}" class="btn btn-sm btn-danger">
-    <i class="bi bi-file-pdf me-1"></i>PDF
-  </a>
+    {% set calculo_atual = sc.data_calculo and (not sc.atualizado_em or sc.data_calculo >= sc.atualizado_em) %}
+    {% if calculo_atual %}
+    <a href="{{ url_for('sc_relatorio', sid=sc.id) }}" class="btn btn-sm btn-info">
+      <i class="bi bi-file-text me-1"></i>Relatório
+    </a>
+    <a href="{{ url_for('sc_relatorio_pdf', sid=sc.id) }}" class="btn btn-sm btn-danger">
+      <i class="bi bi-file-pdf me-1"></i>PDF
+    </a>
+    {% else %}
+    <button class="btn btn-sm btn-outline-secondary" disabled title="Realize o cálculo após a última edição para habilitar os relatórios">
+      <i class="bi bi-file-text me-1"></i>Relatório
+    </button>
+    <button class="btn btn-sm btn-outline-secondary" disabled title="Realize o cálculo após a última edição para habilitar os relatórios">
+      <i class="bi bi-file-pdf me-1"></i>PDF
+    </button>
+    <small class="text-warning align-self-center"><i class="bi bi-exclamation-triangle me-1"></i>Recalcule após edição</small>
+    {% endif %}
   {% endif %}
 </div>
 
