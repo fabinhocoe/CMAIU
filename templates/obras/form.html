@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if obra else 'Nova' }} Obra – CMAIU{% endblock %}
+{% block page_title %}{{ 'Editar Obra' if obra else 'Nova Obra' }}{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('obras_index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:760px">
+  <div class="card-body">
+    <form method="POST">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-3">
+
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Nome / Descrição da Obra</label>
+          <input type="text" name="nome" class="form-control form-control-sm"
+                 placeholder="Ex: Residência João Silva"
+                 value="{{ obra.nome or '' if obra else '' }}">
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">CEP</label>
+          <input type="text" name="cep" id="obraCep" class="form-control form-control-sm"
+                 placeholder="00000-000" maxlength="9"
+                 value="{{ obra.cep or '' if obra else '' }}"
+                 oninput="mascaraCEP(this)" onblur="buscarCEPObra(this.value)">
+          <div id="obraCepMsg" class="form-text"></div>
+        </div>
+        <div class="col-md-7">
+          <label class="form-label small fw-semibold">Logradouro</label>
+          <input type="text" name="endereco" id="obraEndereco" class="form-control form-control-sm"
+                 value="{{ obra.endereco or '' if obra else '' }}">
+        </div>
+        <div class="col-md-1">
+          <label class="form-label small fw-semibold">Número</label>
+          <input type="text" name="numero" class="form-control form-control-sm"
+                 value="{{ obra.numero or '' if obra else '' }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Complemento</label>
+          <input type="text" name="complemento" class="form-control form-control-sm"
+                 value="{{ obra.complemento or '' if obra else '' }}">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Bairro</label>
+          <input type="text" name="bairro" id="obraBairro" class="form-control form-control-sm"
+                 value="{{ obra.bairro or '' if obra else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Cidade</label>
+          <input type="text" name="cidade" id="obraCidade" class="form-control form-control-sm bg-light"
+                 value="{{ obra.cidade or '' if obra else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Zoneamento</label>
+          <select name="zoneamento_id" class="form-select form-select-sm">
+            <option value="">— Selecione —</option>
+            {% for z in zoneamentos %}
+            <option value="{{ z.id }}" {% if obra and obra.zoneamento_id == z.id %}selected{% endif %}>
+              {{ z.codigo }} – {{ z.descricao }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Inscrição Imobiliária</label>
+          <input type="text" name="inscricao_imobiliaria" class="form-control form-control-sm"
+                 value="{{ obra.inscricao_imobiliaria or '' if obra else '' }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Matrícula</label>
+          <input type="text" name="matricula" class="form-control form-control-sm"
+                 value="{{ obra.matricula or '' if obra else '' }}">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Área do Terreno (m²)</label>
+          <input type="number" step="0.01" name="area_terreno" class="form-control form-control-sm"
+                 value="{{ obra.area_terreno or '' if obra else '' }}">
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Nº de Pavimentos</label>
+          <input type="number" name="num_pavimentos" class="form-control form-control-sm"
+                 value="{{ obra.num_pavimentos or '' if obra else '' }}">
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Observações</label>
+          <textarea name="observacoes" class="form-control form-control-sm" rows="2">{{ obra.observacoes or '' if obra else '' }}</textarea>
+        </div>
+
+        <div class="col-12">
+          <button type="submit" class="btn btn-primary btn-sm">
+            <i class="bi bi-check-circle me-1"></i>{{ 'Salvar alterações' if obra else 'Cadastrar obra' }}
+          </button>
+          <a href="{{ url_for('obras_index') }}" class="btn btn-outline-secondary btn-sm ms-2">Cancelar</a>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function mascaraCEP(el){
+  let v = el.value.replace(/\D/g,'').slice(0,8);
+  if(v.length > 5) v = v.slice(0,5)+'-'+v.slice(5);
+  el.value = v;
+}
+async function buscarCEPObra(cep){
+  const c = cep.replace(/\D/g,'');
+  const msg = document.getElementById('obraCepMsg');
+  if(c.length !== 8){ msg.textContent=''; return; }
+  msg.textContent = 'Buscando…';
+  try {
+    const r = await fetch(`https://viacep.com.br/ws/${c}/json/`);
+    const d = await r.json();
+    if(d.erro){ msg.textContent='CEP não encontrado.'; return; }
+    document.getElementById('obraEndereco').value = d.logradouro || '';
+    document.getElementById('obraBairro').value   = d.bairro || '';
+    document.getElementById('obraCidade').value   = d.localidade || '';
+    msg.textContent = '';
+  } catch(e){ msg.textContent = 'Erro ao buscar CEP.'; }
+}
+</script>
+{% endblock %}

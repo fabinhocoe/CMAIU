@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Obras – CMAIU{% endblock %}
+{% block page_title %}Cadastro de Obras{% endblock %}
+{% block content %}
+<div class="d-flex gap-2 mb-3 mt-2 flex-wrap align-items-center">
+  <form class="d-flex gap-2" method="get">
+    <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm"
+           placeholder="Buscar por nome, endereço, bairro ou inscrição…" style="min-width:280px">
+    <button type="submit" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-search"></i>
+    </button>
+    {% if q %}<a href="{{ url_for('obras_index') }}" class="btn btn-sm btn-outline-danger"><i class="bi bi-x"></i></a>{% endif %}
+  </form>
+  {% if current_user.is_tecnico %}
+  <a href="{{ url_for('obras_nova') }}" class="btn btn-sm btn-primary ms-auto">
+    <i class="bi bi-plus-circle me-1"></i>Nova Obra
+  </a>
+  {% endif %}
+</div>
+
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <table class="table table-sm table-hover mb-0 align-middle">
+      <thead class="table-light small">
+        <tr>
+          <th>Nome / Endereço</th>
+          <th>Bairro</th>
+          <th>Inscrição Imob.</th>
+          <th>Zoneamento</th>
+          <th class="text-end">Área Terreno</th>
+          <th class="text-center">Vínculos</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody class="small">
+        {% for o in obras %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ o.nome or '—' }}</div>
+            <div class="text-muted">{{ o.endereco or '' }}{% if o.numero %}, {{ o.numero }}{% endif %}{% if o.complemento %} – {{ o.complemento }}{% endif %}</div>
+          </td>
+          <td>{{ o.bairro or '—' }}</td>
+          <td>{{ o.inscricao_imobiliaria or '—' }}</td>
+          <td>{{ o.zoneamento.codigo if o.zoneamento else '—' }}</td>
+          <td class="text-end">{{ o.area_terreno|fmt_area if o.area_terreno else '—' }}</td>
+          <td class="text-center">
+            {% set total = (o.empreendimentos_vinculados|length) + (o.tacs_vinculadas|length) + (o.solos_criados_vinculados|length) %}
+            {% if total %}
+              <span class="badge bg-secondary" title="CMAIU: {{ o.empreendimentos_vinculados|length }} · TAC: {{ o.tacs_vinculadas|length }} · SC: {{ o.solos_criados_vinculados|length }}">
+                {{ total }}
+              </span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-nowrap">
+            {% if current_user.is_tecnico %}
+            <a href="{{ url_for('obras_editar', oid=o.id) }}" class="btn btn-sm btn-outline-primary" title="Editar">
+              <i class="bi bi-pencil"></i>
+            </a>
+            {% set vinculada = o.empreendimentos_vinculados or o.tacs_vinculadas or o.solos_criados_vinculados %}
+            {% if not vinculada %}
+            <form method="POST" action="{{ url_for('obras_excluir', oid=o.id) }}" class="d-inline">
+              <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-sm btn-outline-danger"
+                      onclick="return confirm('Excluir esta obra?')" title="Excluir">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+            {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-muted py-4">
+            {% if q %}Nenhuma obra encontrada para "{{ q }}".{% else %}Nenhuma obra cadastrada ainda.{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if obras %}
+  <div class="card-footer text-muted small">{{ obras|length }} obra(s) encontrada(s)</div>
+  {% endif %}
+</div>
+{% endblock %}

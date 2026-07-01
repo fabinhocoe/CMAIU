@@ -1874,6 +1874,100 @@ def rt_editar(rid):
     return render_template('resp_tecnico/form.html', rt=rt)
 
 
+# ─── Obras unificadas – CRUD público ────────────────────────────────────────
+
+@app.route('/obras')
+@login_required
+def obras_index():
+    q = request.args.get('q', '').strip()
+    qs = Obra.query.order_by(Obra.nome, Obra.endereco)
+    if q:
+        qs = qs.filter(db.or_(
+            Obra.nome.ilike(f'%{q}%'),
+            Obra.endereco.ilike(f'%{q}%'),
+            Obra.bairro.ilike(f'%{q}%'),
+            Obra.inscricao_imobiliaria.ilike(f'%{q}%'),
+        ))
+    obras = qs.all()
+    return render_template('obras/index.html', obras=obras, q=q)
+
+
+@app.route('/obras/nova', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def obras_nova():
+    if request.method == 'POST':
+        f = request.form
+        o = Obra(
+            nome=f.get('nome', '').strip() or None,
+            cep=f.get('cep', '').strip() or None,
+            endereco=f.get('endereco', '').strip() or None,
+            numero=f.get('numero', '').strip() or None,
+            complemento=f.get('complemento', '').strip() or None,
+            bairro=f.get('bairro', '').strip() or None,
+            cidade=f.get('cidade', '').strip() or None,
+            inscricao_imobiliaria=f.get('inscricao_imobiliaria', '').strip() or None,
+            matricula=f.get('matricula', '').strip() or None,
+            zoneamento_id=_int(f.get('zoneamento_id')),
+            area_terreno=_float(f.get('area_terreno')),
+            num_pavimentos=_int(f.get('num_pavimentos')),
+            observacoes=f.get('observacoes', '').strip() or None,
+            criado_por=current_user.id,
+        )
+        db.session.add(o)
+        db.session.commit()
+        flash('Obra cadastrada com sucesso.', 'success')
+        return redirect(url_for('obras_index'))
+    return render_template('obras/form.html', obra=None,
+                           zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all())
+
+
+@app.route('/obras/<int:oid>/editar', methods=['GET', 'POST'])
+@login_required
+@tecnico_required
+def obras_editar(oid):
+    o = Obra.query.get_or_404(oid)
+    if request.method == 'POST':
+        f = request.form
+        o.nome                = f.get('nome', '').strip() or None
+        o.cep                 = f.get('cep', '').strip() or None
+        o.endereco            = f.get('endereco', '').strip() or None
+        o.numero              = f.get('numero', '').strip() or None
+        o.complemento         = f.get('complemento', '').strip() or None
+        o.bairro              = f.get('bairro', '').strip() or None
+        o.cidade              = f.get('cidade', '').strip() or None
+        o.inscricao_imobiliaria = f.get('inscricao_imobiliaria', '').strip() or None
+        o.matricula           = f.get('matricula', '').strip() or None
+        o.zoneamento_id       = _int(f.get('zoneamento_id'))
+        o.area_terreno        = _float(f.get('area_terreno'))
+        o.num_pavimentos      = _int(f.get('num_pavimentos'))
+        o.observacoes         = f.get('observacoes', '').strip() or None
+        db.session.commit()
+        flash('Obra atualizada.', 'success')
+        return redirect(url_for('obras_index'))
+    return render_template('obras/form.html', obra=o,
+                           zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all())
+
+
+@app.route('/obras/<int:oid>/excluir', methods=['POST'])
+@login_required
+@tecnico_required
+def obras_excluir(oid):
+    o = Obra.query.get_or_404(oid)
+    vinculada = (
+        bool(o.empreendimentos_vinculados) or
+        bool(o.tacs_vinculadas) or
+        bool(o.solos_criados_vinculados)
+    )
+    if vinculada:
+        flash('Esta obra está vinculada a processos existentes e não pode ser excluída.', 'danger')
+    else:
+        db.session.delete(o)
+        db.session.commit()
+        flash('Obra excluída.', 'success')
+    return redirect(url_for('obras_index'))
+
+
 # ─── Solo Criado ─────────────────────────────────────────────────────────────
 
 @app.route('/solo-criado')
