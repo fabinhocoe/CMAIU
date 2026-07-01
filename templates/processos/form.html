@@ -177,12 +177,15 @@
     <span class="fw-semibold">Empreendimento</span>
   </div>
   <div class="card-body py-3">
+    {% set obra_busca_id = 'emp' %}
+    {% set obra_fill_map %}{"nome":"#empNome","cep":"#empCep","endereco":"#empEndereco","bairro":"#empBairro","inscricao_imobiliaria":"#empInscricao","zoneamento_id":"#empZoneamento","area_terreno":"#areaTerreno","num_pavimentos":"#numPavimentos"}{% endset %}
+    {% include '_obra_busca.html' %}
     <div class="row g-3">
 
       {# Identificação  #}
       <div class="col-md-8">
         <label class="form-label small fw-semibold">Nome do Empreendimento</label>
-        <input type="text" name="emp_nome" class="form-control form-control-sm"
+        <input type="text" name="emp_nome" id="empNome" class="form-control form-control-sm"
                value="{{ emp.nome if emp else '' }}">
       </div>
       <div class="col-md-4">
@@ -225,12 +228,12 @@
 
       <div class="col-md-6">
         <label class="form-label small fw-semibold">Inscrição Imobiliária <span class="text-danger">*</span></label>
-        <input type="text" name="emp_inscricao" class="form-control form-control-sm" required
+        <input type="text" name="emp_inscricao" id="empInscricao" class="form-control form-control-sm" required
                value="{{ emp.inscricao if emp else '' }}">
       </div>
       <div class="col-md-6">
         <label class="form-label small fw-semibold">Zoneamento <span class="text-danger">*</span></label>
-        <select name="zoneamento_id" class="form-select form-select-sm" id="zoneamentoSelect" required>
+        <select name="zoneamento_id" class="form-select form-select-sm" id="empZoneamento" required>
           <option value="">— Selecione —</option>
           {% for z in zoneamentos %}
           <option value="{{ z.id }}"
@@ -285,7 +288,7 @@
 
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Área do Terreno (m²) <span class="text-danger">*</span></label>
-        <input type="number" step="0.01" name="area_terreno" class="form-control form-control-sm" required
+        <input type="number" step="0.01" name="area_terreno" id="areaTerreno" class="form-control form-control-sm" required
                value="{{ emp.area_terreno if emp and emp.area_terreno else '' }}">
       </div>
       <div class="col-md-4">
@@ -295,7 +298,7 @@
       </div>
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Nº de Pavimentos</label>
-        <input type="number" name="num_pavimentos" class="form-control form-control-sm"
+        <input type="number" name="num_pavimentos" id="numPavimentos" class="form-control form-control-sm"
                value="{{ emp.num_pavimentos if emp and emp.num_pavimentos else '' }}">
       </div>
 

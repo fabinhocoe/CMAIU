@@ -10,7 +10,7 @@ from flask import (Flask, render_template, request, redirect, url_for,
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 import json
 from models import (db, Usuario, Zoneamento, CUB, Parametro, HistoricoParametro,
-                    Integrante, Processo, Proprietario, Empreendimento,
+                    Integrante, Processo, Proprietario, Empreendimento, Obra,
                     Impacto, Calculo, Relatorio,
                     Pessoa, ProcessoPessoa, TACPessoa,
                     SITUACOES_PROCESSO, USOS, PADROES_IMPACTO,
@@ -318,6 +318,7 @@ def processos_novo():
         zon = Zoneamento.query.get(zon_id) if zon_id else None
         emp = Empreendimento(
             processo_id=p.id,
+            obra_id=_get_or_create_obra(f, current_user.id),
             nome=f.get('emp_nome'),
             cep=f.get('emp_cep'),
             endereco=f.get('emp_endereco'),
@@ -388,6 +389,7 @@ def processos_editar(pid):
         if not p.empreendimento:
             emp.processo_id = pid
             db.session.add(emp)
+        emp.obra_id = _get_or_create_obra(f, current_user.id) or emp.obra_id
         zon_id = _int(f.get('zoneamento_id'))
         zon = Zoneamento.query.get(zon_id) if zon_id else None
         emp.nome = f.get('emp_nome')
@@ -1379,6 +1381,76 @@ def processo_pessoas(pid):
     return render_template('processos/pessoas.html', processo=p, papeis=PAPEIS_PROCESSO)
 
 
+# ─── API – Obras unificadas ──────────────────────────────────────────────────
+
+@app.route('/api/obras/buscar')
+@login_required
+def api_obras_buscar():
+    q = request.args.get('q', '').strip()
+    if len(q) < 2:
+        return jsonify([])
+    obras = Obra.query.filter(
+        db.or_(
+            Obra.nome.ilike(f'%{q}%'),
+            Obra.endereco.ilike(f'%{q}%'),
+            Obra.inscricao_imobiliaria.ilike(f'%{q}%'),
+            Obra.bairro.ilike(f'%{q}%'),
+        )
+    ).order_by(Obra.nome).limit(10).all()
+    return jsonify([{
+        'id': o.id,
+        'nome': o.nome or '',
+        'cep': o.cep or '',
+        'endereco': o.endereco or '',
+        'numero': o.numero or '',
+        'complemento': o.complemento or '',
+        'bairro': o.bairro or '',
+        'cidade': o.cidade or '',
+        'inscricao_imobiliaria': o.inscricao_imobiliaria or '',
+        'matricula': o.matricula or '',
+        'zoneamento_id': o.zoneamento_id or '',
+        'zoneamento_codigo': o.zoneamento.codigo if o.zoneamento else '',
+        'area_terreno': o.area_terreno or '',
+        'num_pavimentos': o.num_pavimentos or '',
+        'label': o.label,
+    } for o in obras])
+
+
+def _get_or_create_obra(f, criado_por, obra_id_field='obra_id'):
+    """Retorna obra_id a partir do formulário, criando nova Obra se necessário."""
+    oid = _int(f.get(obra_id_field))
+    if oid:
+        return oid
+    inscricao = f.get('emp_inscricao') or f.get('inscricao') or f.get('inscricao_imob') or ''
+    inscricao = inscricao.strip()
+    if inscricao:
+        existing = Obra.query.filter_by(inscricao_imobiliaria=inscricao).first()
+        if existing:
+            return existing.id
+    nome = (f.get('emp_nome') or f.get('descricao') or f.get('nome_empreendimento') or '').strip()
+    endereco = (f.get('emp_endereco') or f.get('endereco') or f.get('endereco_imovel') or '').strip()
+    if not inscricao and not nome and not endereco:
+        return None
+    o = Obra(
+        nome=nome,
+        cep=f.get('emp_cep') or f.get('cep_imovel') or '',
+        endereco=endereco,
+        numero=f.get('numero_imovel') or '',
+        complemento=f.get('complemento_imovel') or '',
+        bairro=f.get('emp_bairro') or f.get('bairro') or f.get('bairro_imovel') or '',
+        cidade=f.get('cidade_imovel') or '',
+        inscricao_imobiliaria=inscricao,
+        matricula=f.get('emp_matricula') or f.get('matricula') or '',
+        zoneamento_id=_int(f.get('zoneamento_id')),
+        area_terreno=_float(f.get('area_terreno')),
+        num_pavimentos=_int(f.get('num_pavimentos')),
+        criado_por=criado_por,
+    )
+    db.session.add(o)
+    db.session.flush()
+    return o.id
+
+
 # ─── TAC – Termo de Ajustamento de Conduta ───────────────────────────────────
 
 @app.route('/tac')
@@ -1505,6 +1577,7 @@ def tac_obras(tid):
             f = request.form
             obra = ObraTAC(
                 tac_id=tid,
+                obra_id=_get_or_create_obra(f, current_user.id),
                 descricao=f.get('descricao', '').strip(),
                 endereco=f.get('endereco', '').strip(),
                 bairro=f.get('bairro', '').strip(),
@@ -1523,6 +1596,7 @@ def tac_obras(tid):
             o = ObraTAC.query.get(oid)
             if o and o.tac_id == tid:
                 f = request.form
+                o.obra_id = _get_or_create_obra(f, current_user.id) or o.obra_id
                 o.descricao = f.get('descricao', '').strip()
                 o.endereco = f.get('endereco', '').strip()
                 o.bairro = f.get('bairro', '').strip()
@@ -1950,6 +2024,9 @@ def sc_relatorio_pdf(sid):
 def _sc_fill(sc, f):
     def s(k): return f.get(k, '').strip() or None
     def fi(k): return _float(f.get(k))
+    # Obra unificada — obtém ou cria registro compartilhado
+    from flask_login import current_user as _cu
+    sc.obra_id = _get_or_create_obra(f, _cu.id) or sc.obra_id
     sc.situacao              = f.get('situacao', 'Rascunho')
     if not sc.numero:                        # número imutável após gerado
         sc.numero            = s('numero')

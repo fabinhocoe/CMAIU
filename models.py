@@ -304,10 +304,44 @@ class Proprietario(db.Model):
     processo = db.relationship('Processo', back_populates='proprietario')
 
 
+class Obra(db.Model):
+    """Cadastro unificado de obras/imóveis — reutilizável em CMAIU, TAC e Solo Criado."""
+    __tablename__ = 'obras'
+    id                   = db.Column(db.Integer, primary_key=True)
+    nome                 = db.Column(db.String(300))
+    cep                  = db.Column(db.String(10))
+    endereco             = db.Column(db.String(400))
+    numero               = db.Column(db.String(20))
+    complemento          = db.Column(db.String(200))
+    bairro               = db.Column(db.String(200))
+    cidade               = db.Column(db.String(200))
+    inscricao_imobiliaria= db.Column(db.String(100), index=True)
+    matricula            = db.Column(db.String(200))
+    zoneamento_id        = db.Column(db.Integer, db.ForeignKey('zoneamentos.id'))
+    area_terreno         = db.Column(db.Float)
+    num_pavimentos       = db.Column(db.Integer)
+    observacoes          = db.Column(db.Text)
+    criado_em            = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_por           = db.Column(db.Integer, db.ForeignKey('usuarios.id'))
+
+    zoneamento = db.relationship('Zoneamento', backref='obras')
+    criador    = db.relationship('Usuario',    backref='obras_criadas')
+
+    @property
+    def label(self):
+        partes = [self.nome or self.endereco or '—']
+        if self.bairro:
+            partes.append(self.bairro)
+        if self.inscricao_imobiliaria:
+            partes.append(self.inscricao_imobiliaria)
+        return ' – '.join(partes)
+
+
 class Empreendimento(db.Model):
     __tablename__ = 'empreendimentos'
     id = db.Column(db.Integer, primary_key=True)
     processo_id = db.Column(db.Integer, db.ForeignKey('processos.id'), unique=True)
+    obra_id = db.Column(db.Integer, db.ForeignKey('obras.id'))
     nome = db.Column(db.String(300))
     cep = db.Column(db.String(10))
     endereco = db.Column(db.String(400))
@@ -337,6 +371,7 @@ class Empreendimento(db.Model):
     padrao_impacto = db.Column(db.String(50))
 
     processo = db.relationship('Processo', back_populates='empreendimento')
+    obra     = db.relationship('Obra',    backref='empreendimentos_vinculados')
     zoneamento = db.relationship('Zoneamento', backref='empreendimentos')
 
 
@@ -577,6 +612,7 @@ class ObraTAC(db.Model):
     __tablename__ = 'obras_tac'
     id = db.Column(db.Integer, primary_key=True)
     tac_id = db.Column(db.Integer, db.ForeignKey('tacs.id'))
+    obra_id = db.Column(db.Integer, db.ForeignKey('obras.id'))
     descricao = db.Column(db.String(300))
     endereco = db.Column(db.String(400))
     bairro = db.Column(db.String(200))
@@ -587,7 +623,8 @@ class ObraTAC(db.Model):
     data_construcao = db.Column(db.Date)
     observacoes = db.Column(db.Text)
 
-    tac = db.relationship('TAC', back_populates='obras')
+    tac  = db.relationship('TAC',  back_populates='obras')
+    obra = db.relationship('Obra', backref='tacs_vinculadas')
     irregularidades = db.relationship('IrregularidadeTAC', back_populates='obra',
                                       cascade='all, delete-orphan')
     vagas = db.relationship('VagasTAC', uselist=False, back_populates='obra',
@@ -793,6 +830,9 @@ class SoloCriado(db.Model):
     versao_anterior = db.Column(db.Integer, db.ForeignKey('solo_criado.id'))
     situacao        = db.Column(db.String(60), default='Rascunho')
 
+    # Vínculo com obra unificada
+    obra_id         = db.Column(db.Integer, db.ForeignKey('obras.id'))
+
     # Vínculo com processo e proprietário
     processo_id     = db.Column(db.Integer, db.ForeignKey('processos.id'))
     num_processo    = db.Column(db.String(100))
@@ -897,6 +937,7 @@ class SoloCriado(db.Model):
     calculado_por= db.Column(db.Integer, db.ForeignKey('usuarios.id'))
 
     # Relacionamentos
+    obra           = db.relationship('Obra',               backref='solos_criados_vinculados', foreign_keys=[obra_id])
     processo       = db.relationship('Processo',           backref='solos_criados',    foreign_keys=[processo_id])
     pessoa         = db.relationship('Pessoa',             backref='solos_criados',    foreign_keys=[pessoa_id])
     resp_tecnico   = db.relationship('ResponsavelTecnico', backref='solos_criados',    foreign_keys=[resp_tecnico_id])

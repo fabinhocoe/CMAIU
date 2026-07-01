@@ -7,9 +7,14 @@ from app import app, db
 import sqlalchemy as sa
 
 MIGRATIONS = [
-    # empreendimentos – CEP e padrão
-    ("empreendimentos", "cep", "ALTER TABLE empreendimentos ADD COLUMN cep VARCHAR(10)"),
-    ("empreendimentos", "padrao_empreendimento", "ALTER TABLE empreendimentos ADD COLUMN padrao_empreendimento VARCHAR(50)"),
+    # empreendimentos – CEP, padrão e obra unificada
+    ("empreendimentos", "cep",                  "ALTER TABLE empreendimentos ADD COLUMN cep VARCHAR(10)"),
+    ("empreendimentos", "padrao_empreendimento","ALTER TABLE empreendimentos ADD COLUMN padrao_empreendimento VARCHAR(50)"),
+    ("empreendimentos", "obra_id",              "ALTER TABLE empreendimentos ADD COLUMN obra_id INTEGER REFERENCES obras(id)"),
+    # obras_tac – vínculo com obra unificada
+    ("obras_tac", "obra_id", "ALTER TABLE obras_tac ADD COLUMN obra_id INTEGER REFERENCES obras(id)"),
+    # solo_criado – vínculo com obra unificada
+    ("solo_criado", "obra_id", "ALTER TABLE solo_criado ADD COLUMN obra_id INTEGER REFERENCES obras(id)"),
     # solo_criado – novos campos
     ("solo_criado", "versao",               "ALTER TABLE solo_criado ADD COLUMN versao INTEGER DEFAULT 1"),
     ("solo_criado", "versao_anterior",      "ALTER TABLE solo_criado ADD COLUMN versao_anterior INTEGER REFERENCES solo_criado(id)"),
@@ -51,6 +56,25 @@ MIGRATIONS = [
 ]
 
 CREATE_TABLES = [
+    # Cadastro unificado de obras/imóveis
+    """CREATE TABLE IF NOT EXISTS obras (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nome VARCHAR(300),
+        cep VARCHAR(10),
+        endereco VARCHAR(400),
+        numero VARCHAR(20),
+        complemento VARCHAR(200),
+        bairro VARCHAR(200),
+        cidade VARCHAR(200),
+        inscricao_imobiliaria VARCHAR(100),
+        matricula VARCHAR(200),
+        zoneamento_id INTEGER REFERENCES zoneamentos(id),
+        area_terreno FLOAT,
+        num_pavimentos INTEGER,
+        observacoes TEXT,
+        criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+        criado_por INTEGER REFERENCES usuarios(id)
+    )""",
     # Cadastro unificado de pessoas
     """CREATE TABLE IF NOT EXISTS pessoas (
         id INTEGER PRIMARY KEY AUTOINCREMENT,

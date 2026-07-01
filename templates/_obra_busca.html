@@ -1,0 +1,105 @@
+{#
+  Widget de busca de obra unificada.
+  Parâmetros via variáveis Jinja (defina antes de incluir):
+    obra_busca_id   – prefixo único para IDs HTML (evita colisões em página)
+    obra_fill_map   – dict JS inline mapeando campo obra → seletor CSS do input de destino
+                      Ex: {'nome':'#empNome', 'cep':'#empCep', ...}
+  Uso:
+    {% set obra_busca_id = 'emp' %}
+    {% set obra_fill_map %}{ "nome":"#empNome","cep":"#empCep" }{% endset %}
+    {% include '_obra_busca.html' %}
+#}
+<div class="mb-3 p-3 rounded bg-light border">
+  <div class="d-flex align-items-center gap-2 mb-2">
+    <i class="bi bi-search text-primary"></i>
+    <span class="small fw-semibold text-primary">Buscar obra já cadastrada</span>
+    <span class="small text-muted">(evite recadastro — pesquise por nome, endereço ou inscrição imobiliária)</span>
+  </div>
+  <input type="hidden" name="obra_id" id="obraIdInput_{{ obra_busca_id }}" value="">
+  <div class="position-relative">
+    <input type="text" id="obraBusca_{{ obra_busca_id }}"
+           class="form-control form-control-sm"
+           placeholder="Digite nome, endereço ou inscrição imobiliária…"
+           autocomplete="off">
+    <ul id="obraResultados_{{ obra_busca_id }}"
+        class="list-group position-absolute w-100 shadow-sm"
+        style="z-index:1050;display:none;max-height:240px;overflow-y:auto;top:100%">
+    </ul>
+  </div>
+  <div id="obraSelecionada_{{ obra_busca_id }}" class="mt-1 small text-success" style="display:none">
+    <i class="bi bi-check-circle-fill me-1"></i><span></span>
+    <a href="#" class="ms-2 text-danger small" onclick="obraLimpar_{{ obra_busca_id }}();return false">Limpar seleção</a>
+  </div>
+</div>
+
+<script>
+(function(){
+  const fillMap = {{ obra_fill_map|safe }};
+  const inputId  = 'obraBusca_{{ obra_busca_id }}';
+  const resId    = 'obraResultados_{{ obra_busca_id }}';
+  const hiddenId = 'obraIdInput_{{ obra_busca_id }}';
+  const selId    = 'obraSelecionada_{{ obra_busca_id }}';
+
+  let timer = null;
+  const inp = document.getElementById(inputId);
+  const res = document.getElementById(resId);
+  const hidden = document.getElementById(hiddenId);
+  const selDiv = document.getElementById(selId);
+
+  inp.addEventListener('input', function(){
+    clearTimeout(timer);
+    const q = this.value.trim();
+    if(q.length < 2){ res.style.display='none'; return; }
+    timer = setTimeout(()=>buscar(q), 300);
+  });
+
+  inp.addEventListener('blur', function(){
+    setTimeout(()=>{ res.style.display='none'; }, 200);
+  });
+
+  function buscar(q){
+    fetch('/api/obras/buscar?q=' + encodeURIComponent(q))
+      .then(r=>r.json())
+      .then(data=>{
+        res.innerHTML = '';
+        if(!data.length){
+          res.innerHTML = '<li class="list-group-item list-group-item-action small text-muted disabled">Nenhuma obra encontrada</li>';
+        } else {
+          data.forEach(o=>{
+            const li = document.createElement('li');
+            li.className = 'list-group-item list-group-item-action small';
+            li.style.cursor = 'pointer';
+            li.textContent = o.label;
+            li.addEventListener('mousedown', function(e){ e.preventDefault(); selecionar(o); });
+            res.appendChild(li);
+          });
+        }
+        res.style.display = 'block';
+      });
+  }
+
+  function selecionar(o){
+    hidden.value = o.id;
+    inp.value = o.label;
+    res.style.display = 'none';
+    selDiv.style.display = 'block';
+    selDiv.querySelector('span').textContent = o.label;
+    // Preencher campos mapeados
+    Object.entries(fillMap).forEach(function([campo, selector]){
+      const el = document.querySelector(selector);
+      if(el && o[campo] !== undefined && o[campo] !== '') el.value = o[campo];
+    });
+    // Disparar change no zoneamento se mapeado (para atualizar dados dependentes)
+    if(fillMap['zoneamento_id']){
+      const zel = document.querySelector(fillMap['zoneamento_id']);
+      if(zel) zel.dispatchEvent(new Event('change'));
+    }
+  }
+
+  window['obraLimpar_{{ obra_busca_id }}'] = function(){
+    hidden.value = '';
+    inp.value = '';
+    selDiv.style.display = 'none';
+  };
+})();
+</script>

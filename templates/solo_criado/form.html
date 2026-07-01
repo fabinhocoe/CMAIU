@@ -119,6 +119,9 @@
       <span class="fw-semibold">Localização do Imóvel</span>
     </div>
     <div class="card-body py-3">
+      {% set obra_busca_id = 'sc' %}
+      {% set obra_fill_map %}{"cep":"#inputCEP","endereco":"#inputEndereco","numero":"#inputNumeroImovel","complemento":"[name='complemento_imovel']","bairro":"#inputBairro","cidade":"#inputCidade","inscricao_imobiliaria":"[name='inscricao_imobiliaria']","matricula":"[name='matricula']","zoneamento_id":"#selectZoneamento","area_terreno":"[name='area_terreno']"}{% endset %}
+      {% include '_obra_busca.html' %}
       <div class="row g-3">
 
         {# Linha 1: CEP → Logradouro → Número → Complemento #}
