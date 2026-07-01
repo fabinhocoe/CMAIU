@@ -211,7 +211,7 @@
     <div class="card-body py-3">
       <div class="row g-3 align-items-end">
 
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label small fw-semibold">Área do Terreno – AT (m²) <span class="text-danger">*</span></label>
           <div class="input-group input-group-sm">
             <input type="number" step="0.01" min="0" name="area_terreno" id="area_terreno"
@@ -222,7 +222,7 @@
           </div>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label small fw-semibold">Área Construída Total (m²)</label>
           <div class="input-group input-group-sm">
             <input type="number" step="0.01" min="0" name="area_construida_total" id="scAreaConstruida"
@@ -232,17 +232,7 @@
           </div>
         </div>
 
-        <div class="col-md-3">
-          <label class="form-label small fw-semibold">Área Computável – ACP (m²) <span class="text-danger">*</span></label>
-          <div class="input-group input-group-sm">
-            <input type="number" step="0.01" min="0" name="area_computavel"
-                   class="form-control" placeholder="0,00" required
-                   value="{{ '%.2f'|format(sc.area_computavel) if sc and sc.area_computavel else '' }}">
-            <span class="input-group-text">m²</span>
-          </div>
-        </div>
-
-        <div class="col-md-3">
+        <div class="col-md-4">
           <label class="form-label small fw-semibold">Zoneamento <span class="text-danger">*</span></label>
           <select name="zoneamento_id" id="selectZoneamento" class="form-select form-select-sm" required
                   onchange="carregarZoneamento(this.value)">
