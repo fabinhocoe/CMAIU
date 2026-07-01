@@ -1253,6 +1253,18 @@ def pessoas_index():
             db.or_(Pessoa.nome.ilike(f'%{q}%'), Pessoa.cpf_cnpj.ilike(f'%{q}%'))
         )
     pessoas = query.all()
+    # Build a map of cpf_cnpj → legacy process count from Proprietario table
+    from sqlalchemy import func
+    legacy_counts = {
+        row.cpf_cnpj: row.cnt
+        for row in db.session.query(Proprietario.cpf_cnpj, func.count(Proprietario.id).label('cnt'))
+            .filter(Proprietario.cpf_cnpj.isnot(None), Proprietario.cpf_cnpj != '')
+            .group_by(Proprietario.cpf_cnpj).all()
+    }
+    for p in pessoas:
+        join_count = len(p.vinculos_processo)
+        legacy = legacy_counts.get(p.cpf_cnpj, 0) if p.cpf_cnpj else 0
+        p._processos_count = join_count + legacy
     return render_template('pessoas/index.html', pessoas=pessoas, q=q)
 
 

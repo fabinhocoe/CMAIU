@@ -43,8 +43,8 @@
             {% else %}—{% endif %}
           </td>
           <td class="small text-center">
-            {% if p.vinculos_processo %}
-            <span class="badge bg-primary">{{ p.vinculos_processo|length }}</span>
+            {% if p._processos_count %}
+            <span class="badge bg-primary">{{ p._processos_count }}</span>
             {% else %}—{% endif %}
           </td>
           <td class="text-nowrap">
