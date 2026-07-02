@@ -1857,6 +1857,29 @@ def tac_relatorio(tid):
                            integrantes=integrantes)
 
 
+def _gerar_numero_tac(tac):
+    """Gera número sequencial TAC-AAAA-NNN na primeira emissão de qualquer PDF."""
+    from datetime import date
+    ano = date.today().year
+    ultimo = (db.session.query(db.func.max(TAC.numero))
+              .filter(TAC.numero.like(f'TAC-{ano}-%'))
+              .scalar())
+    if ultimo:
+        try:
+            seq = int(ultimo.split('-')[-1]) + 1
+        except (ValueError, IndexError):
+            seq = 1
+    else:
+        seq = 1
+    return f'TAC-{ano}-{seq:03d}'
+
+
+def _garantir_numero_tac(tac):
+    if not tac.numero:
+        tac.numero = _gerar_numero_tac(tac)
+        db.session.commit()
+
+
 @app.route('/tac/<int:tid>/relatorio/pdf')
 @login_required
 def tac_relatorio_pdf(tid):
@@ -1865,6 +1888,7 @@ def tac_relatorio_pdf(tid):
     if not c:
         flash('Realize o cálculo antes de gerar PDF.', 'warning')
         return redirect(url_for('tac_relatorio', tid=tid))
+    _garantir_numero_tac(tac)
     resultados = json.loads(c.resultado_json) if c.resultado_json else []
     integrantes = Integrante.query.filter_by(ativo=True).all()
     html = render_template('tac/relatorio_pdf.html',
@@ -1886,6 +1910,7 @@ def tac_termo_pdf(tid):
     if not c:
         flash('Realize o cálculo antes de gerar o Termo.', 'warning')
         return redirect(url_for('tac_relatorio', tid=tid))
+    _garantir_numero_tac(tac)
     resultados = json.loads(c.resultado_json) if c.resultado_json else []
     integrantes = Integrante.query.filter_by(ativo=True).all()
     html = render_template('tac/termo_pdf.html',
@@ -1907,6 +1932,7 @@ def tac_extrato_pdf(tid):
     if not c:
         flash('Realize o cálculo antes de gerar o Extrato.', 'warning')
         return redirect(url_for('tac_relatorio', tid=tid))
+    _garantir_numero_tac(tac)
     html = render_template('tac/extrato_pdf.html', tac=tac, c=c)
     from xhtml2pdf import pisa
     buf = io.BytesIO()

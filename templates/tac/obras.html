@@ -45,7 +45,7 @@
               <td>
                 <a href="{{ url_for('tac_irregularidades', tid=tac.id, oid=o.id) }}"
                    class="badge bg-warning text-dark text-decoration-none">
-                  {{ o.irregularidades|length }} irr.
+                  {{ o.irregularidades|length + (1 if o.vagas else 0) }} irr.
                 </a>
               </td>
               <td class="text-nowrap">
