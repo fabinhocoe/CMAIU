@@ -48,15 +48,15 @@ Lei Municipal nº 5.031/2021, e o(s) compromissário(s):
 <table>
   <tr class="highlight">
     <th>Valor Total da Compensação Financeira</th>
-    <td><strong>R$ {{ '%.2f'|format(c.vf_total) }}</strong></td>
+    <td><strong>{{ c.vf_total|brl }}</strong></td>
   </tr>
   <tr>
     <th>Forma de Pagamento</th>
-    <td>{{ c.num_parcelas }} parcela(s) de R$ {{ '%.2f'|format(c.valor_parcela) }}</td>
+    <td>{{ c.num_parcelas }} parcela(s) de {{ c.valor_parcela|brl }}</td>
   </tr>
   <tr>
     <th>CUB de Referência</th>
-    <td>{{ c.cub_mes_ref }} = R$ {{ '%.2f'|format(c.cub_valor) }}/m²</td>
+    <td>{{ c.cub_mes_ref }} = {{ c.cub_valor|brl }}/m²</td>
   </tr>
   <tr>
     <th>Data da Celebração</th>

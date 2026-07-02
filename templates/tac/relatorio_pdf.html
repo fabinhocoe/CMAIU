@@ -42,7 +42,7 @@
   <tr><th>Nº TAC</th><td>{{ tac.numero or '—' }}</td>
       <th>Processo Adm.</th><td>{{ tac.num_processo_adm or '—' }}</td></tr>
   <tr><th>Abertura</th><td>{{ tac.data_abertura.strftime('%d/%m/%Y') if tac.data_abertura else '—' }}</td>
-      <th>CUB</th><td>{{ c.cub_mes_ref }} = R$ {{ '%.2f'|format(c.cub_valor) }}/m²</td></tr>
+      <th>CUB</th><td>{{ c.cub_mes_ref }} = {{ c.cub_valor|brl }}/m²</td></tr>
 </table>
 
 <div class="section-title">2 – Compromissários</div>
@@ -64,7 +64,7 @@
   <tbody>
     {% for it in r.itens_ireg %}
     <tr><td>{{ it.descricao }}</td><td>{{ '%.1f'|format(it.perc) }}%</td>
-        <td>{{ it.qty }}</td><td>R$ {{ '%.2f'|format(it.subtotal) }}</td></tr>
+        <td>{{ it.qty }}</td><td>{{ it.subtotal|brl }}</td></tr>
     {% endfor %}
   </tbody>
   {% if r.vagas %}
@@ -74,28 +74,28 @@
       <td colspan="3">{{ vg.exigidas }} / {{ vg.regulares_executadas }} / {{ vg.computaveis }} / <strong>{{ vg.qvf }}</strong>{% if vg.justificativa %} (manual){% endif %}</td></tr>
   {% if r.sv_faltantes > 0 %}
   <tr><td>MVF = {{ vg.qvf }} × CUB × {{ '1,5' if vg.fator_faltantes == 1.5 else '1,0' }}</td>
-      <td colspan="3">R$ {{ '%.2f'|format(r.sv_faltantes) }}</td></tr>
+      <td colspan="3">{{ r.sv_faltantes|brl }}</td></tr>
   {% endif %}
   {% if r.sv_dim > 0 %}
   <tr><td>MVD = {{ vg.qvd }} × CUB × 0,5</td>
-      <td colspan="3">R$ {{ '%.2f'|format(r.sv_dim) }}</td></tr>
+      <td colspan="3">{{ r.sv_dim|brl }}</td></tr>
   {% endif %}
-  <tr class="highlight"><td><strong>MTV = MVF + MVD</strong></td><td colspan="3"><strong>R$ {{ '%.2f'|format(r.mtv) }}</strong></td></tr>
+  <tr class="highlight"><td><strong>MTV = MVF + MVD</strong></td><td colspan="3"><strong>{{ r.mtv|brl }}</strong></td></tr>
   {% endif %}
-  <tr><th colspan="3">Subtotal bruto (irr. perc. + vagas)</th><td>R$ {{ '%.2f'|format(r.sb) }}</td></tr>
-  <tr><th colspan="3">Teto Legal (TL = CUB × área × 5%)</th><td>R$ {{ '%.2f'|format(r.tl) }}</td></tr>
-  <tr class="highlight"><th colspan="3">VBA = min(SB, TL)</th><td>R$ {{ '%.2f'|format(r.vba) }}</td></tr>
-  <tr><th colspan="3">FA ({{ '1,20 – < 5 anos' if r.fa == 1.2 else '1,00 – ≥ 5 anos' }})</th><td>{{ '%.2f'|format(r.fa) }}</td></tr>
-  <tr><th colspan="3">FR ({{ '0,00 – anterior a 07/04/1993' if r.fr == 0 else ('0,60 – ≥ 15 anos' if r.fr == 0.6 else ('0,70 – > 10 e < 15 anos' if r.fr == 0.7 else '1,00')) }})</th><td>{{ '%.2f'|format(r.fr) }}</td></tr>
-  {% if r.f_uni < 1 %}<tr><th colspan="3">Fator unifamiliar ≤ 150 m²</th><td>{{ '%.2f'|format(r.f_uni) }}</td></tr>{% endif %}
-  <tr class="highlight"><th colspan="3">VF desta obra</th><td>R$ {{ '%.2f'|format(r.vf) }}</td></tr>
+  <tr><th colspan="3">Subtotal bruto (irr. perc. + vagas)</th><td>{{ r.sb|brl }}</td></tr>
+  <tr><th colspan="3">Teto Legal (TL = CUB × área × 5%)</th><td>{{ r.tl|brl }}</td></tr>
+  <tr class="highlight"><th colspan="3">VBA = min(SB, TL)</th><td>{{ r.vba|brl }}</td></tr>
+  <tr><th colspan="3">FA ({{ '1,20 – < 5 anos' if r.fa == 1.2 else '1,00 – ≥ 5 anos' }})</th><td>{{ '%.2f'|format(r.fa)|replace('.', ',') }}</td></tr>
+  <tr><th colspan="3">FR ({{ '0,00 – anterior a 07/04/1993' if r.fr == 0 else ('0,60 – ≥ 15 anos' if r.fr == 0.6 else ('0,70 – > 10 e < 15 anos' if r.fr == 0.7 else '1,00')) }})</th><td>{{ '%.2f'|format(r.fr)|replace('.', ',') }}</td></tr>
+  {% if r.f_uni < 1 %}<tr><th colspan="3">Fator unifamiliar ≤ 150 m²</th><td>{{ '%.2f'|format(r.f_uni)|replace('.', ',') }}</td></tr>{% endif %}
+  <tr class="highlight"><th colspan="3">VF desta obra</th><td>{{ r.vf|brl }}</td></tr>
 </table>
 {% endfor %}
 
 <div class="section-title">4 – Consolidação</div>
 <table>
-  <tr class="highlight"><th>VALOR FINAL TOTAL (VF)</th><td><strong>R$ {{ '%.2f'|format(c.vf_total) }}</strong></td></tr>
-  <tr><th>Parcelas</th><td>{{ c.num_parcelas }}× R$ {{ '%.2f'|format(c.valor_parcela) }}</td></tr>
+  <tr class="highlight"><th>VALOR FINAL TOTAL (VF)</th><td><strong>{{ c.vf_total|brl }}</strong></td></tr>
+  <tr><th>Parcelas</th><td>{{ c.num_parcelas }}× {{ c.valor_parcela|brl }}</td></tr>
 </table>
 
 <div class="sign-area">
