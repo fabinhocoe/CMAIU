@@ -46,9 +46,9 @@ mediante as seguintes cláusulas e condições:
 <table>
   <thead><tr><th>Nome / Razão Social</th><th>Tipo</th><th>CPF/CNPJ</th><th>Endereço</th></tr></thead>
   <tbody>
-    {% for comp in tac.compromissarios %}
-    <tr><td>{{ comp.nome }}</td><td>{{ comp.tipo }}</td>
-        <td>{{ comp.cpf_cnpj or '—' }}</td><td>{{ comp.endereco or '—' }}</td></tr>
+    {% for v in tac.pessoas_vinculadas %}
+    <tr><td>{{ v.pessoa.nome }}</td><td>{{ v.papel }}</td>
+        <td>{{ v.pessoa.doc_formatado }}</td><td>{{ v.pessoa.endereco or '—' }}</td></tr>
     {% endfor %}
   </tbody>
 </table>
@@ -116,9 +116,9 @@ Palhoça/SC, {{ tac.data_assinatura.strftime('%d de %B de %Y') if tac.data_assin
   {% endfor %}
   <br><br>
   <p><strong>Pelo(s) Compromissário(s):</strong></p>
-  {% for comp in tac.compromissarios %}
+  {% for v in tac.pessoas_vinculadas %}
   <div class="sign-col">
-    _________________________<br>{{ comp.nome }}<br>{{ comp.tipo }}<br>CPF/CNPJ: {{ comp.cpf_cnpj or '—' }}
+    _________________________<br>{{ v.pessoa.nome }}<br>{{ v.papel }}<br>CPF/CNPJ: {{ v.pessoa.doc_formatado }}
   </div>
   {% endfor %}
 </div>

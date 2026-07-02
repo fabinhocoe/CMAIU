@@ -49,9 +49,9 @@
 <table>
   <thead><tr><th>Nome</th><th>Tipo</th><th>CPF/CNPJ</th><th>Endereço</th></tr></thead>
   <tbody>
-    {% for comp in tac.compromissarios %}
-    <tr><td>{{ comp.nome }}</td><td>{{ comp.tipo }}</td>
-        <td>{{ comp.cpf_cnpj or '—' }}</td><td>{{ comp.endereco or '—' }}</td></tr>
+    {% for v in tac.pessoas_vinculadas %}
+    <tr><td>{{ v.pessoa.nome }}</td><td>{{ v.papel }}</td>
+        <td>{{ v.pessoa.doc_formatado }}</td><td>{{ v.pessoa.endereco or '—' }}</td></tr>
     {% endfor %}
   </tbody>
 </table>

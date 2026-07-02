@@ -37,7 +37,7 @@
 Celebrado entre o <strong>Município de Palhoça</strong>, por intermédio da
 <strong>Comissão Municipal de Avaliação de Impacto Urbano – CMAIU</strong>, com fundamento na
 Lei Municipal nº 5.031/2021, e o(s) compromissário(s):
-{% for comp in tac.compromissarios %}{{ comp.nome }}{% if comp.cpf_cnpj %} (CPF/CNPJ: {{ comp.cpf_cnpj }}){% endif %}{% if not loop.last %}; {% endif %}{% endfor %}.
+{% for v in tac.pessoas_vinculadas %}{{ v.pessoa.nome }} (CPF/CNPJ: {{ v.pessoa.doc_formatado }}){% if not loop.last %}; {% endif %}{% endfor %}.
 </p>
 
 <p class="clause">
