@@ -202,7 +202,6 @@ def logout():
 @app.route('/')
 @login_required
 def dashboard():
-    from dateutil.relativedelta import relativedelta
     hoje = date.today()
     ano_atual = hoje.year
 
@@ -257,8 +256,9 @@ def dashboard():
     graf_proc_val, graf_tac_val, graf_sc_val = [], [], []
 
     for i in range(11, -1, -1):
-        ref = hoje - relativedelta(months=i)
-        a, m = ref.year, ref.month
+        total_months = hoje.year * 12 + hoje.month - 1 - i
+        a, m = divmod(total_months, 12)
+        m += 1
         meses_labels.append(f"{m:02d}/{a}")
 
         # quantidades
