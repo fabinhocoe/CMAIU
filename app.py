@@ -1584,7 +1584,8 @@ def tac_novo():
         db.session.commit()
         flash('TAC criado. Cadastre os compromissários e obras.', 'success')
         return redirect(url_for('tac_detail', tid=tac.id))
-    return render_template('tac/form.html', tac=None, cubs=cubs)
+    from datetime import date as _date
+    return render_template('tac/form.html', tac=None, cubs=cubs, today=_date.today().isoformat())
 
 
 @app.route('/tac/<int:tid>')

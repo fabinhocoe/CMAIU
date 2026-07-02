@@ -54,7 +54,7 @@
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Data de Abertura <span class="text-danger">*</span></label>
         <input type="date" name="data_abertura" class="form-control form-control-sm" required
-               value="{{ tac.data_abertura.isoformat() if editing and tac.data_abertura else '' }}">
+               value="{{ tac.data_abertura.isoformat() if editing and tac.data_abertura else today }}">
       </div>
 
       {% if editing %}
