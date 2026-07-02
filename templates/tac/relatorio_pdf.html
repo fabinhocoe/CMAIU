@@ -96,6 +96,7 @@
 <table>
   <tr class="highlight"><th>VALOR FINAL TOTAL (VF)</th><td><strong>{{ c.vf_total|brl }}</strong></td></tr>
   <tr><th>Parcelas</th><td>{{ c.num_parcelas }}× {{ c.valor_parcela|brl }}</td></tr>
+  <tr><th>Cálculo realizado em</th><td>{{ c.data_calculo.strftime('%d/%m/%Y %H:%M') if c.data_calculo else '—' }}{% if c.usuario %} por <strong>{{ c.usuario.nome }}</strong>{% endif %}</td></tr>
 </table>
 
 <div class="sign-area">

@@ -74,6 +74,7 @@ nº 5.031/2021:
   <tr class="highlight"><th>Valor Total da Compensação</th><td><strong>{{ c.vf_total|brl }}</strong></td></tr>
   <tr><th>Forma de Pagamento</th><td>{{ c.num_parcelas }} parcela(s) de {{ c.valor_parcela|brl }}</td></tr>
   <tr><th>CUB de Referência</th><td>{{ c.cub_mes_ref }} = {{ c.cub_valor|brl }}/m²</td></tr>
+  <tr><th>Técnico Responsável</th><td>{% if c.usuario %}{{ c.usuario.nome }}{% else %}—{% endif %} {% if c.data_calculo %}({{ c.data_calculo.strftime('%d/%m/%Y') }}){% endif %}</td></tr>
 </table>
 <p class="clause">
 O pagamento deverá ser realizado junto à Tesouraria do Município ou por boleto bancário a ser

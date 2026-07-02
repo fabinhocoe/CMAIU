@@ -62,6 +62,10 @@ Lei Municipal nº 5.031/2021, e o(s) compromissário(s):
     <th>Data da Celebração</th>
     <td>{{ tac.data_assinatura.strftime('%d/%m/%Y') if tac.data_assinatura else '—' }}</td>
   </tr>
+  <tr>
+    <th>Técnico Responsável pelo Cálculo</th>
+    <td>{% if c.usuario %}{{ c.usuario.nome }}{% else %}—{% endif %}{% if c.data_calculo %} – {{ c.data_calculo.strftime('%d/%m/%Y') }}{% endif %}</td>
+  </tr>
 </table>
 
 <p class="clause" style="font-size:9pt; color: #555;">
