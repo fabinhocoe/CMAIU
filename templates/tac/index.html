@@ -83,7 +83,7 @@
             </td>
             <td class="fw-semibold">{{ t.num_processo_adm or '—' }}</td>
             <td>
-              {% set nomes = t.compromissarios|map(attribute='nome')|list %}
+              {% set nomes = t.pessoas_vinculadas|map(attribute='pessoa')|map(attribute='nome')|list %}
               {% if nomes %}
                 <div>{{ nomes[0] }}</div>
                 {% if nomes|length > 1 %}

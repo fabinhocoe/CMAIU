@@ -202,7 +202,10 @@ def logout():
 @app.route('/')
 @login_required
 def dashboard():
-    ano_atual = date.today().year
+    from dateutil.relativedelta import relativedelta
+    hoje = date.today()
+    ano_atual = hoje.year
+
     cub_atual = CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).first()
 
     # ── CMAIU / Processos ──
@@ -248,10 +251,46 @@ def dashboard():
     }
     sc_recentes = SoloCriado.query.order_by(SoloCriado.criado_em.desc()).limit(5).all()
 
+    # ── Dados para gráficos — últimos 12 meses ──
+    meses_labels = []
+    graf_proc_qtd, graf_tac_qtd, graf_sc_qtd = [], [], []
+    graf_proc_val, graf_tac_val, graf_sc_val = [], [], []
+
+    for i in range(11, -1, -1):
+        ref = hoje - relativedelta(months=i)
+        a, m = ref.year, ref.month
+        meses_labels.append(f"{m:02d}/{a}")
+
+        # quantidades
+        graf_proc_qtd.append(sum(1 for p in processos
+                                 if p.criado_em and p.criado_em.year == a and p.criado_em.month == m))
+        graf_tac_qtd.append(sum(1 for t in tacs
+                                if t.criado_em and t.criado_em.year == a and t.criado_em.month == m))
+        graf_sc_qtd.append(sum(1 for r in registros_sc
+                               if r.criado_em and r.criado_em.year == a and r.criado_em.month == m))
+
+        # valores arrecadados (apenas processos com cálculo e nível selecionado)
+        graf_proc_val.append(round(sum(
+            p.ultimo_calculo.valor_compensacao or 0
+            for p in processos
+            if p.criado_em and p.criado_em.year == a and p.criado_em.month == m
+            and p.ultimo_calculo and p.ultimo_calculo.nivel_selecionado), 2))
+        graf_tac_val.append(round(sum(
+            t.calculo.vf_total for t in tacs
+            if t.criado_em and t.criado_em.year == a and t.criado_em.month == m
+            and t.calculo), 2))
+        graf_sc_val.append(round(sum(
+            (r.von or 0) + (r.vin or 0)
+            for r in registros_sc
+            if r.criado_em and r.criado_em.year == a and r.criado_em.month == m), 2))
+
     return render_template('dashboard.html', ano_atual=ano_atual, cub_atual=cub_atual,
                            proc_totais=proc_totais, proc_recentes=proc_recentes,
                            tac_totais=tac_totais, tac_recentes=tac_recentes,
-                           sc_totais=sc_totais, sc_recentes=sc_recentes)
+                           sc_totais=sc_totais, sc_recentes=sc_recentes,
+                           meses_labels=meses_labels,
+                           graf_proc_qtd=graf_proc_qtd, graf_tac_qtd=graf_tac_qtd, graf_sc_qtd=graf_sc_qtd,
+                           graf_proc_val=graf_proc_val, graf_tac_val=graf_tac_val, graf_sc_val=graf_sc_val)
 
 
 # ─── Processos ───────────────────────────────────────────────────────────────

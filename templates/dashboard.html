@@ -3,63 +3,176 @@
 {% block page_title %}Dashboard{% endblock %}
 {% block content %}
 
-{# ── Resumo geral ── #}
+{# ── KPIs Totais ── #}
 <div class="row g-3 mt-1">
-  <div class="col-sm-6 col-lg-3">
-    <div class="card stat-card border-0 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="stat-icon bg-primary-subtle text-primary rounded-3 p-3 me-3">
-            <i class="bi bi-folder2-open fs-4"></i>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="rounded-3 p-3 bg-primary bg-opacity-10 text-primary flex-shrink-0">
+          <i class="bi bi-folder2-open fs-4"></i>
+        </div>
+        <div>
+          <div class="fs-2 fw-bold lh-1">{{ proc_totais.total }}</div>
+          <div class="text-muted small mt-1">Processos CMAIU</div>
+          <div class="text-primary small fw-semibold">{{ proc_totais.qtd_ano }} em {{ ano_atual }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="rounded-3 p-3 bg-info bg-opacity-10 text-info flex-shrink-0">
+          <i class="bi bi-file-earmark-ruled fs-4"></i>
+        </div>
+        <div>
+          <div class="fs-2 fw-bold lh-1">{{ tac_totais.total }}</div>
+          <div class="text-muted small mt-1">TACs</div>
+          <div class="text-info small fw-semibold">{{ tac_totais.qtd_ano }} em {{ ano_atual }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="rounded-3 p-3 bg-success bg-opacity-10 text-success flex-shrink-0">
+          <i class="bi bi-layers fs-4"></i>
+        </div>
+        <div>
+          <div class="fs-2 fw-bold lh-1">{{ sc_totais.total }}</div>
+          <div class="text-muted small mt-1">Solo Criado</div>
+          <div class="text-success small fw-semibold">{{ sc_totais.qtd_ano }} em {{ ano_atual }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-lg-3">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="rounded-3 p-3 bg-warning bg-opacity-10 text-warning flex-shrink-0">
+          <i class="bi bi-currency-dollar fs-4"></i>
+        </div>
+        <div>
+          <div class="fw-bold" style="font-size:1.05rem;line-height:1.2">{{ cub_atual.valor|brl if cub_atual else '—' }}/m²</div>
+          <div class="text-muted small mt-1">CUB{% if cub_atual %} {{ cub_atual.mes_ano_str }}{% endif %}</div>
+          <div class="text-warning small fw-semibold">Referência atual</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Gráficos: Processos por mês / Valores por mês ── #}
+<div class="row g-3 mt-2">
+  <div class="col-lg-7">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header section-header py-2 d-flex align-items-center">
+        <i class="bi bi-bar-chart-line me-2"></i>
+        <span class="fw-semibold">Processos Abertos por Mês — Últimos 12 meses</span>
+      </div>
+      <div class="card-body" style="min-height:260px">
+        <canvas id="grafQtd"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-header section-header py-2 d-flex align-items-center">
+        <i class="bi bi-cash-coin me-2"></i>
+        <span class="fw-semibold">Valores por Mês (R$)</span>
+      </div>
+      <div class="card-body" style="min-height:260px">
+        <canvas id="grafVal"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# ── Situação por módulo ── #}
+<div class="row g-3 mt-2">
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header py-2">
+        <i class="bi bi-folder2-open me-2 text-primary"></i><span class="fw-semibold text-primary">CMAIU – Processos</span>
+      </div>
+      <div class="card-body py-2">
+        <div class="row g-2 text-center">
+          <div class="col-6">
+            <div class="bg-warning bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-warning-emphasis">{{ proc_totais.em_analise }}</div>
+              <div class="small text-muted">Em análise</div>
+            </div>
           </div>
-          <div>
-            <div class="fs-2 fw-bold">{{ proc_totais.total }}</div>
-            <div class="text-muted small">Processos CMAIU</div>
+          <div class="col-6">
+            <div class="bg-success bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-success">{{ proc_totais.aprovados }}</div>
+              <div class="small text-muted">Aprovados</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="bg-primary bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-primary">{{ proc_totais.vcomp|brl }}</div>
+              <div class="small text-muted">Arrecadado em {{ ano_atual }}</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card stat-card border-0 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="stat-icon bg-info-subtle text-info rounded-3 p-3 me-3">
-            <i class="bi bi-file-earmark-ruled fs-4"></i>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header py-2">
+        <i class="bi bi-file-earmark-ruled me-2 text-info"></i><span class="fw-semibold text-info">TAC</span>
+      </div>
+      <div class="card-body py-2">
+        <div class="row g-2 text-center">
+          <div class="col-6">
+            <div class="bg-warning bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-warning-emphasis">{{ tac_totais.em_andamento }}</div>
+              <div class="small text-muted">Em andamento</div>
+            </div>
           </div>
-          <div>
-            <div class="fs-2 fw-bold">{{ tac_totais.total }}</div>
-            <div class="text-muted small">TACs</div>
+          <div class="col-6">
+            <div class="bg-success bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-success">{{ tac_totais.concluidos }}</div>
+              <div class="small text-muted">Concluídos</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="bg-info bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-info">{{ tac_totais.vtot|brl }}</div>
+              <div class="small text-muted">Calculado em {{ ano_atual }}</div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card stat-card border-0 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="stat-icon bg-success-subtle text-success rounded-3 p-3 me-3">
-            <i class="bi bi-layers fs-4"></i>
-          </div>
-          <div>
-            <div class="fs-2 fw-bold">{{ sc_totais.total }}</div>
-            <div class="text-muted small">Solo Criado</div>
-          </div>
-        </div>
+  <div class="col-md-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header py-2">
+        <i class="bi bi-layers me-2 text-success"></i><span class="fw-semibold text-success">Solo Criado</span>
       </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card stat-card border-0 shadow-sm">
-      <div class="card-body">
-        <div class="d-flex align-items-center">
-          <div class="stat-icon bg-warning-subtle text-warning rounded-3 p-3 me-3">
-            <i class="bi bi-currency-dollar fs-4"></i>
+      <div class="card-body py-2">
+        <div class="row g-2 text-center">
+          <div class="col-6">
+            <div class="bg-warning bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-warning-emphasis">{{ sc_totais.em_andamento }}</div>
+              <div class="small text-muted">Em andamento</div>
+            </div>
           </div>
-          <div>
-            <div class="fs-5 fw-bold">{{ cub_atual.valor|brl if cub_atual else '—' }}</div>
-            <div class="text-muted small">CUB Mais Recente{% if cub_atual %} ({{ cub_atual.mes_ano_str }}){% endif %}</div>
+          <div class="col-6">
+            <div class="bg-success bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-success">{{ sc_totais.aprovados }}</div>
+              <div class="small text-muted">Aprovados</div>
+            </div>
+          </div>
+          <div class="col-12">
+            <div class="bg-success bg-opacity-10 rounded p-2">
+              <div class="fw-bold text-success">{{ sc_totais.vtot|brl }}</div>
+              <div class="small text-muted">Calculado em {{ ano_atual }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -67,79 +180,40 @@
   </div>
 </div>
 
-{# ════════════════════════════════════════ CMAIU / Processos ════════════════════════════════════════ #}
-<div class="card border-0 shadow-sm mt-4">
+{# ── Recentes: CMAIU ── #}
+<div class="card border-0 shadow-sm mt-3">
   <div class="card-header section-header d-flex align-items-center gap-2 py-2">
-    <span class="badge bg-primary rounded-circle d-flex align-items-center justify-content-center"
-          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0"><i class="bi bi-folder2-open" style="font-size:.65rem"></i></span>
-    <span class="fw-semibold">CMAIU – Processos</span>
-    <a href="{{ url_for('processos_index') }}" class="btn btn-sm btn-outline-primary ms-auto">
-      Ver todos<i class="bi bi-arrow-right ms-1"></i>
-    </a>
+    <i class="bi bi-folder2-open text-primary"></i>
+    <span class="fw-semibold">Últimos Processos CMAIU</span>
+    <a href="{{ url_for('processos_index') }}" class="btn btn-sm btn-outline-primary ms-auto">Ver todos<i class="bi bi-arrow-right ms-1"></i></a>
   </div>
-  <div class="card-body">
-    <div class="row g-2 mb-3">
-      <div class="col-12">
-        <div class="text-muted small mb-1 ps-1">
-          <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ proc_totais.ano }}
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
-          <div class="small text-muted">No Ano</div>
-          <div class="fw-bold text-primary">{{ proc_totais.qtd_ano }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-warning bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Em Análise</div>
-          <div class="fw-bold" style="color:#7a5800">{{ proc_totais.em_analise }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Aprovados</div>
-          <div class="fw-bold text-success">{{ proc_totais.aprovados }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Valor Compensação</div>
-          <div class="fw-bold">{{ proc_totais.vcomp|brl }}</div>
-        </div>
-      </div>
-    </div>
-
+  <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
         <thead class="table-light">
           <tr>
-            <th class="px-2">Processo Adm.</th>
+            <th class="px-3">Processo Adm.</th>
             <th>Empreendimento</th>
             <th>Bairro</th>
             <th class="text-center">Situação</th>
-            <th class="text-center">Data Entrada</th>
+            <th class="text-center">Entrada</th>
             <th class="px-2"></th>
           </tr>
         </thead>
         <tbody>
           {% for p in proc_recentes %}
           <tr>
-            <td class="px-2">
-              <span class="fw-semibold">{{ p.num_processo or '—' }}</span>
-            </td>
+            <td class="px-3 fw-semibold">{{ p.num_processo or '—' }}</td>
             <td>{{ p.empreendimento.nome if p.empreendimento else '—' }}</td>
             <td>{{ p.empreendimento.bairro if p.empreendimento else '—' }}</td>
             <td class="text-center"><span class="badge bg-{{ p.situacao_badge }}">{{ p.situacao }}</span></td>
             <td class="text-center">{{ p.data_entrada.strftime('%d/%m/%Y') if p.data_entrada else '—' }}</td>
             <td class="text-end px-2">
-              <a href="{{ url_for('processos_detail', pid=p.id) }}" class="btn btn-xs btn-outline-primary" title="Visualizar">
-                <i class="bi bi-eye"></i>
-              </a>
+              <a href="{{ url_for('processos_detail', pid=p.id) }}" class="btn btn-xs btn-outline-primary"><i class="bi bi-eye"></i></a>
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="6" class="text-center text-muted py-4">Nenhum processo cadastrado.</td></tr>
+          <tr><td colspan="6" class="text-center text-muted py-3">Nenhum processo cadastrado.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -147,92 +221,50 @@
   </div>
 </div>
 
-{# ════════════════════════════════════════ TAC ════════════════════════════════════════ #}
-<div class="card border-0 shadow-sm mt-4">
+{# ── Recentes: TAC ── #}
+<div class="card border-0 shadow-sm mt-3">
   <div class="card-header section-header d-flex align-items-center gap-2 py-2">
-    <span class="badge bg-info rounded-circle d-flex align-items-center justify-content-center"
-          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0"><i class="bi bi-file-earmark-ruled" style="font-size:.65rem"></i></span>
-    <span class="fw-semibold">TAC – Termos de Ajustamento de Conduta</span>
-    <a href="{{ url_for('tac_index') }}" class="btn btn-sm btn-outline-primary ms-auto">
-      Ver todos<i class="bi bi-arrow-right ms-1"></i>
-    </a>
+    <i class="bi bi-file-earmark-ruled text-info"></i>
+    <span class="fw-semibold">Últimos TACs</span>
+    <a href="{{ url_for('tac_index') }}" class="btn btn-sm btn-outline-primary ms-auto">Ver todos<i class="bi bi-arrow-right ms-1"></i></a>
   </div>
-  <div class="card-body">
-    <div class="row g-2 mb-3">
-      <div class="col-12">
-        <div class="text-muted small mb-1 ps-1">
-          <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ tac_totais.ano }}
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
-          <div class="small text-muted">No Ano</div>
-          <div class="fw-bold text-primary">{{ tac_totais.qtd_ano }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-warning bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Em Andamento</div>
-          <div class="fw-bold" style="color:#7a5800">{{ tac_totais.em_andamento }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Concluídos</div>
-          <div class="fw-bold text-success">{{ tac_totais.concluidos }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Valor Total Calculado</div>
-          <div class="fw-bold">{{ tac_totais.vtot|brl }}</div>
-        </div>
-      </div>
-    </div>
-
+  <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
         <thead class="table-light">
           <tr>
-            <th class="text-center px-2" style="width:110px">Nº TAC</th>
-            <th>Compromissários</th>
-            <th>Endereço / Bairro</th>
+            <th class="px-3" style="width:110px">Nº TAC</th>
+            <th>Compromissário</th>
+            <th>Bairro</th>
             <th class="text-center">Situação</th>
             <th class="text-center">Abertura</th>
-            <th class="text-end">Valor (R$)</th>
+            <th class="text-end">Valor</th>
             <th class="px-2"></th>
           </tr>
         </thead>
         <tbody>
           {% for t in tac_recentes %}
           <tr>
-            <td class="text-center px-2">
-              {% if t.numero %}
-                <span class="badge bg-dark">{{ t.numero }}</span>
-              {% else %}
-                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
-              {% endif %}
+            <td class="px-3">
+              {% if t.numero %}<span class="badge bg-dark">{{ t.numero }}</span>
+              {% else %}<span class="text-muted fst-italic">—</span>{% endif %}
             </td>
             <td>
-              {% set nomes = t.compromissarios|map(attribute='nome')|list %}
+              {% set nomes = t.pessoas_vinculadas|map(attribute='pessoa')|map(attribute='nome')|list %}
               {{ nomes[0] if nomes else '—' }}
             </td>
-            <td>
-              {% if t.obras %}{{ t.obras[0].bairro or t.obras[0].endereco or '—' }}{% else %}—{% endif %}
-            </td>
+            <td>{% if t.obras %}{{ t.obras[0].bairro or t.obras[0].endereco or '—' }}{% else %}—{% endif %}</td>
             <td class="text-center"><span class="badge bg-{{ t.situacao_badge }}">{{ t.situacao }}</span></td>
             <td class="text-center">{{ t.data_abertura.strftime('%d/%m/%Y') if t.data_abertura else '—' }}</td>
             <td class="text-end fw-semibold text-success">
-              {% if t.calculo %}{{ t.calculo.vf_total|brl }}{% else %}<span class="text-muted fst-italic">Não calculado</span>{% endif %}
+              {% if t.calculo %}{{ t.calculo.vf_total|brl }}{% else %}<span class="text-muted fst-italic">—</span>{% endif %}
             </td>
             <td class="text-end px-2">
-              <a href="{{ url_for('tac_detail', tid=t.id) }}" class="btn btn-xs btn-outline-primary" title="Visualizar">
-                <i class="bi bi-eye"></i>
-              </a>
+              <a href="{{ url_for('tac_detail', tid=t.id) }}" class="btn btn-xs btn-outline-primary"><i class="bi bi-eye"></i></a>
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="7" class="text-center text-muted py-4">Nenhum TAC cadastrado.</td></tr>
+          <tr><td colspan="7" class="text-center text-muted py-3">Nenhum TAC cadastrado.</td></tr>
           {% endfor %}
         </tbody>
       </table>
@@ -240,56 +272,21 @@
   </div>
 </div>
 
-{# ════════════════════════════════════════ Solo Criado ════════════════════════════════════════ #}
-<div class="card border-0 shadow-sm mt-4 mb-4">
+{# ── Recentes: Solo Criado ── #}
+<div class="card border-0 shadow-sm mt-3 mb-4">
   <div class="card-header section-header d-flex align-items-center gap-2 py-2">
-    <span class="badge bg-success rounded-circle d-flex align-items-center justify-content-center"
-          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0"><i class="bi bi-layers" style="font-size:.65rem"></i></span>
-    <span class="fw-semibold">Solo Criado – Outorga Onerosa</span>
-    <a href="{{ url_for('sc_index') }}" class="btn btn-sm btn-outline-primary ms-auto">
-      Ver todos<i class="bi bi-arrow-right ms-1"></i>
-    </a>
+    <i class="bi bi-layers text-success"></i>
+    <span class="fw-semibold">Últimos Solo Criado</span>
+    <a href="{{ url_for('sc_index') }}" class="btn btn-sm btn-outline-primary ms-auto">Ver todos<i class="bi bi-arrow-right ms-1"></i></a>
   </div>
-  <div class="card-body">
-    <div class="row g-2 mb-3">
-      <div class="col-12">
-        <div class="text-muted small mb-1 ps-1">
-          <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ sc_totais.ano }}
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
-          <div class="small text-muted">No Ano</div>
-          <div class="fw-bold text-primary">{{ sc_totais.qtd_ano }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-warning bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Em Andamento</div>
-          <div class="fw-bold" style="color:#7a5800">{{ sc_totais.em_andamento }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Aprovados</div>
-          <div class="fw-bold text-success">{{ sc_totais.aprovados }}</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
-          <div class="small text-muted">Valor Total Geral</div>
-          <div class="fw-bold">{{ sc_totais.vtot|brl }}</div>
-        </div>
-      </div>
-    </div>
-
+  <div class="card-body p-0">
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
         <thead class="table-light">
           <tr>
-            <th class="text-center px-2" style="width:90px">Nº SC</th>
+            <th class="px-3" style="width:90px">Nº SC</th>
             <th>Proprietário</th>
-            <th>Endereço / Bairro</th>
+            <th>Endereço</th>
             <th class="text-center">Situação</th>
             <th class="text-end">Valor Total</th>
             <th class="px-2"></th>
@@ -298,12 +295,9 @@
         <tbody>
           {% for r in sc_recentes %}
           <tr>
-            <td class="text-center px-2">
-              {% if r.numero %}
-                <span class="badge bg-dark">{{ r.numero }}</span>
-              {% else %}
-                <span class="text-muted fst-italic" style="font-size:.75rem">—</span>
-              {% endif %}
+            <td class="px-3">
+              {% if r.numero %}<span class="badge bg-dark">{{ r.numero }}</span>
+              {% else %}<span class="text-muted fst-italic">—</span>{% endif %}
             </td>
             <td class="fw-semibold">{{ r.pessoa.nome if r.pessoa else (r.nome_empreendimento or '—') }}</td>
             <td>
@@ -313,20 +307,84 @@
             <td class="text-center"><span class="badge bg-{{ r.situacao_badge }}">{{ r.situacao }}</span></td>
             <td class="text-end fw-bold">
               {% set vtot = (r.von or 0) + (r.vin or 0) %}
-              {% if vtot > 0 %}{{ vtot|brl }}{% else %}<span class="text-muted fst-italic">Não calculado</span>{% endif %}
+              {% if vtot > 0 %}{{ vtot|brl }}{% else %}<span class="text-muted fst-italic">—</span>{% endif %}
             </td>
             <td class="text-end px-2">
-              <a href="{{ url_for('sc_detail', sid=r.id) }}" class="btn btn-xs btn-outline-primary" title="Visualizar">
-                <i class="bi bi-eye"></i>
-              </a>
+              <a href="{{ url_for('sc_detail', sid=r.id) }}" class="btn btn-xs btn-outline-primary"><i class="bi bi-eye"></i></a>
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="6" class="text-center text-muted py-4">Nenhum registro cadastrado.</td></tr>
+          <tr><td colspan="6" class="text-center text-muted py-3">Nenhum registro cadastrado.</td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const LABELS = {{ meses_labels | tojson }};
+const PROC_QTD = {{ graf_proc_qtd | tojson }};
+const TAC_QTD  = {{ graf_tac_qtd  | tojson }};
+const SC_QTD   = {{ graf_sc_qtd   | tojson }};
+const PROC_VAL = {{ graf_proc_val | tojson }};
+const TAC_VAL  = {{ graf_tac_val  | tojson }};
+const SC_VAL   = {{ graf_sc_val   | tojson }};
+
+function fmtBrl(v) {
+  return 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+// ── Gráfico de Quantidade ──
+new Chart(document.getElementById('grafQtd'), {
+  type: 'bar',
+  data: {
+    labels: LABELS,
+    datasets: [
+      { label: 'CMAIU', data: PROC_QTD, backgroundColor: 'rgba(13,110,253,0.7)', borderRadius: 4 },
+      { label: 'TAC',   data: TAC_QTD,  backgroundColor: 'rgba(13,202,240,0.7)', borderRadius: 4 },
+      { label: 'Solo Criado', data: SC_QTD, backgroundColor: 'rgba(25,135,84,0.7)', borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} processo(s)` } }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { beginAtZero: true, ticks: { stepSize: 1, font: { size: 10 } } }
+    }
+  }
+});
+
+// ── Gráfico de Valores ──
+new Chart(document.getElementById('grafVal'), {
+  type: 'line',
+  data: {
+    labels: LABELS,
+    datasets: [
+      { label: 'CMAIU',       data: PROC_VAL, borderColor: '#0d6efd', backgroundColor: 'rgba(13,110,253,0.1)', fill: true, tension: 0.3, pointRadius: 4 },
+      { label: 'TAC',         data: TAC_VAL,  borderColor: '#0dcaf0', backgroundColor: 'rgba(13,202,240,0.1)', fill: true, tension: 0.3, pointRadius: 4 },
+      { label: 'Solo Criado', data: SC_VAL,   borderColor: '#198754', backgroundColor: 'rgba(25,135,84,0.1)',  fill: true, tension: 0.3, pointRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+      tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtBrl(ctx.parsed.y)}` } }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+      y: { beginAtZero: true, ticks: { font: { size: 10 }, callback: v => 'R$ ' + Number(v).toLocaleString('pt-BR') } }
+    }
+  }
+});
+</script>
 {% endblock %}
