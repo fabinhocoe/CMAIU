@@ -83,16 +83,16 @@
         </tr>
         <tr>
           <td colspan="3">Fator de Acréscimo (FA{% if r.fa == 1.2 %} – obra < 5 anos{% else %} – obra ≥ 5 anos{% endif %})</td>
-          <td class="text-end">{{ '%.2f'|format(r.fa) }}</td>
+          <td class="text-end">{{ '%.2f'|format(r.fa)|replace('.', ',') }}</td>
         </tr>
         <tr>
           <td colspan="3">Fator de Redução por Idade (FR{% if r.fr == 0 %} – anterior a 07/04/1993{% elif r.fr == 0.6 %} – ≥ 15 anos{% elif r.fr == 0.7 %} – > 10 e < 15 anos{% else %} – ≤ 10 anos{% endif %})</td>
-          <td class="text-end">{{ '%.2f'|format(r.fr) }}</td>
+          <td class="text-end">{{ '%.2f'|format(r.fr)|replace('.', ',') }}</td>
         </tr>
         {% if r.f_uni < 1 %}
         <tr>
           <td colspan="3">Fator Unifamiliar ≤ 150 m²</td>
-          <td class="text-end">{{ '%.2f'|format(r.f_uni) }}</td>
+          <td class="text-end">{{ '%.2f'|format(r.f_uni)|replace('.', ',') }}</td>
         </tr>
         {% endif %}
         <tr class="table-success">

@@ -85,7 +85,7 @@
       </div>
       <div class="col-md-4">
         <div class="text-muted small">CUB de Referência</div>
-        <div>{{ tac.cub.mes_ano_str ~ ' – R$ ' ~ '%.2f'|format(tac.cub.valor) ~ '/m²' if tac.cub else '—' }}</div>
+        <div>{{ (tac.cub.mes_ano_str ~ ' – ' ~ tac.cub.valor|brl ~ '/m²') if tac.cub else '—' }}</div>
       </div>
       {% if tac.observacoes %}
       <div class="col-12">

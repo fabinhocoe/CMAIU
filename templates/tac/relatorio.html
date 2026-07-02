@@ -88,9 +88,9 @@
       <tr class="table-light fw-bold"><th colspan="3">Subtotal bruto (irr. perc. + vagas)</th><td>{{ r.sb|brl }}</td></tr>
       <tr><th colspan="3">Teto Legal (TL = CUB × área × 5%)</th><td>{{ r.tl|brl }}</td></tr>
       <tr class="table-info"><th colspan="3">Valor-Base Ajustado (VBA)</th><td>{{ r.vba|brl }}</td></tr>
-      <tr><th colspan="3">FA {{ '= 1,20 (obra < 5 anos)' if r.fa == 1.2 else '= 1,00 (obra ≥ 5 anos)' }}</th><td>{{ '%.2f'|format(r.fa) }}</td></tr>
-      <tr><th colspan="3">FR (redução por idade)</th><td>{{ '%.2f'|format(r.fr) }}</td></tr>
-      {% if r.f_uni < 1 %}<tr><th colspan="3">Fator unifamiliar ≤ 150 m²</th><td>{{ '%.2f'|format(r.f_uni) }}</td></tr>{% endif %}
+      <tr><th colspan="3">FA {{ '= 1,20 (obra < 5 anos)' if r.fa == 1.2 else '= 1,00 (obra ≥ 5 anos)' }}</th><td>{{ '%.2f'|format(r.fa)|replace('.', ',') }}</td></tr>
+      <tr><th colspan="3">FR (redução por idade)</th><td>{{ '%.2f'|format(r.fr)|replace('.', ',') }}</td></tr>
+      {% if r.f_uni < 1 %}<tr><th colspan="3">Fator unifamiliar ≤ 150 m²</th><td>{{ '%.2f'|format(r.f_uni)|replace('.', ',') }}</td></tr>{% endif %}
       <tr class="table-success fw-bold"><th colspan="3">VF</th><td>{{ r.vf|brl }}</td></tr>
     </table>
     {% endfor %}

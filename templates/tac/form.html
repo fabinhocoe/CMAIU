@@ -102,7 +102,7 @@
             <option value="">— Selecione o CUB —</option>
             {% for cu in cubs %}
             <option value="{{ cu.id }}" {% if editing and tac.cub_id == cu.id %}selected{% endif %}>
-              {{ cu.mes_ano_str }} – R$ {{ '%.2f'|format(cu.valor) }}/m²
+              {{ cu.mes_ano_str }} – {{ cu.valor|brl }}/m²
             </option>
             {% endfor %}
           </select>

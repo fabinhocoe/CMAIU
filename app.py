@@ -1656,7 +1656,8 @@ def tac_editar(tid):
         db.session.commit()
         flash('TAC atualizado.', 'success')
         return redirect(url_for('tac_detail', tid=tid))
-    return render_template('tac/form.html', tac=tac, cubs=cubs)
+    from datetime import date as _date
+    return render_template('tac/form.html', tac=tac, cubs=cubs, today=_date.today().isoformat())
 
 
 @app.route('/tac/<int:tid>/compromissarios', methods=['GET', 'POST'])
