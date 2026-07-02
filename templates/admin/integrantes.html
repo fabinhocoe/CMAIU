@@ -45,6 +45,7 @@
               <td class="small">{{ i.orgao or '—' }}</td>
               <td>
                 <form method="POST" class="d-inline">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="action" value="toggle">
                   <input type="hidden" name="id" value="{{ i.id }}">
                   <button type="submit" class="btn btn-sm btn-{{ 'outline-success' if not i.ativo else 'outline-secondary' }}">
@@ -54,6 +55,7 @@
               </td>
               <td>
                 <form method="POST" class="d-inline">
+                  <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="action" value="delete">
                   <input type="hidden" name="id" value="{{ i.id }}">
                   <button type="submit" class="btn btn-sm btn-outline-danger"

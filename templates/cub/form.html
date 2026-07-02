@@ -2,55 +2,70 @@
 {% block title %}{% if cub %}Editar CUB{% else %}Novo CUB{% endif %} – CMAIU{% endblock %}
 {% block page_title %}{% if cub %}Editar CUB{% else %}Cadastrar CUB{% endif %}{% endblock %}
 {% block content %}
-<div class="card border-0 shadow-sm mt-2" style="max-width:600px">
-  <div class="card-body">
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('cub_index') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+  <span class="text-muted small ms-auto">
+    <i class="bi bi-asterisk text-danger me-1" style="font-size:.6rem;vertical-align:middle"></i>Campo obrigatório
+  </span>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:620px">
+  <div class="card-header section-header">
+    <i class="bi bi-currency-dollar me-2"></i>
+    {% if cub %}Editar valor CUB{% else %}Novo valor de CUB{% endif %}
+  </div>
+  <div class="card-body py-3">
     <form method="POST">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <div class="row g-3">
         <div class="col-md-4">
           <label class="form-label small fw-semibold">Mês <span class="text-danger">*</span></label>
-          <select name="mes" class="form-select" required>
+          <select name="mes" class="form-select form-select-sm" required>
             {% for m in meses %}
             {% set i = loop.index %}
-            <option value="{{ i }}" {% if cub and cub.mes == i %}selected{% endif %}>{{ m }}</option>
+            <option value="{{ i }}" {% if cub and cub.mes == i %}selected{% elif not cub and i == now().month %}selected{% endif %}>{{ m }}</option>
             {% endfor %}
           </select>
         </div>
         <div class="col-md-4">
           <label class="form-label small fw-semibold">Ano <span class="text-danger">*</span></label>
-          <input type="number" name="ano" class="form-control" min="2000" max="2099" required
+          <input type="number" name="ano" class="form-control form-control-sm" min="2000" max="2099" required
             value="{{ cub.ano if cub else now().year }}">
         </div>
         <div class="col-md-4">
           <label class="form-label small fw-semibold">Valor (R$/m²) <span class="text-danger">*</span></label>
-          <input type="number" step="0.01" name="valor" class="form-control" required
-            value="{{ cub.valor if cub else '' }}">
+          <input type="number" step="0.01" name="valor" class="form-control form-control-sm" required
+            value="{{ cub.valor if cub else '' }}" placeholder="Ex: 2450.00">
         </div>
         <div class="col-12">
           <label class="form-label small fw-semibold">Categoria</label>
-          <input type="text" name="categoria" class="form-control"
+          <input type="text" name="categoria" class="form-control form-control-sm"
             value="{{ cub.categoria if cub else 'R8-N (Residencial 8 pav. - Normal)' }}">
         </div>
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Fonte</label>
-          <input type="text" name="fonte" class="form-control"
+          <input type="text" name="fonte" class="form-control form-control-sm"
             value="{{ cub.fonte if cub else 'SINDUSCON-SC' }}">
         </div>
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Data de Publicação</label>
-          <input type="date" name="data_publicacao" class="form-control"
+          <input type="date" name="data_publicacao" class="form-control form-control-sm"
             value="{{ cub.data_publicacao.isoformat() if cub and cub.data_publicacao else '' }}">
         </div>
         <div class="col-12">
           <label class="form-label small fw-semibold">Observações</label>
-          <textarea name="observacoes" class="form-control" rows="2">{{ cub.observacoes if cub else '' }}</textarea>
+          <textarea name="observacoes" class="form-control form-control-sm" rows="2">{{ cub.observacoes if cub else '' }}</textarea>
         </div>
       </div>
-      <div class="d-flex gap-2 mt-3">
-        <button type="submit" class="btn btn-primary">
-          <i class="bi bi-check-circle me-1"></i>Salvar
+      <div class="d-flex gap-2 mt-3 justify-content-end">
+        <a href="{{ url_for('cub_index') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-x-lg me-1"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm px-4">
+          <i class="bi bi-floppy me-1"></i>Salvar
         </button>
-        <a href="{{ url_for('cub_index') }}" class="btn btn-outline-secondary">Cancelar</a>
       </div>
     </form>
   </div>

@@ -2,51 +2,78 @@
 {% block title %}CUB – CMAIU{% endblock %}
 {% block page_title %}Custo Unitário Básico (CUB){% endblock %}
 {% block content %}
-<div class="d-flex justify-content-end mb-3 mt-2">
+<div class="d-flex justify-content-between align-items-center mb-3 mt-2">
+  <p class="mb-0 text-muted small">
+    <i class="bi bi-info-circle me-1"></i>Valor de referência utilizado nos cálculos de TAC e Solo Criado.
+  </p>
   {% if current_user.is_admin %}
   <a href="{{ url_for('cub_novo') }}" class="btn btn-sm btn-primary">
     <i class="bi bi-plus-circle me-1"></i>Adicionar CUB
   </a>
   {% endif %}
 </div>
+
 <div class="card border-0 shadow-sm">
   <div class="card-body p-0">
     <div class="table-responsive">
-      <table class="table table-hover mb-0 align-middle">
+      <table class="table table-hover mb-0 align-middle" style="font-size:.84rem">
         <thead class="table-light">
           <tr>
             <th>Mês/Ano</th>
             <th>Categoria</th>
             <th class="text-end">Valor (R$/m²)</th>
             <th>Fonte</th>
-            <th>Data Cadastro</th>
+            <th>Data Publicação</th>
             <th>Cadastrado por</th>
-            <th></th>
+            <th class="px-2"></th>
           </tr>
         </thead>
         <tbody>
           {% for c in cubs %}
-          <tr>
-            <td class="fw-semibold">{{ c.mes_ano_str }}</td>
-            <td class="small">{{ c.categoria }}</td>
-            <td class="text-end fw-bold">{{ c.valor|brl }}</td>
-            <td class="small text-muted">{{ c.fonte or '—' }}</td>
-            <td class="small text-muted">{{ c.data_cadastro.strftime('%d/%m/%Y') if c.data_cadastro else '—' }}</td>
-            <td class="small text-muted">{{ c.usuario.nome if c.usuario else 'Sistema' }}</td>
-            <td>
+          {% set is_mes_atual = c.mes == now().month and c.ano == now().year %}
+          <tr {% if is_mes_atual %}class="table-success"{% endif %}>
+            <td class="fw-semibold">
+              {{ c.mes_ano_str }}
+              {% if is_mes_atual %}
+              <span class="badge bg-success ms-1" style="font-size:.65rem">Mês atual</span>
+              {% endif %}
+            </td>
+            <td class="text-muted">{{ c.categoria }}</td>
+            <td class="text-end fw-bold {% if is_mes_atual %}text-success{% endif %}">{{ c.valor|brl }}</td>
+            <td class="text-muted">{{ c.fonte or '—' }}</td>
+            <td class="text-muted">{{ c.data_publicacao.strftime('%d/%m/%Y') if c.data_publicacao else (c.data_cadastro.strftime('%d/%m/%Y') if c.data_cadastro else '—') }}</td>
+            <td class="text-muted">{{ c.usuario.nome if c.usuario else 'Sistema' }}</td>
+            <td class="text-end px-2">
               {% if current_user.is_admin %}
-              <a href="{{ url_for('cub_editar', cid=c.id) }}" class="btn btn-sm btn-outline-secondary">
+              <a href="{{ url_for('cub_editar', cid=c.id) }}" class="btn btn-xs btn-outline-secondary" title="Editar">
                 <i class="bi bi-pencil"></i>
               </a>
               {% endif %}
             </td>
           </tr>
           {% else %}
-          <tr><td colspan="7" class="text-center text-muted py-4">Nenhum CUB cadastrado.</td></tr>
+          <tr>
+            <td colspan="7" class="text-center text-muted py-5">
+              <i class="bi bi-currency-dollar fs-3 d-block mb-2 opacity-25"></i>
+              Nenhum CUB cadastrado.
+              {% if current_user.is_admin %}
+              <div class="mt-2">
+                <a href="{{ url_for('cub_novo') }}" class="btn btn-sm btn-primary">
+                  <i class="bi bi-plus-lg me-1"></i>Cadastrar o primeiro CUB
+                </a>
+              </div>
+              {% endif %}
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
   </div>
+  {% if cubs %}
+  <div class="card-footer text-muted small py-2">
+    {{ cubs|length }} registro{{ 's' if cubs|length != 1 }}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

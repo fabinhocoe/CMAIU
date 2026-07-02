@@ -206,6 +206,7 @@ def dashboard():
     ano_atual = hoje.year
 
     cub_atual = CUB.query.order_by(CUB.ano.desc(), CUB.mes.desc()).first()
+    cub_mes_faltante = not (cub_atual and cub_atual.mes == hoje.month and cub_atual.ano == hoje.year)
 
     # ── CMAIU / Processos ──
     processos = Processo.query.all()
@@ -285,6 +286,7 @@ def dashboard():
             if r.criado_em and r.criado_em.year == a and r.criado_em.month == m), 2))
 
     return render_template('dashboard.html', ano_atual=ano_atual, cub_atual=cub_atual,
+                           cub_mes_faltante=cub_mes_faltante,
                            proc_totais=proc_totais, proc_recentes=proc_recentes,
                            tac_totais=tac_totais, tac_recentes=tac_recentes,
                            sc_totais=sc_totais, sc_recentes=sc_recentes,

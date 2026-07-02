@@ -2,50 +2,70 @@
 {% block title %}{% if u %}Editar Usuário{% else %}Novo Usuário{% endif %} – CMAIU{% endblock %}
 {% block page_title %}{% if u %}Editar Usuário{% else %}Novo Usuário{% endif %}{% endblock %}
 {% block content %}
-<div class="card border-0 shadow-sm mt-2" style="max-width:500px">
-  <div class="card-body">
+<div class="d-flex gap-2 mb-3 mt-2">
+  <a href="{{ url_for('admin_usuarios') }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Voltar
+  </a>
+</div>
+
+<div class="card border-0 shadow-sm" style="max-width:520px">
+  <div class="card-header section-header">
+    <i class="bi bi-person-gear me-2"></i>{% if u %}Editar Usuário – {{ u.nome }}{% else %}Novo Usuário{% endif %}
+  </div>
+  <div class="card-body py-3">
     <form method="POST">
-    <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
-      <div class="mb-3">
-        <label class="form-label small fw-semibold">Nome Completo</label>
-        <input type="text" name="nome" class="form-control" required value="{{ u.nome if u else '' }}">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Nome Completo <span class="text-danger">*</span></label>
+          <input type="text" name="nome" class="form-control form-control-sm" required
+            value="{{ u.nome if u else '' }}" placeholder="Nome completo do usuário">
+        </div>
+        {% if not u %}
+        <div class="col-12">
+          <label class="form-label small fw-semibold">E-mail <span class="text-danger">*</span></label>
+          <input type="email" name="email" class="form-control form-control-sm" required
+            placeholder="email@palhoça.sc.gov.br">
+        </div>
+        {% else %}
+        <div class="col-12">
+          <label class="form-label small fw-semibold">E-mail</label>
+          <input type="email" class="form-control form-control-sm" value="{{ u.email }}" readonly>
+        </div>
+        {% endif %}
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Perfil de Acesso</label>
+          <select name="perfil" class="form-select form-select-sm">
+            <option value="consulta"      {% if u and u.perfil == 'consulta' %}selected{% endif %}>Consulta</option>
+            <option value="tecnico"       {% if u and u.perfil == 'tecnico' %}selected{% endif %}>Técnico</option>
+            <option value="administrador" {% if u and u.perfil == 'administrador' %}selected{% endif %}>Administrador</option>
+          </select>
+        </div>
+        {% if u %}
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Situação</label>
+          <select name="situacao" class="form-select form-select-sm">
+            <option value="ativo"   {% if u.situacao == 'ativo' %}selected{% endif %}>Ativo</option>
+            <option value="inativo" {% if u.situacao == 'inativo' %}selected{% endif %}>Inativo</option>
+          </select>
+        </div>
+        {% endif %}
+        <div class="col-12">
+          <label class="form-label small fw-semibold">
+            {% if u %}Nova Senha <span class="text-muted fw-normal">(deixar em branco para não alterar)</span>{% else %}Senha <span class="text-danger">*</span>{% endif %}
+          </label>
+          <input type="password" name="senha" class="form-control form-control-sm"
+            {% if not u %}required{% endif %}
+            placeholder="{% if u %}Nova senha (opcional)…{% else %}Mínimo 6 caracteres{% endif %}">
+        </div>
       </div>
-      {% if not u %}
-      <div class="mb-3">
-        <label class="form-label small fw-semibold">E-mail</label>
-        <input type="email" name="email" class="form-control" required>
-      </div>
-      {% else %}
-      <div class="mb-3">
-        <label class="form-label small fw-semibold">E-mail</label>
-        <input type="email" class="form-control bg-light" value="{{ u.email }}" readonly>
-      </div>
-      {% endif %}
-      <div class="mb-3">
-        <label class="form-label small fw-semibold">Perfil de Acesso</label>
-        <select name="perfil" class="form-select">
-          <option value="consulta" {% if u and u.perfil == 'consulta' %}selected{% endif %}>Consulta</option>
-          <option value="tecnico" {% if u and u.perfil == 'tecnico' %}selected{% endif %}>Técnico</option>
-          <option value="administrador" {% if u and u.perfil == 'administrador' %}selected{% endif %}>Administrador</option>
-        </select>
-      </div>
-      {% if u %}
-      <div class="mb-3">
-        <label class="form-label small fw-semibold">Situação</label>
-        <select name="situacao" class="form-select">
-          <option value="ativo" {% if u.situacao == 'ativo' %}selected{% endif %}>Ativo</option>
-          <option value="inativo" {% if u.situacao == 'inativo' %}selected{% endif %}>Inativo</option>
-        </select>
-      </div>
-      {% endif %}
-      <div class="mb-3">
-        <label class="form-label small fw-semibold">{% if u %}Nova Senha (deixar em branco para não alterar){% else %}Senha{% endif %}</label>
-        <input type="password" name="senha" class="form-control" {% if not u %}required{% endif %}
-          placeholder="{% if u %}Nova senha...{% else %}{% endif %}">
-      </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Salvar</button>
-        <a href="{{ url_for('admin_usuarios') }}" class="btn btn-outline-secondary">Cancelar</a>
+      <div class="d-flex gap-2 mt-4 justify-content-end">
+        <a href="{{ url_for('admin_usuarios') }}" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-x-lg me-1"></i>Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary btn-sm px-4">
+          <i class="bi bi-floppy me-1"></i>Salvar
+        </button>
       </div>
     </form>
   </div>
