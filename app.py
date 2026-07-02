@@ -1890,11 +1890,15 @@ def tac_relatorio_pdf(tid):
         flash('Realize o cálculo antes de gerar PDF.', 'warning')
         return redirect(url_for('tac_relatorio', tid=tid))
     _garantir_numero_tac(tac)
+    import os as _os, base64 as _b64
+    _logo_file = _os.path.join(_os.path.dirname(__file__), 'static', 'img', 'smpu_logo.jpg')
+    with open(_logo_file, 'rb') as _lf:
+        logo_path = 'data:image/jpeg;base64,' + _b64.b64encode(_lf.read()).decode()
     resultados = json.loads(c.resultado_json) if c.resultado_json else []
     integrantes = Integrante.query.filter_by(ativo=True).all()
     html = render_template('tac/relatorio_pdf.html',
                            tac=tac, c=c, resultados=resultados,
-                           integrantes=integrantes)
+                           integrantes=integrantes, logo_path=logo_path)
     from xhtml2pdf import pisa
     buf = io.BytesIO()
     pisa.CreatePDF(html, dest=buf)
@@ -1912,11 +1916,15 @@ def tac_termo_pdf(tid):
         flash('Realize o cálculo antes de gerar o Termo.', 'warning')
         return redirect(url_for('tac_relatorio', tid=tid))
     _garantir_numero_tac(tac)
+    import os as _os, base64 as _b64
+    _logo_file = _os.path.join(_os.path.dirname(__file__), 'static', 'img', 'smpu_logo.jpg')
+    with open(_logo_file, 'rb') as _lf:
+        logo_path = 'data:image/jpeg;base64,' + _b64.b64encode(_lf.read()).decode()
     resultados = json.loads(c.resultado_json) if c.resultado_json else []
     integrantes = Integrante.query.filter_by(ativo=True).all()
     html = render_template('tac/termo_pdf.html',
                            tac=tac, c=c, resultados=resultados,
-                           integrantes=integrantes)
+                           integrantes=integrantes, logo_path=logo_path)
     from xhtml2pdf import pisa
     buf = io.BytesIO()
     pisa.CreatePDF(html, dest=buf)
@@ -1934,7 +1942,11 @@ def tac_extrato_pdf(tid):
         flash('Realize o cálculo antes de gerar o Extrato.', 'warning')
         return redirect(url_for('tac_relatorio', tid=tid))
     _garantir_numero_tac(tac)
-    html = render_template('tac/extrato_pdf.html', tac=tac, c=c)
+    import os as _os, base64 as _b64
+    _logo_file = _os.path.join(_os.path.dirname(__file__), 'static', 'img', 'smpu_logo.jpg')
+    with open(_logo_file, 'rb') as _lf:
+        logo_path = 'data:image/jpeg;base64,' + _b64.b64encode(_lf.read()).decode()
+    html = render_template('tac/extrato_pdf.html', tac=tac, c=c, logo_path=logo_path)
     from xhtml2pdf import pisa
     buf = io.BytesIO()
     pisa.CreatePDF(html, dest=buf)
@@ -2038,6 +2050,9 @@ def obras_nova():
         db.session.add(o)
         db.session.commit()
         flash('Obra cadastrada com sucesso.', 'success')
+        next_url = request.args.get('next')
+        if next_url and next_url.startswith('/'):
+            return redirect(next_url)
         return redirect(url_for('obras_index'))
     return render_template('obras/form.html', obra=None,
                            zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all(),

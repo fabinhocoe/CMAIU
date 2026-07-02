@@ -13,7 +13,13 @@
   <!-- Formulário de adição -->
   <div class="col-lg-5">
     <div class="card border-0 shadow-sm">
-      <div class="card-header section-header"><i class="bi bi-building-add me-2"></i>Adicionar Obra</div>
+      <div class="card-header section-header d-flex align-items-center">
+        <i class="bi bi-building-add me-2"></i>Adicionar Obra
+        <a href="{{ url_for('obras_nova') }}?next={{ url_for('tac_obras', tid=tac.id) }}"
+           class="btn btn-xs btn-outline-secondary ms-auto" title="Cadastrar nova obra no sistema">
+          <i class="bi bi-plus-circle me-1"></i>Nova obra
+        </a>
+      </div>
       <div class="card-body">
         <form method="POST">
           <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">

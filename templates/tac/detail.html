@@ -13,9 +13,6 @@
   <a href="{{ url_for('tac_editar', tid=tac.id) }}" class="btn btn-sm btn-outline-primary">
     <i class="bi bi-pencil me-1"></i>Editar
   </a>
-  <a href="{{ url_for('tac_pessoas', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
-    <i class="bi bi-people me-1"></i>Pessoas
-  </a>
   <a href="{{ url_for('tac_obras', tid=tac.id) }}" class="btn btn-sm btn-outline-secondary">
     <i class="bi bi-building me-1"></i>Obras
   </a>
@@ -67,7 +64,7 @@
         {% if tac.numero %}
           <span class="badge bg-dark fs-6 mt-1">{{ tac.numero }}</span>
         {% else %}
-          <span class="fst-italic text-muted">Gerado após assinatura</span>
+          <span class="fst-italic text-muted">Gerado na impressão dos relatórios</span>
         {% endif %}
       </div>
       <div class="col-md-3">
@@ -107,11 +104,6 @@
           style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">2</span>
     <i class="bi bi-people"></i>
     <span class="fw-semibold">Compromissários</span>
-    {% if current_user.is_tecnico and not tac.bloqueado %}
-    <a href="{{ url_for('tac_pessoas', tid=tac.id) }}" class="btn btn-xs btn-outline-secondary ms-auto">
-      <i class="bi bi-pencil me-1"></i>Gerenciar
-    </a>
-    {% endif %}
   </div>
   <div class="card-body p-0">
     <div class="table-responsive">
@@ -136,12 +128,7 @@
           <tr>
             <td colspan="4" class="text-center text-muted py-3">
               <i class="bi bi-people fs-4 d-block mb-1 opacity-25"></i>
-              Nenhum compromissário cadastrado.
-              {% if current_user.is_tecnico and not tac.bloqueado %}
-              <a href="{{ url_for('tac_pessoas', tid=tac.id) }}" class="btn btn-sm btn-outline-primary mt-2">
-                <i class="bi bi-plus-lg me-1"></i>Adicionar
-              </a>
-              {% endif %}
+              Nenhum compromissário — vincule uma obra para definir o proprietário automaticamente.
             </td>
           </tr>
           {% endfor %}

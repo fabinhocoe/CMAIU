@@ -3,19 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  body { font-family: Arial, sans-serif; font-size: 10pt; color: #000; line-height: 1.5; }
-  .title-block { text-align: center; margin-bottom: 12pt; }
+  @page { size: A4; margin: 1.2cm 1.5cm 1.2cm 1.5cm; }
+  body { font-family: Arial, sans-serif; font-size: 9pt; color: #000; line-height: 1.5; margin: 0; }
   .clause { text-align: justify; margin-bottom: 6pt; }
-  table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 9pt; }
-  th, td { border: 1px solid #888; padding: 3pt 5pt; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0; font-size: 8.5pt; }
+  th, td { border: 1px solid #ccc; padding: 3pt 5pt; }
   th { background: #e8e8e8; }
   .highlight { background: #c8e6c9; font-weight: bold; }
+  p { margin: 2px 0; }
 </style>
 </head>
 <body>
-<div class="title-block">
-  <h5>EXTRATO DO TERMO DE AJUSTAMENTO DE CONDUTA</h5>
-  <h6>PREFEITURA MUNICIPAL DE PALHOÇA – DIÁRIO OFICIAL DO MUNICÍPIO</h6>
+<div style="margin-bottom:10px">
+  <table style="border:none;margin:0">
+    <tr>
+      <td style="border:none;width:80px;vertical-align:middle;padding:0">
+        <img src="{{ logo_path }}" style="height:60px;width:auto">
+      </td>
+      <td style="border:none;text-align:center;vertical-align:middle;padding:0">
+        <div style="font-size:10.8pt;font-weight:bold">PREFEITURA MUNICIPAL DE PALHOÇA</div>
+        <div style="font-size:8.5pt;font-weight:bold;margin-top:2px">COMISSÃO MUNICIPAL DE AVALIAÇÃO DE IMPACTO URBANO – CMAIU</div>
+        <div style="font-size:9pt;font-weight:bold;margin-top:3px">EXTRATO PARA PUBLICAÇÃO NO DIÁRIO OFICIAL</div>
+        <div style="font-size:7.5pt;color:#444;margin-top:2px">Termo de Ajustamento de Conduta Nº {{ tac.numero or '______' }} | Lei Municipal nº 5.031/2021</div>
+      </td>
+      <td style="border:none;width:80px"></td>
+    </tr>
+  </table>
+  <hr style="border:1px solid #333;margin:6px 0 0">
 </div>
 
 <p class="clause">

@@ -3,26 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  body { font-family: Arial, sans-serif; font-size: 10pt; color: #000; line-height: 1.5; }
-  h1,h2,h3,h4,h5,h6 { margin: 6pt 0 4pt; }
-  .title-block { text-align: center; margin-bottom: 16pt; }
+  @page { size: A4; margin: 1.2cm 1.5cm 1.2cm 1.5cm; }
+  body { font-family: Arial, sans-serif; font-size: 9pt; color: #000; line-height: 1.5; margin: 0; }
   .clause { text-align: justify; margin-bottom: 8pt; }
-  table { border-collapse: collapse; width: 100%; margin: 8pt 0; font-size: 9pt; }
-  th, td { border: 1px solid #888; padding: 3pt 5pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0; font-size: 8.5pt; }
+  th, td { border: 1px solid #ccc; padding: 3pt 5pt; }
   th { background: #e8e8e8; }
   .highlight { background: #c8e6c9; font-weight: bold; }
   .sign-col { display: inline-block; width: 30%; text-align: center;
-              border-top: 1px solid #888; padding-top: 3pt; margin: 0 1%; font-size: 9pt; }
+              border-top: 1px solid #888; padding-top: 3pt; margin: 0 1%; font-size: 8pt; }
   .sign-area { margin-top: 40pt; }
+  p { margin: 2px 0; }
 </style>
 </head>
 <body>
-<div class="title-block">
-  <h4>PREFEITURA MUNICIPAL DE PALHOÇA – ESTADO DE SANTA CATARINA</h4>
-  <h4>COMISSÃO MUNICIPAL DE AVALIAÇÃO DE IMPACTO URBANO – CMAIU</h4>
-  <hr>
-  <h4>TERMO DE AJUSTAMENTO DE CONDUTA – TAC Nº {{ tac.numero or '______' }}/{{ tac.data_abertura.year if tac.data_abertura else '____' }}</h4>
-  <p style="font-size:9pt">Nos termos da Lei Municipal nº 5.031/2021</p>
+<div style="margin-bottom:10px">
+  <table style="border:none;margin:0">
+    <tr>
+      <td style="border:none;width:80px;vertical-align:middle;padding:0">
+        <img src="{{ logo_path }}" style="height:60px;width:auto">
+      </td>
+      <td style="border:none;text-align:center;vertical-align:middle;padding:0">
+        <div style="font-size:10.8pt;font-weight:bold">PREFEITURA MUNICIPAL DE PALHOÇA</div>
+        <div style="font-size:8.5pt;font-weight:bold;margin-top:2px">COMISSÃO MUNICIPAL DE AVALIAÇÃO DE IMPACTO URBANO – CMAIU</div>
+        <div style="font-size:9pt;font-weight:bold;margin-top:3px">INSTRUMENTO DE TERMO DE AJUSTAMENTO DE CONDUTA – TAC Nº {{ tac.numero or '______' }}</div>
+        <div style="font-size:7.5pt;color:#444;margin-top:2px">Nos termos da Lei Municipal nº 5.031/2021 | Palhoça/SC, {{ tac.data_abertura.strftime('%d/%m/%Y') if tac.data_abertura else '' }}</div>
+      </td>
+      <td style="border:none;width:80px"></td>
+    </tr>
+  </table>
+  <hr style="border:1px solid #333;margin:6px 0 0">
 </div>
 
 <p class="clause">
