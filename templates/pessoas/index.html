@@ -25,7 +25,8 @@
           <th>Telefone</th>
           <th>E-mail</th>
           <th>TACs</th>
-          <th>Processos</th>
+          <th>CMAIU</th>
+          <th>Solo Criado</th>
           <th></th>
         </tr>
       </thead>
@@ -47,6 +48,11 @@
             <span class="badge bg-primary">{{ p._processos_count }}</span>
             {% else %}—{% endif %}
           </td>
+          <td class="small text-center">
+            {% if p._sc_count %}
+            <span class="badge bg-success">{{ p._sc_count }}</span>
+            {% else %}—{% endif %}
+          </td>
           <td class="text-nowrap">
             {% if current_user.is_tecnico %}
             <a href="{{ url_for('pessoas_editar', pid=p.id) }}" class="btn btn-sm btn-outline-primary" title="Editar">
@@ -63,7 +69,7 @@
           </td>
         </tr>
         {% else %}
-        <tr><td colspan="8" class="text-center text-muted py-4">
+        <tr><td colspan="9" class="text-center text-muted py-4">
           {% if q %}Nenhuma pessoa encontrada para "{{ q }}".{% else %}Nenhuma pessoa cadastrada.{% endif %}
         </td></tr>
         {% endfor %}

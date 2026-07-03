@@ -1306,6 +1306,7 @@ def pessoas_index():
         join_count = len(p.vinculos_processo)
         legacy = legacy_counts.get(p.cpf_cnpj, 0) if p.cpf_cnpj else 0
         p._processos_count = join_count + legacy
+        p._sc_count = len(p.solos_criados)
     return render_template('pessoas/index.html', pessoas=pessoas, q=q)
 
 
