@@ -72,8 +72,16 @@
           <dd class="col-sm-7">{{ sc.zoneamento.codigo if sc.zoneamento else '—' }}</dd>
           <dt class="col-sm-5">Área Terreno</dt>
           <dd class="col-sm-7">{{ sc.area_terreno|fmt_area if sc.area_terreno else '—' }}</dd>
-          <dt class="col-sm-5">Área Construída</dt>
-          <dd class="col-sm-7">{{ sc.area_construida_total|fmt_area if sc.area_construida_total else '—' }}</dd>
+          <dt class="col-sm-5">Área Construída Total</dt>
+          <dd class="col-sm-7">{{ sc.area_construida_total|fmt_area if sc.area_construida_total else '—' }}
+            <small class="text-muted d-block">Total conforme alvará</small>
+          </dd>
+          <dt class="col-sm-5">Área Computável (ACP)</dt>
+          <dd class="col-sm-7">
+            {% set acp = sc.area_computavel or sc.area_construida_total %}
+            {{ acp|fmt_area if acp else '—' }}
+            <small class="text-muted d-block">Entra no índice de aproveitamento</small>
+          </dd>
           <dt class="col-sm-5">IAB</dt><dd class="col-sm-7">{{ '%.4f'|format(sc.iab) if sc.iab else '—' }}</dd>
           <dt class="col-sm-5">IAM</dt><dd class="col-sm-7">{{ '%.4f'|format(sc.iam) if sc.iam else '—' }}</dd>
           <dt class="col-sm-5">Permite SC</dt>
@@ -110,7 +118,7 @@
             <div class="p-3 bg-light rounded text-center">
               <div class="small text-muted">Área Excedente (AEX)</div>
               <div class="fw-bold">{{ sc.aex|fmt_area }}</div>
-              <div class="small text-muted">ACP − ABP</div>
+              <div class="small text-muted">ACP (Computável) − ABP</div>
             </div>
           </div>
           <div class="col-md-3">
