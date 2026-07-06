@@ -212,49 +212,8 @@
     <div class="card-body py-3">
       <div class="row g-3 align-items-end">
 
-        {# ── Linha 1: AT | Área Construída Total | Área Computável | Zoneamento | Permite SC ── #}
-        <div class="col-md-3">
-          <label class="form-label small fw-semibold">Área do Terreno – AT (m²) <span class="text-danger">*</span></label>
-          <div class="input-group input-group-sm">
-            <input type="number" step="0.01" min="0" name="area_terreno" id="area_terreno"
-                   class="form-control" placeholder="0,00" required
-                   value="{{ '%.2f'|format(sc.area_terreno) if sc and sc.area_terreno else '' }}"
-                   oninput="atualizarPercs()">
-            <span class="input-group-text">m²</span>
-          </div>
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label small fw-semibold">
-            Área Construída Total (m²)
-            <i class="bi bi-info-circle text-muted" title="Área total da edificação conforme alvará (inclui áreas não computáveis)" data-bs-toggle="tooltip"></i>
-          </label>
-          <div class="input-group input-group-sm">
-            <input type="number" step="0.01" min="0" name="area_construida_total" id="scAreaConstruida"
-                   class="form-control" placeholder="0,00"
-                   oninput="atualizarPercs()"
-                   value="{{ '%.2f'|format(sc.area_construida_total) if sc and sc.area_construida_total else '' }}">
-            <span class="input-group-text">m²</span>
-          </div>
-          <div class="form-text">Total conforme alvará (inclui não computáveis)</div>
-        </div>
-
-        <div class="col-md-3">
-          <label class="form-label small fw-semibold">
-            Área Computável — ACP (m²) <span class="text-danger">*</span>
-            <i class="bi bi-info-circle text-muted" title="Área que entra no Índice de Aproveitamento. AEX = ACP − ABP" data-bs-toggle="tooltip"></i>
-          </label>
-          <div class="input-group input-group-sm">
-            <input type="number" step="0.01" min="0" name="area_computavel" id="scAreaComputavel"
-                   class="form-control" placeholder="0,00" required
-                   oninput="atualizarPercs()"
-                   value="{{ '%.2f'|format(sc.area_computavel) if sc and sc.area_computavel else '' }}">
-            <span class="input-group-text">m²</span>
-          </div>
-          <div class="form-text">Entra no índice de aproveitamento (AEX = ACP − ABP)</div>
-        </div>
-
-        <div class="col-md-4">
+        {# ── Linha 1: Zoneamento | Permite SC ── #}
+        <div class="col-md-8">
           <label class="form-label small fw-semibold">Zoneamento <span class="text-danger">*</span></label>
           <select name="zoneamento_id" id="selectZoneamento" class="form-select form-select-sm" required
                   onchange="carregarZoneamento(this.value)">
@@ -267,17 +226,17 @@
           </select>
         </div>
 
-        <div class="col-md-2">
-          <label class="form-label small fw-semibold">Permite SC?</label>
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Permite Solo Criado?</label>
           <div id="permiteSCInfo" class="form-control form-control-sm bg-light">
             {% if sc and sc.zoneamento_id %}
               {% if sc.permite_solo_criado %}
                 <span class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i>Sim</span>
               {% else %}
-                <span class="text-danger fw-bold"><i class="bi bi-x-circle me-1"></i>Não</span>
+                <span class="text-danger fw-bold"><i class="bi bi-x-circle me-1"></i>Não permitido</span>
               {% endif %}
             {% else %}
-              <span class="text-muted small">—</span>
+              <span class="text-muted small">Selecione o zoneamento</span>
             {% endif %}
           </div>
           <input type="hidden" name="permite_solo_criado" id="inputPermiteSC"
@@ -313,7 +272,7 @@
 
         <div class="col-md-4">
           <label class="form-label small fw-semibold">
-            ABP calculada <small class="text-muted fw-normal">– AT × IAB</small>
+            ABP <small class="text-muted fw-normal">– AT × IAB</small>
           </label>
           <div class="input-group input-group-sm">
             <span class="input-group-text bg-light text-muted"><i class="bi bi-calculator"></i></span>
@@ -321,6 +280,44 @@
                    readonly placeholder="—">
             <span class="input-group-text bg-light">m²</span>
           </div>
+        </div>
+
+        {# ── Linha 3: AT | Área Construída Total | Área Computável ── #}
+        <div class="col-12"><hr class="my-1"><p class="small text-muted mb-0"><i class="bi bi-rulers me-1"></i><strong>Áreas do Projeto</strong></p></div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Área do Terreno – AT (m²) <span class="text-danger">*</span></label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.01" min="0" name="area_terreno" id="area_terreno"
+                   class="form-control" placeholder="0,00" required
+                   value="{{ '%.2f'|format(sc.area_terreno) if sc and sc.area_terreno else '' }}"
+                   oninput="atualizarPercs()">
+            <span class="input-group-text">m²</span>
+          </div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Área Construída Total (m²)</label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.01" min="0" name="area_construida_total" id="scAreaConstruida"
+                   class="form-control" placeholder="0,00"
+                   oninput="atualizarPercs()"
+                   value="{{ '%.2f'|format(sc.area_construida_total) if sc and sc.area_construida_total else '' }}">
+            <span class="input-group-text">m²</span>
+          </div>
+          <div class="form-text">Total conforme alvará (inclui não computáveis)</div>
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Área Computável – ACP (m²) <span class="text-danger">*</span></label>
+          <div class="input-group input-group-sm">
+            <input type="number" step="0.01" min="0" name="area_computavel" id="scAreaComputavel"
+                   class="form-control" placeholder="0,00" required
+                   oninput="atualizarPercs()"
+                   value="{{ '%.2f'|format(sc.area_computavel) if sc and sc.area_computavel else '' }}">
+            <span class="input-group-text">m²</span>
+          </div>
+          <div class="form-text">Entra no índice de aproveitamento (AEX = ACP − ABP)</div>
         </div>
 
       </div>
