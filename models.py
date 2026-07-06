@@ -1051,7 +1051,7 @@ class SoloCriado(db.Model):
         # Campos de cálculo
         if not at:   erros.append('Área do terreno não informada.')
         if not iab:  erros.append('Índice de aproveitamento básico não informado.')
-        if not acp:  erros.append('Área construída/computável do projeto não informada.')
+        if not acp:  erros.append('Área Computável (ACP) não informada.')
         if not cub:  erros.append('CUB não selecionado.')
         if not self.permite_solo_criado:
             erros.append('Zoneamento não permite solo criado.')
@@ -1069,7 +1069,7 @@ class SoloCriado(db.Model):
             erros.append(f'Total ({aon+ain+aag:.2f} m²) representa {pt:.2f}% da ABP — excede o limite de 50%.')
         # Somatória deve ser exatamente igual ao AEX — não pode sobrar nem faltar
         if aex == 0 and acp and abp and acp <= abp:
-            erros.append('Área construída não excede a Área Básica (ABP) — não há excedente a adquirir.')
+            erros.append('Área Computável (ACP) não excede a Área Básica (ABP) — não há excedente a adquirir.')
         elif aex > 0:
             total = aon + ain + aag
             diff = abs(total - aex)
