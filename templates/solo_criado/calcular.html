@@ -38,7 +38,8 @@
               {% else %}—{% endif %}
             </div>
             {% set acp = sc.area_computavel or sc.area_construida_total %}
-            <div class="col-6"><strong>Área Computável / Construída (ACP):</strong> {{ acp|fmt_area if acp else '—' }}</div>
+            <div class="col-6"><strong>Área Construída Total:</strong> {{ sc.area_construida_total|fmt_area if sc.area_construida_total else '—' }}</div>
+            <div class="col-6"><strong>Área Computável (ACP):</strong> {{ acp|fmt_area if acp else '—' }}</div>
             <div class="col-12"><strong>Área Excedente (AEX = ACP−ABP):</strong>
               {% if sc.area_terreno and sc.iab and acp %}
                 {% set abp = sc.area_terreno * sc.iab %}
@@ -100,6 +101,7 @@
                 <tr class="table-danger">
                   <td class="text-start fw-bold" colspan="2">
                     <i class="bi bi-exclamation-triangle me-1"></i>Área Excedente (AEX = ACP − ABP) — teto absoluto das compras
+                    <div class="fw-normal text-muted" style="font-size:.8em">ACP = Área Computável (entra no índice de aproveitamento)</div>
                   </td>
                   <td class="text-muted">—</td>
                   <td class="fw-bold text-danger">{{ aex_val|fmt_area }}</td>
