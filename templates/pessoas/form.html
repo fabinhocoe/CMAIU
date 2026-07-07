@@ -34,16 +34,16 @@
             </div>
 
             <div class="col-md-4">
-              <label class="form-label small fw-semibold">Tipo</label>
-              <select name="tipo" id="selectTipo" class="form-select form-select-sm" onchange="atualizarMascaraDoc()">
+              <label class="form-label small fw-semibold">Tipo <span class="text-danger">*</span></label>
+              <select name="tipo" id="selectTipo" class="form-select form-select-sm" required onchange="atualizarMascaraDoc()">
                 <option value="Pessoa Física"   {% if not pessoa or pessoa.tipo == 'Pessoa Física' %}selected{% endif %}>Pessoa Física</option>
                 <option value="Pessoa Jurídica" {% if pessoa and pessoa.tipo == 'Pessoa Jurídica' %}selected{% endif %}>Pessoa Jurídica</option>
               </select>
             </div>
 
             <div class="col-md-4">
-              <label class="form-label small fw-semibold">CPF / CNPJ</label>
-              <input type="text" name="cpf_cnpj" id="inputDoc" class="form-control form-control-sm"
+              <label class="form-label small fw-semibold">CPF / CNPJ <span class="text-danger">*</span></label>
+              <input type="text" name="cpf_cnpj" id="inputDoc" class="form-control form-control-sm" required
                      value="{{ pessoa.cpf_cnpj if pessoa else '' }}"
                      placeholder="000.000.000-00" maxlength="18"
                      oninput="mascaraDoc(this)">
@@ -93,8 +93,8 @@
             </div>
 
             <div class="col-md-6">
-              <label class="form-label small fw-semibold">Logradouro</label>
-              <input type="text" name="endereco" id="inputEndereco" class="form-control form-control-sm"
+              <label class="form-label small fw-semibold">Logradouro <span class="text-danger">*</span></label>
+              <input type="text" name="endereco" id="inputEndereco" class="form-control form-control-sm" required
                      placeholder="Rua, Avenida…"
                      value="{{ pessoa.endereco if pessoa else '' }}">
             </div>
@@ -114,22 +114,22 @@
             </div>
 
             <div class="col-md-4">
-              <label class="form-label small fw-semibold">Bairro</label>
-              <input type="text" name="bairro" id="inputBairro" class="form-control form-control-sm"
+              <label class="form-label small fw-semibold">Bairro <span class="text-danger">*</span></label>
+              <input type="text" name="bairro" id="inputBairro" class="form-control form-control-sm" required
                      placeholder="Preenchido pelo CEP"
                      value="{{ pessoa.bairro if pessoa else '' }}">
             </div>
 
             <div class="col-md-3">
-              <label class="form-label small fw-semibold">Cidade</label>
-              <input type="text" name="cidade" id="inputCidade" class="form-control form-control-sm"
+              <label class="form-label small fw-semibold">Cidade <span class="text-danger">*</span></label>
+              <input type="text" name="cidade" id="inputCidade" class="form-control form-control-sm" required
                      placeholder="Preenchida pelo CEP"
                      value="{{ pessoa.cidade if pessoa else '' }}">
             </div>
 
             <div class="col-md-1">
-              <label class="form-label small fw-semibold">UF</label>
-              <input type="text" name="estado" id="inputEstado" class="form-control form-control-sm text-center"
+              <label class="form-label small fw-semibold">UF <span class="text-danger">*</span></label>
+              <input type="text" name="estado" id="inputEstado" class="form-control form-control-sm text-center" required
                      maxlength="2" placeholder="UF"
                      value="{{ pessoa.estado if pessoa else '' }}">
             </div>
