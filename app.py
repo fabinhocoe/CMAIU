@@ -2075,6 +2075,18 @@ def obras_index():
 def obras_nova():
     if request.method == 'POST':
         f = request.form
+        erros = []
+        if not f.get('proprietario_id'):
+            erros.append('Proprietário é obrigatório.')
+        if not f.get('nome', '').strip():
+            erros.append('Nome / Descrição da Obra é obrigatório.')
+        if erros:
+            for e in erros:
+                flash(e, 'danger')
+            return render_template('obras/form.html', obra=None,
+                                   zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all(),
+                                   pessoas=Pessoa.query.order_by(Pessoa.nome).all(),
+                                   form_data=f)
         o = Obra(
             nome=f.get('nome', '').strip() or None,
             cep=f.get('cep', '').strip() or None,
@@ -2112,6 +2124,17 @@ def obras_editar(oid):
     o = Obra.query.get_or_404(oid)
     if request.method == 'POST':
         f = request.form
+        erros = []
+        if not f.get('proprietario_id'):
+            erros.append('Proprietário é obrigatório.')
+        if not f.get('nome', '').strip():
+            erros.append('Nome / Descrição da Obra é obrigatório.')
+        if erros:
+            for e in erros:
+                flash(e, 'danger')
+            return render_template('obras/form.html', obra=o,
+                                   zoneamentos=Zoneamento.query.filter_by(ativo=True).order_by(Zoneamento.codigo).all(),
+                                   pessoas=Pessoa.query.order_by(Pessoa.nome).all())
         o.nome                = f.get('nome', '').strip() or None
         o.cep                 = f.get('cep', '').strip() or None
         o.endereco            = f.get('endereco', '').strip() or None
