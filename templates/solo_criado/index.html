@@ -7,7 +7,9 @@
 <div class="d-flex flex-wrap gap-2 align-items-center mt-2 mb-3">
   <form class="d-flex gap-2 flex-wrap flex-grow-1" method="GET">
     <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm"
-           placeholder="Proprietário, endereço, nº processo…" style="min-width:240px;max-width:340px">
+           placeholder="Endereço, nº processo…" style="min-width:200px;max-width:280px">
+    <input type="text" name="qp" value="{{ qp }}" class="form-control form-control-sm"
+           placeholder="Nome do proprietário…" style="min-width:180px;max-width:250px">
     <select name="situacao" class="form-select form-select-sm" style="width:200px">
       <option value="">Todas as situações</option>
       {% for s in situacoes %}
@@ -17,7 +19,7 @@
     <button class="btn btn-sm btn-outline-secondary">
       <i class="bi bi-search me-1"></i>Filtrar
     </button>
-    {% if q or sit %}
+    {% if q or qp or sit %}
     <a href="{{ url_for('sc_index') }}" class="btn btn-sm btn-outline-danger">
       <i class="bi bi-x-lg me-1"></i>Limpar
     </a>

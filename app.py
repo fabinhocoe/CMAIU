@@ -1583,6 +1583,7 @@ def _get_or_create_obra(f, criado_por, existing_obra_id=None):
 @login_required
 def tac_index():
     q   = request.args.get('q', '').strip()
+    qp  = request.args.get('qp', '').strip()
     sit = request.args.get('situacao', '')
     qs  = TAC.query.order_by(TAC.criado_em.desc())
     if q:
@@ -1590,6 +1591,10 @@ def tac_index():
             TAC.num_processo_adm.ilike(f'%{q}%'),
             TAC.numero.ilike(f'%{q}%'),
         ))
+    if qp:
+        qs = qs.join(TAC.pessoas_vinculadas).join(TACPessoa.pessoa).filter(
+            Pessoa.nome.ilike(f'%{qp}%')
+        ).distinct()
     if sit:
         qs = qs.filter(TAC.situacao == sit)
     tacs = qs.all()
@@ -1603,7 +1608,7 @@ def tac_index():
         'qtd':  len(tacs_ano),
         'ano':  ano_atual,
     }
-    return render_template('tac/index.html', tacs=tacs, q=q, sit=sit,
+    return render_template('tac/index.html', tacs=tacs, q=q, qp=qp, sit=sit,
                            situacoes=situacoes_tac, totais_ano=totais_ano)
 
 
@@ -2182,15 +2187,18 @@ def obras_excluir(oid):
 @app.route('/solo-criado')
 @login_required
 def sc_index():
-    q = request.args.get('q', '').strip()
+    q   = request.args.get('q', '').strip()
+    qp  = request.args.get('qp', '').strip()
     sit = request.args.get('situacao', '')
-    qs = SoloCriado.query.order_by(SoloCriado.criado_em.desc())
+    qs  = SoloCriado.query.order_by(SoloCriado.criado_em.desc())
     if q:
         qs = qs.filter(db.or_(
             SoloCriado.nome_empreendimento.ilike(f'%{q}%'),
             SoloCriado.endereco_imovel.ilike(f'%{q}%'),
             SoloCriado.num_processo.ilike(f'%{q}%'),
         ))
+    if qp:
+        qs = qs.join(SoloCriado.pessoa).filter(Pessoa.nome.ilike(f'%{qp}%'))
     if sit:
         qs = qs.filter(SoloCriado.situacao == sit)
     registros = qs.all()
@@ -2203,7 +2211,7 @@ def sc_index():
         'ano':  ano_atual,
     }
     return render_template('solo_criado/index.html', registros=registros,
-                           q=q, sit=sit, situacoes=SITUACOES_SC, totais_ano=totais_ano)
+                           q=q, qp=qp, sit=sit, situacoes=SITUACOES_SC, totais_ano=totais_ano)
 
 
 @app.route('/solo-criado/novo', methods=['GET', 'POST'])
