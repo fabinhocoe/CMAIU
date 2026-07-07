@@ -2053,7 +2053,8 @@ def rt_editar(rid):
 @app.route('/obras')
 @login_required
 def obras_index():
-    q = request.args.get('q', '').strip()
+    q  = request.args.get('q', '').strip()
+    qp = request.args.get('qp', '').strip()
     qs = Obra.query.order_by(Obra.nome, Obra.endereco)
     if q:
         qs = qs.filter(db.or_(
@@ -2062,8 +2063,10 @@ def obras_index():
             Obra.bairro.ilike(f'%{q}%'),
             Obra.inscricao_imobiliaria.ilike(f'%{q}%'),
         ))
+    if qp:
+        qs = qs.join(Obra.proprietario).filter(Pessoa.nome.ilike(f'%{qp}%'))
     obras = qs.all()
-    return render_template('obras/index.html', obras=obras, q=q)
+    return render_template('obras/index.html', obras=obras, q=q, qp=qp)
 
 
 @app.route('/obras/nova', methods=['GET', 'POST'])
