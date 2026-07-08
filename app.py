@@ -727,6 +727,10 @@ def processos_relatorio(pid):
         return redirect(url_for('processos_relatorio', pid=pid))
 
     rel = p.ultimo_relatorio
+    # Force eager loading of Obra and its SoloCriado to avoid lazy loading issues in template
+    if p.empreendimento and p.empreendimento.obra:
+        _ = p.empreendimento.obra.solos_criados_vinculados
+
     return render_template('processos/relatorio.html', processo=p, calc=calc,
                            rel=rel, integrantes=integrantes)
 
@@ -738,6 +742,10 @@ def processos_relatorio_pdf(pid):
     calc = p.ultimo_calculo
     rel = p.ultimo_relatorio
     integrantes = Integrante.query.filter_by(ativo=True).all()
+
+    # Force eager loading of Obra and its SoloCriado to avoid lazy loading issues in template
+    if p.empreendimento and p.empreendimento.obra:
+        _ = p.empreendimento.obra.solos_criados_vinculados
 
     html = render_template('relatorio/pdf.html', processo=p, calc=calc,
                            rel=rel, integrantes=integrantes,

@@ -107,8 +107,27 @@
 </table>
 {% endif %}
 
+{# Seção de Solo Criado Cadastrado (se existir) #}
+{% if emp and not emp.obra %}
+<h3>⚠️ Obra não vinculada</h3>
+<p>Para visualizar dados de Solo Criado, é necessário vincular uma Obra ao Empreendimento.</p>
+{% elif emp and emp.obra and emp.obra.solos_criados_vinculados %}
+<h3>6 – Dados de Solo Criado Cadastrado</h3>
+{% for sc in emp.obra.solos_criados_vinculados %}
+<p><strong>Solo Criado Nº {{ sc.numero or '—' }}</strong> ({{ sc.situacao or '—' }})</p>
+<table>
+  <thead><tr><th>Modalidade</th><th>Percentual</th><th>Metragem (m²)</th><th>Valor (R$)</th></tr></thead>
+  <tbody>
+    <tr><td>Onerosa (Pagamento ao Município)</td><td>{{ '%.2f'|format(sc.pon or 0) }}%</td><td>{{ '%.2f'|format(sc.aon or 0) }}</td><td>{{ sc.von|brl if sc.von else '—' }}</td></tr>
+    <tr><td>Infraestrutura (Investimento em Bem Público)</td><td>{{ '%.2f'|format(sc.pin or 0) }}%</td><td>{{ '%.2f'|format(sc.ain or 0) }}</td><td>{{ sc.vin|brl if sc.vin else '—' }}</td></tr>
+    <tr><td>Águas Pluviais (Investimento no Empreendimento)</td><td>{{ '%.2f'|format(sc.pag or 0) }}%</td><td>{{ '%.2f'|format(sc.aag or 0) }}</td><td>{{ sc.vag|brl if sc.vag else '—' }}</td></tr>
+  </tbody>
+</table>
+{% endfor %}
+{% endif %}
+
 {% if rel %}
-<h3>6 – Deliberação da CMAIU</h3>
+<h3>{{ '7' if (emp and emp.obra and emp.obra.solos_criados_vinculados) else '6' }} – Deliberação da CMAIU</h3>
 <p>{{ rel.deliberacao or '—' }}</p>
 {% if rel.medidas %}<p><strong>Medidas compensatórias:</strong> {{ rel.medidas }}</p>{% endif %}
 {% if rel.obs_deliberacao %}<p><strong>Observações:</strong> {{ rel.obs_deliberacao }}</p>{% endif %}

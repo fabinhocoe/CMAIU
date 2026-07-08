@@ -177,7 +177,12 @@
     </table>
 
     {# Seção de Solo Criado Cadastrado (se existir) #}
-    {% if emp.obra and emp.obra.solos_criados_vinculados %}
+    {% if not emp.obra %}
+    <div class="alert alert-warning mt-3" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 4px;">
+      <i class="bi bi-exclamation-triangle me-2"></i><strong>Obra não vinculada</strong><br>
+      <small>Para visualizar dados de Solo Criado, é necessário vincular uma Obra ao Empreendimento. Acesse o formulário do processo para vinculá-la.</small>
+    </div>
+    {% elif emp.obra and emp.obra.solos_criados_vinculados %}
     <h6 class="section-title mt-3">6 – DADOS DE SOLO CRIADO CADASTRADO</h6>
     {% for sc in emp.obra.solos_criados_vinculados %}
     <div class="alert alert-info small mb-3">
