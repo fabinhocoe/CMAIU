@@ -1611,30 +1611,25 @@ def api_obra_detalhes(obra_id):
 @app.route('/api/obras/<int:obra_id>/solo-criado')
 @login_required
 def api_obra_solo_criado(obra_id):
-    """Retorna registro de Solo Criado associado à obra, se existir"""
+    """Retorna dados de outorga onerosa do registro de Solo Criado associado à obra, se existir"""
     sc = SoloCriado.query.filter_by(obra_id=obra_id).first()
     if not sc:
         return jsonify(None), 200
     return jsonify({
         'id': sc.id,
         'numero': sc.numero or '',
-        'nome_empreendimento': sc.nome_empreendimento or '',
-        'uso_empreendimento': sc.uso_empreendimento or '',
-        'area_construida_total': sc.area_construida_total or '',
-        'area_computavel': sc.area_computavel or '',
-        'num_pavimentos': sc.num_pavimentos or '',
-        'iab': sc.iab or '',
-        'iam': sc.iam or '',
+        # Outorga Onerosa (Pagamento ao Município)
         'pon': sc.pon or 0,
+        'aon': sc.aon or 0,
+        'von': sc.von or 0,
+        # Infraestrutura (Investimento em bem público)
         'pin': sc.pin or 0,
+        'ain': sc.ain or 0,
+        'vin': sc.vin or 0,
+        # Águas Pluviais (Investimento no empreendimento)
         'pag': sc.pag or 0,
-        'von': sc.von or '',
-        'vin': sc.vin or '',
-        'vag': sc.vag or '',
-        'cub_valor': sc.cub_valor or '',
-        'cub_mes_ref': sc.cub_mes_ref or '',
-        'area_terreno': sc.area_terreno or '',
-        'zoneamento_codigo': sc.zoneamento.codigo if sc.zoneamento else '',
+        'aag': sc.aag or 0,
+        'vag': sc.vag or 0,
     })
 
 
