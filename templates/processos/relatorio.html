@@ -177,9 +177,9 @@
     </table>
 
     {# Seção de Solo Criado Cadastrado (se existir) #}
-    {% if emp.solos_criados_vinculados %}
+    {% if emp.obra and emp.obra.solos_criados_vinculados %}
     <h6 class="section-title mt-3">6 – DADOS DE SOLO CRIADO CADASTRADO</h6>
-    {% for sc in emp.solos_criados_vinculados %}
+    {% for sc in emp.obra.solos_criados_vinculados %}
     <div class="alert alert-info small mb-3">
       <strong><i class="bi bi-info-circle me-1"></i>Solo Criado Nº {{ sc.numero or '—' }}</strong>
       <small class="text-muted">{{ sc.situacao or '—' }}</small>
@@ -218,7 +218,7 @@
     {% endif %}
 
     {% if rel %}
-    <h6 class="section-title mt-3">{{ '7' if emp.solos_criados_vinculados else '6' }} – DELIBERAÇÃO DA CMAIU</h6>
+    <h6 class="section-title mt-3">{{ '7' if (emp.obra and emp.obra.solos_criados_vinculados) else '6' }} – DELIBERAÇÃO DA CMAIU</h6>
     <p class="small">{{ rel.deliberacao or '—' }}</p>
     {% if rel.medidas %}<p class="small"><strong>Medidas compensatórias:</strong> {{ rel.medidas }}</p>{% endif %}
     {% if rel.obs_deliberacao %}<p class="small"><strong>Observações:</strong> {{ rel.obs_deliberacao }}</p>{% endif %}
