@@ -621,29 +621,14 @@ def processos_calculos(pid):
 
         zon = emp.zoneamento if emp else None
 
-        perc_on = _float(f.get('perc_oneroso', 0)) or 0
-        perc_inf = _float(f.get('perc_infra', 0)) or 0
-        perc_cap = _float(f.get('perc_captacao', 0)) or 0
-        area_on = _float(f.get('area_onerosa', 0)) or 0
-        area_inf = _float(f.get('area_infra', 0)) or 0
-        area_cap = _float(f.get('area_captacao', 0)) or 0
-
-        lim_on = params.get('limite_oneroso', 40)
-        lim_inf = params.get('limite_infra', 5)
-        lim_cap = params.get('limite_captacao', 5)
-        lim_tot = params.get('limite_total', 50)
-
-        if zon and not zon.permite_solo_criado and (area_on > 0 or area_inf > 0 or area_cap > 0):
-            errors.append(f'O zoneamento {zon.codigo} não permite solo criado.')
-
-        if perc_on > lim_on:
-            errors.append(f'Percentual oneroso ({perc_on:.2f}%) excede o limite de {lim_on:.0f}%.')
-        if perc_inf > lim_inf:
-            errors.append(f'Percentual de infraestrutura ({perc_inf:.2f}%) excede o limite de {lim_inf:.0f}%.')
-        if perc_cap > lim_cap:
-            errors.append(f'Percentual de captação ({perc_cap:.2f}%) excede o limite de {lim_cap:.0f}%.')
-        if (perc_on + perc_inf + perc_cap) > lim_tot:
-            errors.append(f'Percentual total ({perc_on+perc_inf+perc_cap:.2f}%) excede o limite de {lim_tot:.0f}%.')
+        # Solo Criado data is now read-only (calculated in solo criado module)
+        # Set to 0 as these are no longer inputs in this form
+        perc_on = 0
+        perc_inf = 0
+        perc_cap = 0
+        area_on = 0
+        area_inf = 0
+        area_cap = 0
 
         if errors:
             for e in errors:
