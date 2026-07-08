@@ -11,6 +11,7 @@
       <div class="col-md-4"><strong>Processo Adm.:</strong> {{ sc.num_processo or '—' }}</div>
       <div class="col-md-4"><strong>Data do cálculo:</strong>
         {{ sc.data_calculo.strftime('%d/%m/%Y') if sc.data_calculo else '—' }}</div>
+      <div class="col-md-6"><strong>Proprietário:</strong> {{ sc.pessoa.nome if sc.pessoa else '—' }}</div>
       <div class="col-md-6"><strong>Requerente:</strong> {{ sc.nome_empreendimento or '—' }}</div>
       <div class="col-md-6"><strong>Resp. Técnico:</strong> {{ sc.responsavel_tecnico or '—' }}</div>
       <div class="col-md-8"><strong>Endereço:</strong> {{ sc.endereco_imovel or '—' }}{% if sc.bairro_imovel %}, {{ sc.bairro_imovel }}{% endif %}</div>

@@ -1,12 +1,13 @@
 {% set o = obra_edit if obra_edit is defined else none %}
 {% set obra_busca_id = 'tac_' ~ (o.id if o else 'new') %}
-{% set obra_fill_map %}{"nome":"[name='descricao']","endereco":"[name='endereco']","bairro":"[name='bairro']","inscricao_imobiliaria":"[name='inscricao']","area_construida":"[name='area_construida']"}{% endset %}
+{% set obra_fill_map %}{"nome":"[name='descricao']","endereco":"[name='endereco']","bairro":"[name='bairro']","inscricao_imobiliaria":"[name='inscricao']","area_construida":"[name='area_construida']","proprietario_id":"[name='proprietario_id']","proprietario_nome":"[name='proprietario_nome']","proprietario_cpf_cnpj":"[name='proprietario_cpf_cnpj']","proprietario_telefone":"[name='proprietario_telefone']","proprietario_email":"[name='proprietario_email']"}{% endset %}
 {% include '_obra_busca.html' %}
 <script>
 (function(){
   var BID = '{{ obra_busca_id }}';
   var TAC_OBRA_ID = {{ o.obra_id if o and o.obra_id else 'null' }};
   var LOCK_NAMES = ['descricao','endereco','bairro','inscricao','area_construida'];
+  var PROP_DISPLAY_NAMES = ['proprietario_nome','proprietario_cpf_cnpj','proprietario_telefone','proprietario_email'];
 
   var widget = document.getElementById('obraBusca_' + BID);
   var form = widget ? widget.closest('form') : null;
@@ -21,11 +22,22 @@
     });
   }
 
+  function showProprietarioInfo(show) {
+    var infoDlv = form.querySelector('.proprietario-info');
+    if (infoDlv) infoDlv.style.display = show ? 'block' : 'none';
+  }
+
   document.addEventListener('obraSelected', function(e) {
-    if (e.detail && e.detail._busca_id === BID) lockFields(true);
+    if (e.detail && e.detail._busca_id === BID) {
+      lockFields(true);
+      showProprietarioInfo(true);
+    }
   });
   document.addEventListener('obraCleared', function(e) {
-    if (e.detail && e.detail._busca_id === BID) lockFields(false);
+    if (e.detail && e.detail._busca_id === BID) {
+      lockFields(false);
+      showProprietarioInfo(false);
+    }
   });
 
   if (TAC_OBRA_ID) lockFields(true);
@@ -87,4 +99,53 @@
     <label class="form-label small fw-semibold">Observações</label>
     <textarea name="observacoes" class="form-control form-control-sm" rows="2">{{ o.observacoes or '' if o else '' }}</textarea>
   </div>
+
+  <!-- Campos hidden para proprietário -->
+  <input type="hidden" name="proprietario_id" value="">
+  <input type="hidden" name="proprietario_nome" value="">
+  <input type="hidden" name="proprietario_cpf_cnpj" value="">
+  <input type="hidden" name="proprietario_telefone" value="">
+  <input type="hidden" name="proprietario_email" value="">
+
+  <!-- Seção de informações do proprietário (exibida quando obra é selecionada) -->
+  <div class="col-12 proprietario-info" style="display:none;">
+    <div class="alert alert-info py-2 px-3 mb-0">
+      <div class="fw-semibold small mb-2">
+        <i class="bi bi-person-check me-1"></i>Proprietário da Obra
+      </div>
+      <div class="row g-2 small">
+        <div class="col-md-6">
+          <div><span class="text-muted">Nome:</span></div>
+          <div class="fw-semibold" id="prop_nome">—</div>
+        </div>
+        <div class="col-md-6">
+          <div><span class="text-muted">CPF/CNPJ:</span></div>
+          <div class="fw-semibold" id="prop_cpf">—</div>
+        </div>
+        <div class="col-md-6">
+          <div><span class="text-muted">Telefone:</span></div>
+          <div id="prop_telefone">—</div>
+        </div>
+        <div class="col-md-6">
+          <div><span class="text-muted">E-mail:</span></div>
+          <div id="prop_email">—</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<!-- Script para atualizar exibição de proprietário -->
+<script>
+(function(){
+  const busca_id = '{{ obra_busca_id }}';
+  document.addEventListener('obraSelected', function(e) {
+    if (e.detail && e.detail._busca_id === busca_id) {
+      document.getElementById('prop_nome').textContent = e.detail.proprietario_nome || '—';
+      document.getElementById('prop_cpf').textContent = e.detail.proprietario_cpf_cnpj || '—';
+      document.getElementById('prop_telefone').textContent = e.detail.proprietario_telefone || '—';
+      document.getElementById('prop_email').textContent = e.detail.proprietario_email || '—';
+    }
+  });
+})();
+</script>

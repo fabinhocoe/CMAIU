@@ -1860,6 +1860,8 @@ def tac_calcular(tid):
         r = obra.calcular(cub_val, data_ref)
         r['obra_id'] = obra.id
         r['obra_desc'] = obra.descricao or obra.endereco or f'Obra {obra.id}'
+        r['proprietario_nome'] = obra.proprietario.nome if obra.proprietario else None
+        r['proprietario_cpf_cnpj'] = obra.proprietario.cpf_cnpj if obra.proprietario else None
         resultados.append(r)
         vf_total += r['vf']
 

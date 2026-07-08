@@ -120,8 +120,23 @@
     </div>
     <div class="card-body py-3">
       {% set obra_busca_id = 'sc' %}
-      {% set obra_fill_map %}{"cep":"#inputCEP","endereco":"#inputEndereco","numero":"#inputNumeroImovel","complemento":"[name='complemento_imovel']","bairro":"#inputBairro","cidade":"#inputCidade","inscricao_imobiliaria":"[name='inscricao_imobiliaria']","matricula":"[name='matricula']","zoneamento_id":"#selectZoneamento","area_terreno":"[name='area_terreno']","area_construida":"#scAreaConstruida"}{% endset %}
+      {% set obra_fill_map %}{"cep":"#inputCEP","endereco":"#inputEndereco","numero":"#inputNumeroImovel","complemento":"[name='complemento_imovel']","bairro":"#inputBairro","cidade":"#inputCidade","inscricao_imobiliaria":"[name='inscricao_imobiliaria']","matricula":"[name='matricula']","zoneamento_id":"#selectZoneamento","area_terreno":"[name='area_terreno']","area_construida":"#scAreaConstruida","proprietario_id":"#selectProprietario"}{% endset %}
       {% include '_obra_busca.html' %}
+      <script>
+        document.addEventListener('obraSelected', function(e) {
+          if (e.detail && e.detail._busca_id === 'sc' && e.detail.proprietario_id) {
+            const selectPropr = document.getElementById('selectProprietario');
+            const opt = selectPropr.querySelector(`option[value="${e.detail.proprietario_id}"]`);
+            if (opt) {
+              selectPropr.value = e.detail.proprietario_id;
+            } else if (e.detail.proprietario_nome) {
+              // Se não encontrar a opção, alerta o usuário com os dados do proprietário
+              const msg = `Proprietário da obra: ${e.detail.proprietario_nome}`;
+              console.warn(msg + ' (não encontrado no dropdown. Selecione manualmente ou cadastre)');
+            }
+          }
+        });
+      </script>
       <div class="row g-3">
 
         {# Linha 1: CEP → Logradouro → Número → Complemento #}

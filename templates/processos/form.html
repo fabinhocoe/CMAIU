@@ -180,8 +180,74 @@
   </div>
   <div class="card-body py-3">
     {% set obra_busca_id = 'emp' %}
-    {% set obra_fill_map %}{"nome":"#empNome","cep":"#empCep","endereco":"#empEndereco","bairro":"#empBairro","inscricao_imobiliaria":"#empInscricao","zoneamento_id":"#empZoneamento","area_terreno":"#areaTerreno","area_construida":"#areaConstruida","num_pavimentos":"#numPavimentos"}{% endset %}
+    {% set obra_fill_map %}{"nome":"#empNome","cep":"#empCep","endereco":"#empEndereco","bairro":"#empBairro","inscricao_imobiliaria":"#empInscricao","zoneamento_id":"#empZoneamento","area_terreno":"#areaTerreno","area_construida":"#areaConstruida","num_pavimentos":"#numPavimentos","proprietario_id":"#proprietario_id_oculto","proprietario_nome":"#proprietario_nome_oculto"}{% endset %}
     {% include '_obra_busca.html' %}
+    <input type="hidden" id="proprietario_id_oculto" value="">
+    <input type="hidden" id="proprietario_nome_oculto" value="">
+    <script>
+      document.addEventListener('obraSelected', function(e) {
+        if (e.detail && e.detail._busca_id === 'emp') {
+          document.getElementById('proprietario_id_oculto').value = e.detail.proprietario_id || '';
+          document.getElementById('proprietario_nome_oculto').value = e.detail.proprietario_nome || '';
+          // Exibir alerta com dados do proprietário
+          if (e.detail.proprietario_nome) {
+            const msg = `Proprietário identificado: ${e.detail.proprietario_nome}. Adicione-o na seção anterior se necessário.`;
+            console.info(msg);
+          }
+        }
+      });
+    </script>
+
+    <!-- Seção de informações do proprietário da obra -->
+    <div id="proprietarioObraInfo" class="alert alert-info py-2 px-3 mb-3" style="display:none">
+      <div class="fw-semibold small mb-2">
+        <i class="bi bi-person-check me-1"></i>Proprietário da Obra Identificado
+      </div>
+      <div class="row g-2 small">
+        <div class="col-md-6">
+          <div><span class="text-muted">Nome:</span></div>
+          <div class="fw-semibold" id="emp_proprietario_nome">—</div>
+        </div>
+        <div class="col-md-6">
+          <div><span class="text-muted">CPF/CNPJ:</span></div>
+          <div class="fw-semibold" id="emp_proprietario_cpf">—</div>
+        </div>
+        <div class="col-md-6">
+          <div><span class="text-muted">Telefone:</span></div>
+          <div id="emp_proprietario_telefone">—</div>
+        </div>
+        <div class="col-md-6">
+          <div><span class="text-muted">E-mail:</span></div>
+          <div id="emp_proprietario_email">—</div>
+        </div>
+      </div>
+      <small class="text-muted d-block mt-2">
+        <i class="bi bi-info-circle me-1"></i>Adicione este proprietário na seção "Proprietário / Empreendedor" acima se necessário.
+      </small>
+    </div>
+
+    <script>
+      document.addEventListener('obraSelected', function(e) {
+        if (e.detail && e.detail._busca_id === 'emp') {
+          const infoDlv = document.getElementById('proprietarioObraInfo');
+          if (e.detail.proprietario_nome) {
+            document.getElementById('emp_proprietario_nome').textContent = e.detail.proprietario_nome || '—';
+            document.getElementById('emp_proprietario_cpf').textContent = e.detail.proprietario_cpf_cnpj || '—';
+            document.getElementById('emp_proprietario_telefone').textContent = e.detail.proprietario_telefone || '—';
+            document.getElementById('emp_proprietario_email').textContent = e.detail.proprietario_email || '—';
+            infoDlv.style.display = 'block';
+          } else {
+            infoDlv.style.display = 'none';
+          }
+        }
+      });
+      document.addEventListener('obraCleared', function(e) {
+        if (e.detail && e.detail._busca_id === 'emp') {
+          document.getElementById('proprietarioObraInfo').style.display = 'none';
+        }
+      });
+    </script>
+
     <div class="row g-3">
 
       {# Identificação  #}

@@ -84,8 +84,10 @@
           <th>Data de Entrada</th><td>{{ processo.data_entrada.strftime('%d/%m/%Y') if processo.data_entrada else '—' }}</td></tr>
       <tr><th>Proprietário / Empreendedor</th><td colspan="3">
         {% if pessoas_proc %}
-          {{ pessoas_proc | map(attribute='pessoa') | map(attribute='nome') | join(', ') }}
-        {% elif prop %}{{ prop.nome }}{% else %}—{% endif %}
+          {% for pv in pessoas_proc %}
+            <div>{{ pv.pessoa.nome }}{% if pv.pessoa.cpf_cnpj %} ({{ pv.pessoa.doc_formatado }}){% endif %}</div>
+          {% endfor %}
+        {% elif prop %}{{ prop.nome }}{% if prop.cpf_cnpj %} ({{ prop.doc_formatado }}){% endif %}{% else %}—{% endif %}
       </td></tr>
       <tr><th>Empreendimento</th><td colspan="3">{{ emp.nome if emp else '—' }}</td></tr>
       <tr><th>Endereço</th><td colspan="3">{{ emp.endereco if emp else '—' }}, {{ emp.bairro if emp else '—' }}</td></tr>

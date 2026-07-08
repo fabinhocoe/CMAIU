@@ -59,6 +59,9 @@
 <div class="section-title">3 – Cálculo por Obra</div>
 {% for r in resultados %}
 <p><strong>Obra:</strong> {{ r.obra_desc }} &nbsp; <strong>Grupo:</strong> {{ r.grupo }} &nbsp; <strong>Área:</strong> {{ '%.2f'|format(r.area) }} m²</p>
+{% if r.proprietario_nome %}
+<p style="margin-left:10px;font-size:7.5pt"><strong>Proprietário:</strong> {{ r.proprietario_nome }}{% if r.proprietario_cpf_cnpj %} ({{ r.proprietario_cpf_cnpj }}){% endif %}</p>
+{% endif %}
 <table>
   <thead><tr><th>Irregularidade</th><th>%</th><th>Qtd</th><th>Subtotal</th></tr></thead>
   <tbody>
