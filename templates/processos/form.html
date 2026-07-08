@@ -287,13 +287,13 @@
 
       {# Identificação  #}
       <div class="col-md-8">
-        <label class="form-label small fw-semibold">Nome do Empreendimento</label>
-        <input type="text" name="emp_nome" id="empNome" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Nome do Empreendimento <span class="text-danger">*</span></label>
+        <input type="text" name="emp_nome" id="empNome" class="form-control form-control-sm" required
                value="{{ emp.nome if emp else '' }}">
       </div>
       <div class="col-md-4">
-        <label class="form-label small fw-semibold">Padrão do Empreendimento</label>
-        <select name="emp_padrao_empreendimento" class="form-select form-select-sm">
+        <label class="form-label small fw-semibold">Padrão do Empreendimento <span class="text-danger">*</span></label>
+        <select name="emp_padrao_empreendimento" class="form-select form-select-sm" required>
           <option value="">— Selecione —</option>
           {% set padroes_emp = ['Baixo', 'Médio Baixo', 'Médio', 'Médio Alto', 'Alto'] %}
           {% for pad in padroes_emp %}
@@ -364,9 +364,9 @@
         </select>
       </div>
       <div class="col-md-6">
-        <label class="form-label small fw-semibold">Uso Secundário</label>
-        <select name="emp_uso_secundario" class="form-select form-select-sm">
-          <option value="">—</option>
+        <label class="form-label small fw-semibold">Uso Secundário <span class="text-danger">*</span></label>
+        <select name="emp_uso_secundario" class="form-select form-select-sm" required>
+          <option value="">— Selecione —</option>
           {% for u in usos %}
           <option value="{{ u }}" {% if emp and emp.uso_secundario == u %}selected{% endif %}>{{ u }}</option>
           {% endfor %}
@@ -416,19 +416,19 @@
                value="{{ emp.num_uh if emp and emp.num_uh else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">UC (Unidades Comerciais)</label>
-        <input type="number" name="num_uc" class="form-control form-control-sm" min="0"
+        <label class="form-label small fw-semibold">UC (Unidades Comerciais) <span class="text-danger">*</span></label>
+        <input type="number" name="num_uc" class="form-control form-control-sm" min="0" required
                value="{{ emp.num_uc if emp and emp.num_uc else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Nº de Vagas</label>
-        <input type="number" name="vagas" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Nº de Vagas <span class="text-danger">*</span></label>
+        <input type="number" name="vagas" class="form-control form-control-sm" required
                value="{{ emp.vagas if emp and emp.vagas else '' }}">
       </div>
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Padrão de Impacto</label>
-        <select name="padrao_impacto" class="form-select form-select-sm">
-          <option value="">—</option>
+        <label class="form-label small fw-semibold">Padrão de Impacto <span class="text-danger">*</span></label>
+        <select name="padrao_impacto" class="form-select form-select-sm" required>
+          <option value="">— Selecione —</option>
           {% for pad in padroes %}
           <option value="{{ pad }}" {% if emp and emp.padrao_impacto == pad %}selected{% endif %}>{{ pad }}</option>
           {% endfor %}
@@ -439,8 +439,8 @@
       <div class="col-12"><p class="text-muted small fw-semibold mb-0 mt-1"><i class="bi bi-people me-1"></i>População</p><hr class="mt-1 mb-0"></div>
 
       <div class="col-md-3">
-        <label class="form-label small fw-semibold">Total de Dormitórios</label>
-        <input type="number" name="total_dormitorios" id="dormitorios" class="form-control form-control-sm"
+        <label class="form-label small fw-semibold">Total de Dormitórios <span class="text-danger">*</span></label>
+        <input type="number" name="total_dormitorios" id="dormitorios" class="form-control form-control-sm" required
                value="{{ emp.total_dormitorios if emp and emp.total_dormitorios else '' }}">
         <div class="form-text">Pop. Res. = dormitórios × 2</div>
       </div>

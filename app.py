@@ -376,6 +376,26 @@ def processos_novo():
     pessoas = Pessoa.query.order_by(Pessoa.nome).all()
     if request.method == 'POST':
         f = request.form
+        # Validação de campos obrigatórios
+        erros = []
+        campos_obrigatorios = {
+            'emp_nome': 'Nome do Empreendimento',
+            'emp_padrao_empreendimento': 'Padrão do Empreendimento',
+            'emp_uso_secundario': 'Uso Secundário',
+            'num_uc': 'Unidades Comerciais',
+            'vagas': 'Nº de Vagas',
+            'padrao_impacto': 'Padrão de Impacto',
+            'total_dormitorios': 'Total de Dormitórios',
+        }
+        for campo, label in campos_obrigatorios.items():
+            if not f.get(campo) or (campo in ['num_uc', 'vagas', 'total_dormitorios'] and f.get(campo) == ''):
+                erros.append(f'{label} é obrigatório.')
+
+        if erros:
+            for erro in erros:
+                flash(erro, 'danger')
+            return redirect(url_for('processos_novo'))
+
         p = Processo(
             num_processo=f.get('num_processo'),
             protocolo_aprovacao=f.get('protocolo_aprovacao'),
@@ -450,6 +470,26 @@ def processos_editar(pid):
 
     if request.method == 'POST':
         f = request.form
+        # Validação de campos obrigatórios
+        erros = []
+        campos_obrigatorios = {
+            'emp_nome': 'Nome do Empreendimento',
+            'emp_padrao_empreendimento': 'Padrão do Empreendimento',
+            'emp_uso_secundario': 'Uso Secundário',
+            'num_uc': 'Unidades Comerciais',
+            'vagas': 'Nº de Vagas',
+            'padrao_impacto': 'Padrão de Impacto',
+            'total_dormitorios': 'Total de Dormitórios',
+        }
+        for campo, label in campos_obrigatorios.items():
+            if not f.get(campo) or (campo in ['num_uc', 'vagas', 'total_dormitorios'] and f.get(campo) == ''):
+                erros.append(f'{label} é obrigatório.')
+
+        if erros:
+            for erro in erros:
+                flash(erro, 'danger')
+            return redirect(url_for('processos_editar', pid=pid))
+
         p.num_processo = f.get('num_processo')
         p.protocolo_aprovacao = f.get('protocolo_aprovacao')
         p.data_entrada = _parse_date(f.get('data_entrada'))
