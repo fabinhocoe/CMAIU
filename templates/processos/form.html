@@ -581,7 +581,26 @@ document.addEventListener('obraCleared', function(e) {
   }
 });
 
-if (PROCESSO_OBRA_ID) { document.addEventListener('DOMContentLoaded', function() { lockEmpFields(true); }); }
+if (PROCESSO_OBRA_ID) {
+  document.addEventListener('DOMContentLoaded', function() {
+    lockEmpFields(true);
+    // Se houver obra já vinculada, buscar Solo Criado
+    buscarSoloCriadoDaObraAtual(PROCESSO_OBRA_ID);
+  });
+}
+
+function buscarSoloCriadoDaObraAtual(obraId) {
+  // Buscar dados de Solo Criado da obra já vinculada
+  fetch(`/api/obras/${obraId}/solo-criado`)
+    .then(r => r.json())
+    .then(sc => {
+      if (sc) {
+        console.log('Solo Criado encontrado para obra ID:', obraId);
+        mostrarAlertaSoloCriado(sc);
+      }
+    })
+    .catch(err => console.error('Erro ao buscar Solo Criado:', err));
+}
 
 // ── Máscaras do mini-formulário de nova pessoa ──
 function mascaraDocAuto(input) {
