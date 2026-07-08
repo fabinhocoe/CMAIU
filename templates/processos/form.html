@@ -167,6 +167,16 @@
       <div class="form-text mt-1">Esta pessoa será cadastrada no banco ao salvar o processo.</div>
     </div>
 
+    {# ── Obras do proprietário selecionado ── #}
+    <div id="obrasProprietarioDiv" style="display:none" class="mt-3 p-3 rounded bg-light border">
+      <div class="fw-semibold small mb-2">
+        <i class="bi bi-buildings me-1"></i>Obras cadastradas deste proprietário
+      </div>
+      <div id="obrasProprietarioList" class="list-group small">
+      </div>
+      <small class="text-muted d-block mt-2">Clique em uma obra para preencher automáticamente a seção de Empreendimento</small>
+    </div>
+
   </div>
 </div>
 
@@ -189,19 +199,44 @@
         if (e.detail && e.detail._busca_id === 'emp') {
           document.getElementById('proprietario_id_oculto').value = e.detail.proprietario_id || '';
           document.getElementById('proprietario_nome_oculto').value = e.detail.proprietario_nome || '';
-          // Exibir alerta com dados do proprietário
-          if (e.detail.proprietario_nome) {
-            const msg = `Proprietário identificado: ${e.detail.proprietario_nome}. Adicione-o na seção anterior se necessário.`;
-            console.info(msg);
+
+          // Automaticamente adicionar proprietário à seção anterior
+          if (e.detail.proprietario_id && e.detail.proprietario_nome) {
+            adicionarProprietarioAutomatico(e.detail.proprietario_id, e.detail.proprietario_nome, e.detail.proprietario_cpf_cnpj || '');
           }
         }
       });
+
+      function adicionarProprietarioAutomatico(id, nome, cpf_cnpj) {
+        const container = document.getElementById('pessoasSelecionadas');
+
+        // Verificar se já existe
+        const jaExiste = container.querySelector(`[data-id="${id}"]`);
+        if (jaExiste) return;
+
+        // Criar chip
+        const chip = document.createElement('div');
+        chip.className = 'chip-pessoa d-flex align-items-center gap-1 px-2 py-1 rounded-pill border bg-primary bg-opacity-10';
+        chip.style.fontSize = '.82rem';
+        chip.setAttribute('data-id', id);
+        chip.innerHTML = `
+          <i class="bi bi-person-fill text-primary"></i>
+          <span class="fw-semibold">${nome}</span>
+          ${cpf_cnpj ? `<span class="text-muted">· ${cpf_cnpj}</span>` : ''}
+          <input type="hidden" name="pessoa_id" value="${id}">
+          <button type="button" class="btn-close btn-close-sm ms-1" style="font-size:.6rem"
+                  onclick="removerPessoa(this)" title="Remover"></button>
+        `;
+
+        container.appendChild(chip);
+        document.getElementById('pessoaObrigatorio').value = id;
+      }
     </script>
 
     <!-- Seção de informações do proprietário da obra -->
     <div id="proprietarioObraInfo" class="alert alert-info py-2 px-3 mb-3" style="display:none">
       <div class="fw-semibold small mb-2">
-        <i class="bi bi-person-check me-1"></i>Proprietário da Obra Identificado
+        <i class="bi bi-person-check me-1"></i>Proprietário da Obra Identificado e Adicionado
       </div>
       <div class="row g-2 small">
         <div class="col-md-6">
@@ -221,8 +256,8 @@
           <div id="emp_proprietario_email">—</div>
         </div>
       </div>
-      <small class="text-muted d-block mt-2">
-        <i class="bi bi-info-circle me-1"></i>Adicione este proprietário na seção "Proprietário / Empreendedor" acima se necessário.
+      <small class="text-success d-block mt-2">
+        <i class="bi bi-check-circle me-1"></i>Proprietário adicionado automaticamente à seção acima.
       </small>
     </div>
 
@@ -555,11 +590,67 @@ function adicionarChip(pessoa) {
   selecionados.appendChild(chip);
   atualizarSentinela();
   document.getElementById('pessoaErro').style.display = 'none';
+
+  // Carregar e exibir obras deste proprietário
+  carregarObrasProprietario(pessoa.id);
 }
 
 function removerPessoa(btn) {
   btn.closest('.chip-pessoa').remove();
   atualizarSentinela();
+  // Ocultar obras quando remover proprietário
+  document.getElementById('obrasProprietarioDiv').style.display = 'none';
+}
+
+function carregarObrasProprietario(pessoaId) {
+  fetch(`/api/pessoas/${pessoaId}/obras`)
+    .then(r => r.json())
+    .then(obras => {
+      const div = document.getElementById('obrasProprietarioDiv');
+      const list = document.getElementById('obrasProprietarioList');
+
+      if (!obras || obras.length === 0) {
+        div.style.display = 'none';
+        return;
+      }
+
+      list.innerHTML = '';
+      obras.forEach(o => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'list-group-item list-group-item-action text-start py-2';
+        item.innerHTML = `
+          <div class="fw-semibold">${o.nome || o.label}</div>
+          <small class="text-muted">Insc.: ${o.inscricao_imobiliaria || '—'} | ${o.endereco || ''}</small>
+        `;
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          preencherObra(o.id);
+        });
+        list.appendChild(item);
+      });
+
+      div.style.display = 'block';
+    })
+    .catch(err => console.error('Erro ao carregar obras:', err));
+}
+
+function preencherObra(obraId) {
+  // Simular busca pela obra e preencher via API
+  fetch(`/api/obras/buscar?q=${obraId}`)
+    .then(r => r.json())
+    .then(obras => {
+      if (obras.length > 0) {
+        const o = obras.find(x => x.id == obraId);
+        if (o) {
+          // Disparar o mesmo evento que _obra_busca.html dispara
+          document.dispatchEvent(new CustomEvent('obraSelected', {
+            detail: Object.assign({}, o, {_busca_id: 'emp'})
+          }));
+        }
+      }
+    })
+    .catch(err => console.error('Erro ao buscar obra:', err));
 }
 
 function atualizarSentinela() {

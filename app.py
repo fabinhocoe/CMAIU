@@ -1523,6 +1523,21 @@ def api_obras_buscar():
     } for o in obras])
 
 
+@app.route('/api/pessoas/<int:pessoa_id>/obras')
+@login_required
+def api_pessoas_obras(pessoa_id):
+    """Retorna obras vinculadas a um proprietário"""
+    obras = Obra.query.filter_by(proprietario_id=pessoa_id).order_by(Obra.nome).all()
+    return jsonify([{
+        'id': o.id,
+        'nome': o.nome or '',
+        'inscricao_imobiliaria': o.inscricao_imobiliaria or '',
+        'endereco': o.endereco or '',
+        'bairro': o.bairro or '',
+        'label': o.label,
+    } for o in obras])
+
+
 def _get_or_create_obra(f, criado_por, existing_obra_id=None):
     """Retorna obra_id sem criar duplicatas.
 
