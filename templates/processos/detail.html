@@ -206,6 +206,60 @@
   </div>
   {% endif %}
 
+  {# ── Solo Criado Cadastrado ── #}
+  {% if emp and emp.obra and emp.obra.solos_criados_vinculados %}
+  <div class="col-12">
+    <div class="card border-0 shadow-sm">
+      <div class="card-header section-header"><i class="bi bi-file-earmark-check me-2"></i>Dados de Solo Criado Cadastrado</div>
+      <div class="card-body">
+        {% for sc in emp.obra.solos_criados_vinculados %}
+        <div class="mb-4">
+          {% if sc.numero or sc.situacao %}
+          <div class="mb-3 pb-2 border-bottom">
+            <h6 class="mb-0">Solo Criado Nº {{ sc.numero or '—' }}</h6>
+            <small class="text-muted">Situação: {{ sc.situacao or '—' }}</small>
+          </div>
+          {% endif %}
+
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered" style="font-size: .9rem;">
+              <thead class="table-light">
+                <tr class="text-center">
+                  <th style="width: 45%;">Modalidade</th>
+                  <th style="width: 18%;">Percentual</th>
+                  <th style="width: 18%;">Metragem (m²)</th>
+                  <th style="width: 19%;">Valor (R$)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="fw-semibold"><i class="bi bi-cash-coin text-success me-2"></i>Onerosa (Pagamento ao Município)</td>
+                  <td class="text-center">{{ '%.2f'|format(sc.pon or 0) }}%</td>
+                  <td class="text-center">{{ '%.2f'|format(sc.aon or 0) }}</td>
+                  <td class="text-center"><strong class="text-success">{{ sc.von|brl if sc.von else '—' }}</strong></td>
+                </tr>
+                <tr>
+                  <td class="fw-semibold"><i class="bi bi-signpost-2 text-primary me-2"></i>Infraestrutura (Investimento em Bem Público)</td>
+                  <td class="text-center">{{ '%.2f'|format(sc.pin or 0) }}%</td>
+                  <td class="text-center">{{ '%.2f'|format(sc.ain or 0) }}</td>
+                  <td class="text-center"><strong class="text-primary">{{ sc.vin|brl if sc.vin else '—' }}</strong></td>
+                </tr>
+                <tr>
+                  <td class="fw-semibold"><i class="bi bi-droplet-half text-info me-2"></i>Águas Pluviais (Investimento no Empreendimento)</td>
+                  <td class="text-center">{{ '%.2f'|format(sc.pag or 0) }}%</td>
+                  <td class="text-center">{{ '%.2f'|format(sc.aag or 0) }}</td>
+                  <td class="text-center"><strong class="text-info">{{ sc.vag|brl if sc.vag else '—' }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
   {# ── Resultado do Cálculo ── #}
   {% if calc %}
   <div class="col-12">

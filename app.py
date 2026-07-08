@@ -455,6 +455,9 @@ def processos_novo():
 @login_required
 def processos_detail(pid):
     p = Processo.query.get_or_404(pid)
+    # Force eager loading of Obra and its SoloCriado to avoid lazy loading issues in template
+    if p.empreendimento and p.empreendimento.obra:
+        _ = p.empreendimento.obra.solos_criados_vinculados
     return render_template('processos/detail.html', processo=p)
 
 
