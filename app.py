@@ -381,7 +381,6 @@ def processos_novo():
         campos_obrigatorios = {
             'emp_nome': 'Nome do Empreendimento',
             'emp_padrao_empreendimento': 'Padrão do Empreendimento',
-            'emp_uso_secundario': 'Uso Secundário',
             'num_uc': 'Unidades Comerciais',
             'vagas': 'Nº de Vagas',
             'padrao_impacto': 'Padrão de Impacto',
@@ -475,7 +474,6 @@ def processos_editar(pid):
         campos_obrigatorios = {
             'emp_nome': 'Nome do Empreendimento',
             'emp_padrao_empreendimento': 'Padrão do Empreendimento',
-            'emp_uso_secundario': 'Uso Secundário',
             'num_uc': 'Unidades Comerciais',
             'vagas': 'Nº de Vagas',
             'padrao_impacto': 'Padrão de Impacto',

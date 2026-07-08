@@ -364,9 +364,9 @@
         </select>
       </div>
       <div class="col-md-6">
-        <label class="form-label small fw-semibold">Uso Secundário <span class="text-danger">*</span></label>
-        <select name="emp_uso_secundario" class="form-select form-select-sm" required>
-          <option value="">— Selecione —</option>
+        <label class="form-label small fw-semibold">Uso Secundário</label>
+        <select name="emp_uso_secundario" class="form-select form-select-sm">
+          <option value="">—</option>
           {% for u in usos %}
           <option value="{{ u }}" {% if emp and emp.uso_secundario == u %}selected{% endif %}>{{ u }}</option>
           {% endfor %}
