@@ -723,6 +723,8 @@ function mostrarAlertaSoloCriado(sc) {
     alertDiv.id = 'alertaSoloCriado';
     alertDiv.className = 'alert alert-success py-2 px-3 mt-3';
     alertDiv.style.display = 'block';
+
+    const numeroSoloCriado = sc.numero || '—';
     alertDiv.innerHTML = `
       <div class="d-flex align-items-start gap-2">
         <i class="bi bi-check-circle-fill mt-1" style="font-size:1.1rem"></i>
@@ -731,7 +733,7 @@ function mostrarAlertaSoloCriado(sc) {
             <i class="bi bi-database me-1"></i>Dados de Solo Criado Encontrados e Auto-preenchidos
           </div>
           <div class="small text-muted">
-            As informações cadastradas no registro de Solo Criado (Nº {{ sc.numero or '—' }})
+            As informações cadastradas no registro de Solo Criado (Nº ${numeroSoloCriado})
             foram automaticamente utilizadas para preencher os campos de Empreendimento.
             Os valores já validados estão vinculados à obra selecionada.
           </div>
@@ -744,9 +746,9 @@ function mostrarAlertaSoloCriado(sc) {
     if (proprietarioInfo && proprietarioInfo.parentNode) {
       proprietarioInfo.parentNode.insertBefore(alertDiv, proprietarioInfo.nextSibling);
     } else {
-      // Se não encontrar, inserir no início da card de empreendimento
-      const empCard = document.querySelector('[data-section="3"]');
-      if (empCard) empCard.insertBefore(alertDiv, empCard.firstChild);
+      // Se não encontrar, inserir no início da seção 3 (Empreendimento)
+      const card = document.querySelector('.card');
+      if (card) card.parentNode.insertBefore(alertDiv, card);
     }
   } else {
     alertDiv.style.display = 'block';
