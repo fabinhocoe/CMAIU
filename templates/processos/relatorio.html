@@ -176,8 +176,49 @@
       </tbody>
     </table>
 
+    {# Seção de Solo Criado Cadastrado (se existir) #}
+    {% if emp.solos_criados_vinculados %}
+    <h6 class="section-title mt-3">6 – DADOS DE SOLO CRIADO CADASTRADO</h6>
+    {% for sc in emp.solos_criados_vinculados %}
+    <div class="alert alert-info small mb-3">
+      <strong><i class="bi bi-info-circle me-1"></i>Solo Criado Nº {{ sc.numero or '—' }}</strong>
+      <small class="text-muted">{{ sc.situacao or '—' }}</small>
+    </div>
+    <table class="table table-sm table-bordered small">
+      <thead class="table-light">
+        <tr class="text-center">
+          <th style="width:35%">Modalidade</th>
+          <th style="width:20%">Percentual (%)</th>
+          <th style="width:20%">Metragem (m²)</th>
+          <th style="width:25%">Valor (R$)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="fw-semibold"><i class="bi bi-cash-coin text-success me-1"></i>Onerosa (Pagamento ao Município)</td>
+          <td class="text-center">{{ '%.2f'|format(sc.pon or 0) }}%</td>
+          <td class="text-center">{{ '%.2f'|format(sc.aon or 0) }}</td>
+          <td class="text-center"><strong class="text-success">{{ sc.von|brl if sc.von else '—' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="fw-semibold"><i class="bi bi-signpost-2 text-primary me-1"></i>Infraestrutura (Investimento em Bem Público)</td>
+          <td class="text-center">{{ '%.2f'|format(sc.pin or 0) }}%</td>
+          <td class="text-center">{{ '%.2f'|format(sc.ain or 0) }}</td>
+          <td class="text-center"><strong class="text-primary">{{ sc.vin|brl if sc.vin else '—' }}</strong></td>
+        </tr>
+        <tr>
+          <td class="fw-semibold"><i class="bi bi-droplet-half text-info me-1"></i>Águas Pluviais (Investimento no Empreendimento)</td>
+          <td class="text-center">{{ '%.2f'|format(sc.pag or 0) }}%</td>
+          <td class="text-center">{{ '%.2f'|format(sc.aag or 0) }}</td>
+          <td class="text-center"><strong class="text-info">{{ sc.vag|brl if sc.vag else '—' }}</strong></td>
+        </tr>
+      </tbody>
+    </table>
+    {% endfor %}
+    {% endif %}
+
     {% if rel %}
-    <h6 class="section-title mt-3">6 – DELIBERAÇÃO DA CMAIU</h6>
+    <h6 class="section-title mt-3">{{ '7' if emp.solos_criados_vinculados else '6' }} – DELIBERAÇÃO DA CMAIU</h6>
     <p class="small">{{ rel.deliberacao or '—' }}</p>
     {% if rel.medidas %}<p class="small"><strong>Medidas compensatórias:</strong> {{ rel.medidas }}</p>{% endif %}
     {% if rel.obs_deliberacao %}<p class="small"><strong>Observações:</strong> {{ rel.obs_deliberacao }}</p>{% endif %}
