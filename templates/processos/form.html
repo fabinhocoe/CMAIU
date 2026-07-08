@@ -636,21 +636,52 @@ function carregarObrasProprietario(pessoaId) {
 }
 
 function preencherObra(obraId) {
-  // Simular busca pela obra e preencher via API
-  fetch(`/api/obras/buscar?q=${obraId}`)
-    .then(r => r.json())
-    .then(obras => {
-      if (obras.length > 0) {
-        const o = obras.find(x => x.id == obraId);
-        if (o) {
-          // Disparar o mesmo evento que _obra_busca.html dispara
-          document.dispatchEvent(new CustomEvent('obraSelected', {
-            detail: Object.assign({}, o, {_busca_id: 'emp'})
-          }));
-        }
-      }
+  // Buscar dados completos da obra pela API
+  fetch(`/api/obras/${obraId}`)
+    .then(r => {
+      if (!r.ok) throw new Error('Obra não encontrada');
+      return r.json();
     })
-    .catch(err => console.error('Erro ao buscar obra:', err));
+    .then(o => {
+      // Preencher campos manualmente
+      document.getElementById('empNome').value = o.nome || '';
+      document.getElementById('empCep').value = o.cep || '';
+      document.getElementById('empEndereco').value = o.endereco || '';
+      document.getElementById('empBairro').value = o.bairro || '';
+      document.getElementById('empInscricao').value = o.inscricao_imobiliaria || '';
+      document.getElementById('areaTerreno').value = o.area_terreno || '';
+      document.getElementById('areaConstruida').value = o.area_construida || '';
+      document.getElementById('numPavimentos').value = o.num_pavimentos || '';
+
+      // Preencher zoneamento
+      if (o.zoneamento_id) {
+        const zSelect = document.getElementById('empZoneamento');
+        zSelect.value = o.zoneamento_id;
+        zSelect.dispatchEvent(new Event('change'));
+      }
+
+      // Exibir informações do proprietário
+      if (o.proprietario_nome) {
+        document.getElementById('emp_proprietario_nome').textContent = o.proprietario_nome || '—';
+        document.getElementById('emp_proprietario_cpf').textContent = o.proprietario_cpf_cnpj || '—';
+        document.getElementById('emp_proprietario_telefone').textContent = o.proprietario_telefone || '—';
+        document.getElementById('emp_proprietario_email').textContent = o.proprietario_email || '—';
+        document.getElementById('proprietarioObraInfo').style.display = 'block';
+      }
+
+      // Armazenar em campos ocultos para sincronização
+      document.getElementById('proprietario_id_oculto').value = o.proprietario_id || '';
+      document.getElementById('proprietario_nome_oculto').value = o.proprietario_nome || '';
+
+      // Bloquear campos (vinculados à obra)
+      lockEmpFields(true);
+
+      console.log('Obra preenchida:', o.nome);
+    })
+    .catch(err => {
+      console.error('Erro ao buscar obra:', err);
+      alert('Erro ao carregar dados da obra. Tente novamente.');
+    });
 }
 
 function atualizarSentinela() {

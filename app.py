@@ -1538,6 +1538,38 @@ def api_pessoas_obras(pessoa_id):
     } for o in obras])
 
 
+@app.route('/api/obras/<int:obra_id>')
+@login_required
+def api_obra_detalhes(obra_id):
+    """Retorna dados completos de uma obra específica"""
+    obra = Obra.query.get(obra_id)
+    if not obra:
+        return jsonify({'error': 'Obra não encontrada'}), 404
+    return jsonify({
+        'id': obra.id,
+        'nome': obra.nome or '',
+        'cep': obra.cep or '',
+        'endereco': obra.endereco or '',
+        'numero': obra.numero or '',
+        'complemento': obra.complemento or '',
+        'bairro': obra.bairro or '',
+        'cidade': obra.cidade or '',
+        'inscricao_imobiliaria': obra.inscricao_imobiliaria or '',
+        'matricula': obra.matricula or '',
+        'zoneamento_id': obra.zoneamento_id or '',
+        'zoneamento_codigo': obra.zoneamento.codigo if obra.zoneamento else '',
+        'area_terreno': obra.area_terreno or '',
+        'area_construida': obra.area_construida or '',
+        'num_pavimentos': obra.num_pavimentos or '',
+        'label': obra.label,
+        'proprietario_id': obra.proprietario_id or '',
+        'proprietario_nome': obra.proprietario.nome if obra.proprietario else '',
+        'proprietario_cpf_cnpj': obra.proprietario.cpf_cnpj if obra.proprietario else '',
+        'proprietario_telefone': obra.proprietario.telefone if obra.proprietario else '',
+        'proprietario_email': obra.proprietario.email if obra.proprietario else '',
+    })
+
+
 def _get_or_create_obra(f, criado_por, existing_obra_id=None):
     """Retorna obra_id sem criar duplicatas.
 
