@@ -522,7 +522,12 @@ document.addEventListener('obraSelected', function(e) {
   }
 });
 document.addEventListener('obraCleared', function(e) {
-  if (e.detail && e.detail._busca_id === 'emp') lockEmpFields(false);
+  if (e.detail && e.detail._busca_id === 'emp') {
+    lockEmpFields(false);
+    // Ocultar alerta de Solo Criado quando obra é limpa
+    const alertaSoloCriado = document.getElementById('alertaSoloCriado');
+    if (alertaSoloCriado) alertaSoloCriado.style.display = 'none';
+  }
 });
 
 if (PROCESSO_OBRA_ID) { document.addEventListener('DOMContentLoaded', function() { lockEmpFields(true); }); }
@@ -676,12 +681,76 @@ function preencherObra(obraId) {
       // Bloquear campos (vinculados à obra)
       lockEmpFields(true);
 
+      // Buscar dados de Solo Criado associados a esta obra
+      fetch(`/api/obras/${obraId}/solo-criado`)
+        .then(r => r.json())
+        .then(sc => {
+          if (sc) {
+            // Solo Criado encontrado - preencher campos com dados dele
+            if (sc.nome_empreendimento) {
+              document.getElementById('empNome').value = sc.nome_empreendimento;
+            }
+            if (sc.area_terreno) {
+              document.getElementById('areaTerreno').value = sc.area_terreno;
+            }
+            if (sc.area_construida_total) {
+              document.getElementById('areaConstruida').value = sc.area_construida_total;
+            }
+            if (sc.num_pavimentos) {
+              document.getElementById('numPavimentos').value = sc.num_pavimentos;
+            }
+
+            // Exibir alerta informando que Solo Criado foi encontrado e preenchido
+            mostrarAlertaSoloCriado(sc);
+          }
+        })
+        .catch(err => console.error('Erro ao buscar Solo Criado:', err));
+
       console.log('Obra preenchida:', o.nome);
     })
     .catch(err => {
       console.error('Erro ao buscar obra:', err);
       alert('Erro ao carregar dados da obra. Tente novamente.');
     });
+}
+
+function mostrarAlertaSoloCriado(sc) {
+  // Procurar por ou criar container para alerta de Solo Criado
+  let alertDiv = document.getElementById('alertaSoloCriado');
+  if (!alertDiv) {
+    // Criar o alerta dinamicamente
+    alertDiv = document.createElement('div');
+    alertDiv.id = 'alertaSoloCriado';
+    alertDiv.className = 'alert alert-success py-2 px-3 mt-3';
+    alertDiv.style.display = 'block';
+    alertDiv.innerHTML = `
+      <div class="d-flex align-items-start gap-2">
+        <i class="bi bi-check-circle-fill mt-1" style="font-size:1.1rem"></i>
+        <div>
+          <div class="fw-semibold small mb-1">
+            <i class="bi bi-database me-1"></i>Dados de Solo Criado Encontrados e Auto-preenchidos
+          </div>
+          <div class="small text-muted">
+            As informações cadastradas no registro de Solo Criado (Nº {{ sc.numero or '—' }})
+            foram automaticamente utilizadas para preencher os campos de Empreendimento.
+            Os valores já validados estão vinculados à obra selecionada.
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Inserir após o container proprietarioObraInfo
+    const proprietarioInfo = document.getElementById('proprietarioObraInfo');
+    if (proprietarioInfo && proprietarioInfo.parentNode) {
+      proprietarioInfo.parentNode.insertBefore(alertDiv, proprietarioInfo.nextSibling);
+    } else {
+      // Se não encontrar, inserir no início da card de empreendimento
+      const empCard = document.querySelector('[data-section="3"]');
+      if (empCard) empCard.insertBefore(alertDiv, empCard.firstChild);
+    }
+  } else {
+    alertDiv.style.display = 'block';
+  }
 }
 
 function atualizarSentinela() {

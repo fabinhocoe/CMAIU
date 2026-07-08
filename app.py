@@ -1608,6 +1608,36 @@ def api_obra_detalhes(obra_id):
     })
 
 
+@app.route('/api/obras/<int:obra_id>/solo-criado')
+@login_required
+def api_obra_solo_criado(obra_id):
+    """Retorna registro de Solo Criado associado à obra, se existir"""
+    sc = SoloCriado.query.filter_by(obra_id=obra_id).first()
+    if not sc:
+        return jsonify(None), 200
+    return jsonify({
+        'id': sc.id,
+        'numero': sc.numero or '',
+        'nome_empreendimento': sc.nome_empreendimento or '',
+        'uso_empreendimento': sc.uso_empreendimento or '',
+        'area_construida_total': sc.area_construida_total or '',
+        'area_computavel': sc.area_computavel or '',
+        'num_pavimentos': sc.num_pavimentos or '',
+        'iab': sc.iab or '',
+        'iam': sc.iam or '',
+        'pon': sc.pon or 0,
+        'pin': sc.pin or 0,
+        'pag': sc.pag or 0,
+        'von': sc.von or '',
+        'vin': sc.vin or '',
+        'vag': sc.vag or '',
+        'cub_valor': sc.cub_valor or '',
+        'cub_mes_ref': sc.cub_mes_ref or '',
+        'area_terreno': sc.area_terreno or '',
+        'zoneamento_codigo': sc.zoneamento.codigo if sc.zoneamento else '',
+    })
+
+
 def _get_or_create_obra(f, criado_por, existing_obra_id=None):
     """Retorna obra_id sem criar duplicatas.
 
