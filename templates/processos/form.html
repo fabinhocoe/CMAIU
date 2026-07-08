@@ -465,6 +465,95 @@
   </div>
 </div>
 
+{# ── SEÇÃO 5 – DADOS DE SOLO CRIADO ── #}
+<div class="card border-0 shadow-sm mb-4" id="secaoSoloCriado" style="display:none;border-left:4px solid #0d6efd !important;">
+  <div class="card-header section-header d-flex align-items-center gap-2 py-2" style="background-color:#e7f1ff;">
+    <span class="badge bg-info rounded-circle d-flex align-items-center justify-content-center"
+          style="width:24px;height:24px;font-size:.7rem;flex-shrink:0">5</span>
+    <i class="bi bi-database"></i>
+    <span class="fw-semibold">Dados de Solo Criado (Auto-preenchidos)</span>
+  </div>
+  <div class="card-body py-3">
+    <div class="row g-3">
+
+      {# Identificação e CUB #}
+      <div class="col-12"><p class="text-muted small fw-semibold mb-0"><i class="bi bi-info-circle me-1"></i>Identificação</p><hr class="mt-1 mb-0"></div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Nº Solo Criado</label>
+        <input type="text" id="soloCriadoNumero" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">CUB de Referência</label>
+        <input type="text" id="soloCriadoCub" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-5">
+        <label class="form-label small fw-semibold">Período de Referência</label>
+        <input type="text" id="soloCriadoCubPeriodo" class="form-control form-control-sm bg-light" readonly>
+      </div>
+
+      {# Índices Urbanísticos #}
+      <div class="col-12"><p class="text-muted small fw-semibold mb-0 mt-2"><i class="bi bi-rulers me-1"></i>Índices Urbanísticos</p><hr class="mt-1 mb-0"></div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">IAB (Aproveitamento)</label>
+        <input type="number" step="0.0001" id="soloCriadoIab" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">IAM (Mínimo)</label>
+        <input type="number" step="0.0001" id="soloCriadoIam" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Área Computável (m²)</label>
+        <input type="number" step="0.01" id="soloCriadoAreaComputavel" class="form-control form-control-sm bg-light" readonly>
+      </div>
+
+      {# Percentuais de Solo Criado #}
+      <div class="col-12"><p class="text-muted small fw-semibold mb-0 mt-2"><i class="bi bi-percent me-1"></i>Percentuais de Outorga Onerosa</p><hr class="mt-1 mb-0"></div>
+
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Oneroso (%)</label>
+        <input type="number" step="0.01" id="soloCriadoPon" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Infraestrutura (%)</label>
+        <input type="number" step="0.01" id="soloCriadoPin" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Águas Pluviais (%)</label>
+        <input type="number" step="0.01" id="soloCriadoPag" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-3">
+        <label class="form-label small fw-semibold">Total (%)</label>
+        <input type="number" step="0.01" id="soloCriadoTotal" class="form-control form-control-sm bg-light" readonly>
+      </div>
+
+      {# Valores de Solo Criado #}
+      <div class="col-12"><p class="text-muted small fw-semibold mb-0 mt-2"><i class="bi bi-cash-coin me-1"></i>Valores Calculados</p><hr class="mt-1 mb-0"></div>
+
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Oneroso (R$)</label>
+        <input type="text" id="soloCriadoVon" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Infraestrutura (R$)</label>
+        <input type="text" id="soloCriadoVin" class="form-control form-control-sm bg-light" readonly>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Águas Pluviais (R$)</label>
+        <input type="text" id="soloCriadoVag" class="form-control form-control-sm bg-light" readonly>
+      </div>
+
+    </div>
+
+    <div class="alert alert-info small mt-3 mb-0">
+      <i class="bi bi-info-circle me-1"></i>
+      <strong>Dados importados do cadastro de Solo Criado:</strong> Os campos acima são somente leitura e refletem os dados já validados no sistema.
+      Se precisar atualizar, acesse o módulo de Solo Criado.
+    </div>
+  </div>
+</div>
+
 {# ── Ações ── #}
 <div class="d-flex gap-2 justify-content-end pb-4">
   <a href="{{ url_for('processos_index') if not editing else url_for('processos_detail', pid=processo.id) }}"
@@ -527,6 +616,9 @@ document.addEventListener('obraCleared', function(e) {
     // Ocultar alerta de Solo Criado quando obra é limpa
     const alertaSoloCriado = document.getElementById('alertaSoloCriado');
     if (alertaSoloCriado) alertaSoloCriado.style.display = 'none';
+    // Ocultar seção de Solo Criado
+    const secaoSoloCriado = document.getElementById('secaoSoloCriado');
+    if (secaoSoloCriado) secaoSoloCriado.style.display = 'none';
   }
 });
 
@@ -734,8 +826,8 @@ function mostrarAlertaSoloCriado(sc) {
           </div>
           <div class="small text-muted">
             As informações cadastradas no registro de Solo Criado (Nº ${numeroSoloCriado})
-            foram automaticamente utilizadas para preencher os campos de Empreendimento.
-            Os valores já validados estão vinculados à obra selecionada.
+            foram automaticamente utilizadas para preencher os campos de Empreendimento e disponibilizadas abaixo.
+            Consulte a <strong>Seção 5 – Dados de Solo Criado</strong> para os detalhes completos.
           </div>
         </div>
       </div>
@@ -752,6 +844,55 @@ function mostrarAlertaSoloCriado(sc) {
     }
   } else {
     alertDiv.style.display = 'block';
+  }
+
+  // Preencher campos da Seção 5 (Dados de Solo Criado)
+  preencherSecaoSoloCriado(sc);
+}
+
+function preencherSecaoSoloCriado(sc) {
+  // Mostrar a seção de Solo Criado
+  const secao = document.getElementById('secaoSoloCriado');
+  if (!secao) return;
+  secao.style.display = 'block';
+
+  // Preencher identificação
+  if (sc.numero) document.getElementById('soloCriadoNumero').value = sc.numero;
+  if (sc.cub_valor) document.getElementById('soloCriadoCub').value = `R$ ${sc.cub_valor.toFixed(2).replace('.', ',')}`;
+  if (sc.cub_mes_ref) document.getElementById('soloCriadoCubPeriodo').value = sc.cub_mes_ref;
+
+  // Preencher índices urbanísticos
+  if (sc.iab) document.getElementById('soloCriadoIab').value = parseFloat(sc.iab).toFixed(4);
+  if (sc.iam) document.getElementById('soloCriadoIam').value = parseFloat(sc.iam).toFixed(4);
+  if (sc.area_computavel) document.getElementById('soloCriadoAreaComputavel').value = parseFloat(sc.area_computavel).toFixed(2);
+
+  // Preencher percentuais
+  if (sc.pon !== null && sc.pon !== undefined && sc.pon !== '') {
+    document.getElementById('soloCriadoPon').value = parseFloat(sc.pon).toFixed(2);
+  }
+  if (sc.pin !== null && sc.pin !== undefined && sc.pin !== '') {
+    document.getElementById('soloCriadoPin').value = parseFloat(sc.pin).toFixed(2);
+  }
+  if (sc.pag !== null && sc.pag !== undefined && sc.pag !== '') {
+    document.getElementById('soloCriadoPag').value = parseFloat(sc.pag).toFixed(2);
+  }
+
+  // Calcular total de percentuais
+  const pon = parseFloat(sc.pon || 0);
+  const pin = parseFloat(sc.pin || 0);
+  const pag = parseFloat(sc.pag || 0);
+  const totalPercentual = pon + pin + pag;
+  document.getElementById('soloCriadoTotal').value = totalPercentual.toFixed(2);
+
+  // Preencher valores (formatados em moeda)
+  if (sc.von && sc.von !== '') {
+    document.getElementById('soloCriadoVon').value = `R$ ${parseFloat(sc.von).toFixed(2).replace('.', ',')}`;
+  }
+  if (sc.vin && sc.vin !== '') {
+    document.getElementById('soloCriadoVin').value = `R$ ${parseFloat(sc.vin).toFixed(2).replace('.', ',')}`;
+  }
+  if (sc.vag && sc.vag !== '') {
+    document.getElementById('soloCriadoVag').value = `R$ ${parseFloat(sc.vag).toFixed(2).replace('.', ',')}`;
   }
 }
 
