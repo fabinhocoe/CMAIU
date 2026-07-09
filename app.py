@@ -745,8 +745,12 @@ def processos_relatorio(pid):
     if p.empreendimento and p.empreendimento.obra:
         _ = p.empreendimento.obra.solos_criados_vinculados
 
+    # Filter impactos to show only valid ones (with description and not 'Inexistente')
+    impactos_validos = [imp for imp in (p.impactos or [])
+                        if imp.descricao and imp.classificacao != 'Inexistente']
+
     return render_template('processos/relatorio.html', processo=p, calc=calc,
-                           rel=rel, integrantes=integrantes)
+                           rel=rel, integrantes=integrantes, impactos_validos=impactos_validos)
 
 
 @app.route('/processos/<int:pid>/relatorio/pdf')
@@ -761,6 +765,10 @@ def processos_relatorio_pdf(pid):
     if p.empreendimento and p.empreendimento.obra:
         _ = p.empreendimento.obra.solos_criados_vinculados
 
+    # Filter impactos to show only valid ones (with description and not 'Inexistente')
+    impactos_validos = [imp for imp in (p.impactos or [])
+                        if imp.descricao and imp.classificacao != 'Inexistente']
+
     # Load logo as base64
     import base64
     logo_path = os.path.join(app.static_folder, 'img', 'smpu_logo.jpg')
@@ -772,18 +780,26 @@ def processos_relatorio_pdf(pid):
         pass
 
     html = render_template('relatorio/pdf.html', processo=p, calc=calc,
-                           rel=rel, integrantes=integrantes,
+                           rel=rel, integrantes=integrantes, impactos_validos=impactos_validos,
                            data_emissao=date.today(), logo_base64=logo_base64)
     try:
         from xhtml2pdf import pisa
         buf = io.BytesIO()
-        pisa.CreatePDF(html.encode('utf-8'), dest=buf, encoding='utf-8')
+        result = pisa.CreatePDF(html.encode('utf-8'), dest=buf, encoding='utf-8')
+
+        if result.err:
+            raise Exception(f'Erro ao gerar PDF: {result.err}')
+
         buf.seek(0)
+        if buf.getbuffer().nbytes == 0:
+            raise Exception('PDF gerado vazio')
+
         nome = f"CMAIU_{p.num_processo or p.id}.pdf".replace('/', '-')
         return send_file(buf, mimetype='application/pdf',
                          as_attachment=True, download_name=nome)
     except Exception as e:
-        flash(f'Erro ao gerar PDF: {e}', 'danger')
+        app.logger.error(f'Erro ao gerar PDF para processo {pid}: {str(e)}')
+        flash(f'Erro ao gerar PDF: {str(e)}', 'danger')
         return redirect(url_for('processos_relatorio', pid=pid))
 
 
