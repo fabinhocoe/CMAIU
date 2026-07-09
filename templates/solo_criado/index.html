@@ -32,30 +32,35 @@
   {% endif %}
 </div>
 
-{# ── Totalizadores anuais ── #}
+{# ── Resumo Anual Solo Criado ── #}
 {% if registros %}
-<div class="row g-2 mb-3">
-  <div class="col-12">
-    <div class="text-muted small mb-1 ps-1">
-      <i class="bi bi-calendar3 me-1"></i>Totais do ano {{ totais_ano.ano }}
-    </div>
+<div class="card border-0 shadow-sm mb-4">
+  <div class="card-header bg-light border-bottom">
+    <h6 class="mb-0"><i class="bi bi-layers me-2"></i>Resumo Anual Solo Criado – {{ totais_ano.ano }}</h6>
   </div>
-  <div class="col-6 col-md-4">
-    <div class="card border-0 bg-success bg-opacity-10 text-center py-2">
-      <div class="small text-muted">Total Oneroso</div>
-      <div class="fw-bold text-success">{{ totais_ano.von|brl }}</div>
-    </div>
-  </div>
-  <div class="col-6 col-md-4">
-    <div class="card border-0 bg-primary bg-opacity-10 text-center py-2">
-      <div class="small text-muted">Total Infraestrutura</div>
-      <div class="fw-bold text-primary">{{ totais_ano.vin|brl }}</div>
-    </div>
-  </div>
-  <div class="col-12 col-md-4">
-    <div class="card border-0 bg-dark bg-opacity-10 text-center py-2">
-      <div class="small text-muted">Valor Total Geral</div>
-      <div class="fw-bold">{{ totais_ano.vtot|brl }}</div>
+  <div class="card-body">
+    <div class="row g-2" style="display:flex;flex-wrap:nowrap">
+      <div style="flex:1;min-width:0">
+        <div class="text-center p-3 rounded" style="background:#f0f8f5;border-left:4px solid #198754;height:100%">
+          <div class="small text-muted fw-semibold mb-1">TOTAL ONEROSO</div>
+          <div class="fs-5 fw-bold text-success">{{ totais_ano.von|brl }}</div>
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:0">
+        <div class="text-center p-3 rounded" style="background:#f0f6ff;border-left:4px solid #0d6efd;height:100%">
+          <div class="small text-muted fw-semibold mb-1">TOTAL INFRAESTRUTURA</div>
+          <div class="fs-5 fw-bold text-primary">{{ totais_ano.vin|brl }}</div>
+        </div>
+      </div>
+
+      <div style="flex:1;min-width:0">
+        <div class="p-3 rounded fw-bold" style="background:#f8f9fa;border-left:4px solid #6c757d;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center">
+          <div class="small text-muted">VALOR TOTAL GERAL</div>
+          <div class="fs-5 text-dark">{{ totais_ano.vtot|brl }}</div>
+          <div class="small text-muted" style="font-size:0.7rem">Oneroso + Infraestrutura</div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
