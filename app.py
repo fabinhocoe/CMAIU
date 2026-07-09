@@ -315,11 +315,23 @@ def processos_index():
     processos = query.order_by(Processo.criado_em.desc()).all()
     ano_atual = date.today().year
     proc_ano = [p for p in processos if p.criado_em and p.criado_em.year == ano_atual]
+
+    # Calcular infraestrutura de solo criado por processo
+    v_infra_total = 0
+    for p in proc_ano:
+        if p.empreendimento and p.empreendimento.obra and p.empreendimento.obra.solos_criados_vinculados:
+            v_infra_total += sum(sc.vin or 0 for sc in p.empreendimento.obra.solos_criados_vinculados)
+
+    v_cmu = sum(p.ultimo_calculo.valor_compensacao or 0 for p in proc_ano if p.ultimo_calculo and p.ultimo_calculo.nivel_selecionado)
+
     totais_ano = {
         'ano': ano_atual,
         'qtd': len(proc_ano),
         'com_calculo': sum(1 for p in proc_ano if p.ultimo_calculo),
-        'vcomp': sum(p.ultimo_calculo.valor_compensacao or 0 for p in proc_ano if p.ultimo_calculo and p.ultimo_calculo.nivel_selecionado),
+        'vcomp': v_cmu,
+        'v_cmu': v_cmu,
+        'v_infra': v_infra_total,
+        'v_total': v_cmu + v_infra_total,
     }
     return render_template('processos/index.html', processos=processos,
                            q=q, sit=sit, situacoes=SITUACOES_PROCESSO, totais_ano=totais_ano)
