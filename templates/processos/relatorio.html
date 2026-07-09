@@ -222,7 +222,7 @@
 
     <h6 class="section-title mt-3">6 – COMPENSAÇÃO TOTAL (CMAIU + Infraestrutura)</h6>
     <table class="table table-sm table-bordered small">
-      <tr><th>Compensação Urbana (CMU)</th><td class="table-primary fw-bold">{{ c.valor_compensacao|brl }}</td></tr>
+      <tr><th>Compensação Urbana (CMAIU)</th><td class="table-primary fw-bold">{{ c.valor_compensacao|brl }}</td></tr>
       <tr><th>Infraestrutura do Solo Criado</th><td>{% if emp.obra and emp.obra.solos_criados_vinculados %}{{ total_vin|brl if total_vin else '—' }}{% else %}—{% endif %}</td></tr>
       <tr class="table-primary fw-bold"><th>TOTAL (Mesma finalidade: Infraestrutura Municipal)</th><td>{% if emp.obra and emp.obra.solos_criados_vinculados %}{{ (c.valor_compensacao + total_vin)|brl }}{% else %}{{ c.valor_compensacao|brl }}{% endif %}</td></tr>
     </table>
