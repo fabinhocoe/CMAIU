@@ -94,12 +94,24 @@
       <table class="table table-sm table-hover align-middle mb-0" style="font-size:.82rem">
         <thead class="table-light">
           <tr>
-            <th class="px-2">Processo Adm.</th>
+            <th class="px-2">
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='num_processo', order='asc' if sort=='num_processo' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" title="Ordenar">
+                Processo Adm. {% if sort=='num_processo' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
+              </a>
+            </th>
             <th>Proprietário</th>
             <th>Empreendimento</th>
             <th>Bairro / Zona</th>
-            <th class="text-center">Situação</th>
-            <th class="text-center">Data Entrada</th>
+            <th class="text-center">
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='situacao', order='asc' if sort=='situacao' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" title="Ordenar">
+                Situação {% if sort=='situacao' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
+              </a>
+            </th>
+            <th class="text-center">
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='data_entrada', order='asc' if sort=='data_entrada' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" title="Ordenar">
+                Data Entrada {% if sort=='data_entrada' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
+              </a>
+            </th>
             <th class="text-end">Compensação</th>
             <th class="text-end">Infraestrutura</th>
             <th class="text-end">Total</th>

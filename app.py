@@ -302,6 +302,9 @@ def dashboard():
 def processos_index():
     q = request.args.get('q', '')
     sit = request.args.get('situacao', '')
+    sort = request.args.get('sort', 'data_entrada')
+    order = request.args.get('order', 'desc')
+
     query = Processo.query
     if q:
         like = f'%{q}%'
@@ -312,7 +315,19 @@ def processos_index():
         )
     if sit:
         query = query.filter_by(situacao=sit)
-    processos = query.order_by(Processo.criado_em.desc()).all()
+
+    # Aplicar ordenação
+    sort_map = {
+        'num_processo': Processo.num_processo,
+        'situacao': Processo.situacao,
+        'data_entrada': Processo.data_entrada,
+    }
+    sort_column = sort_map.get(sort, Processo.data_entrada)
+
+    if order == 'asc':
+        processos = query.order_by(sort_column.asc()).all()
+    else:
+        processos = query.order_by(sort_column.desc()).all()
     ano_atual = date.today().year
     proc_ano = [p for p in processos if p.criado_em and p.criado_em.year == ano_atual]
 
@@ -334,7 +349,8 @@ def processos_index():
         'v_total': v_cmu + v_infra_total,
     }
     return render_template('processos/index.html', processos=processos,
-                           q=q, sit=sit, situacoes=SITUACOES_PROCESSO, totais_ano=totais_ano)
+                           q=q, sit=sit, situacoes=SITUACOES_PROCESSO, totais_ano=totais_ano,
+                           sort=sort, order=order)
 
 
 @app.route('/processos/pessoas/buscar')
