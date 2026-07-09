@@ -127,6 +127,56 @@ app.jinja_env.filters['fmt_area'] = lambda v: f"{v:,.2f} m²".replace(',', 'X').
 app.jinja_env.filters['fmt_perc'] = lambda v: f"{v:.4f}%".rstrip('0').rstrip('.') + '%' if v else '0%'
 app.jinja_env.globals['now'] = datetime.now
 
+def _gerar_senha_temporaria():
+    """Gera senha segura temporária: 12 caracteres com letras, números, símbolos."""
+    import string
+    chars = string.ascii_letters + string.digits + '!@#$%'
+    return ''.join(secrets.choice(chars) for _ in range(12))
+
+
+def _validar_numero(valor, min_val=0, max_val=None, nome_campo='campo'):
+    """Valida se valor é número válido dentro de range."""
+    try:
+        num = float(valor) if valor else 0
+        if num < min_val:
+            return None, f'{nome_campo} não pode ser menor que {min_val}'
+        if max_val and num > max_val:
+            return None, f'{nome_campo} não pode ser maior que {max_val}'
+        return num, None
+    except (ValueError, TypeError):
+        return None, f'{nome_campo} deve ser um número válido'
+
+
+def _validar_texto(valor, min_len=1, max_len=255, nome_campo='campo'):
+    """Valida se texto está dentro dos limites."""
+    if not valor or not str(valor).strip():
+        if min_len > 0:
+            return None, f'{nome_campo} é obrigatório'
+        return '', None
+
+    texto = str(valor).strip()
+    if len(texto) < min_len:
+        return None, f'{nome_campo} deve ter no mínimo {min_len} caracteres'
+    if len(texto) > max_len:
+        return None, f'{nome_campo} não pode ter mais de {max_len} caracteres'
+    return texto, None
+
+
+def _validar_data(valor, nome_campo='data'):
+    """Valida se data é válida e não é futura."""
+    if not valor:
+        return None, f'{nome_campo} é obrigatória'
+
+    data = _parse_date(valor)
+    if not data:
+        return None, f'{nome_campo} inválida'
+
+    if data > date.today():
+        return None, f'{nome_campo} não pode ser futura'
+
+    return data, None
+
+
 def _fmt_fone(v):
     """Formata telefone para exibição: (XX) XXXXX-XXXX ou (XX) XXXX-XXXX."""
     if not v:
@@ -1005,15 +1055,23 @@ def admin_usuarios_novo():
     if request.method == 'POST':
         f = request.form
         email = f.get('email', '').strip().lower()
-        if Usuario.query.filter_by(email=email).first():
+        senha = f.get('senha', '').strip()
+
+        if not email or not f.get('nome'):
+            flash('Nome e e-mail são obrigatórios.', 'danger')
+        elif Usuario.query.filter_by(email=email).first():
             flash('E-mail já cadastrado.', 'danger')
+        elif not senha:
+            flash('Senha é obrigatória.', 'danger')
+        elif len(senha) < 8:
+            flash('Senha deve ter no mínimo 8 caracteres.', 'danger')
         else:
             u = Usuario(nome=f.get('nome'), email=email,
                         perfil=f.get('perfil', 'consulta'))
-            u.set_senha(f.get('senha', 'cmaiu@2025'))
+            u.set_senha(senha)
             db.session.add(u)
             db.session.commit()
-            flash('Usuário cadastrado.', 'success')
+            flash('Usuário cadastrado com sucesso.', 'success')
             return redirect(url_for('admin_usuarios'))
     return render_template('admin/usuario_form.html', u=None)
 
@@ -1197,8 +1255,17 @@ def init_db():
         if not Usuario.query.first():
             admin = Usuario(nome='Administrador', email='admin@cmaiu.palhoca.sc.gov.br',
                             perfil='administrador')
-            admin.set_senha('cmaiu@2025')
+            # Gerar senha temporária segura
+            senha_temporaria = _gerar_senha_temporaria()
+            admin.set_senha(senha_temporaria)
             db.session.add(admin)
+            print(f"\n{'='*70}")
+            print(f"✓ Banco de dados inicializado")
+            print(f"{'='*70}")
+            print(f"Admin criado: admin@cmaiu.palhoca.sc.gov.br")
+            print(f"Senha temporária: {senha_temporaria}")
+            print(f"⚠️  ALTERE ESTA SENHA NO PRIMEIRO LOGIN!")
+            print(f"{'='*70}\n")
 
         if not Parametro.query.first():
             for chave, desc, valor, unidade in PARAMS_INICIAIS:

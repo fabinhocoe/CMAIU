@@ -256,7 +256,7 @@ class TACPessoa(db.Model):
 class Processo(db.Model):
     __tablename__ = 'processos'
     id = db.Column(db.Integer, primary_key=True)
-    num_processo = db.Column(db.String(100))
+    num_processo = db.Column(db.String(100), nullable=False, unique=True)
     protocolo_cmaiu = db.Column(db.String(100))
     protocolo_aprovacao = db.Column(db.String(100))
     data_entrada = db.Column(db.Date)
