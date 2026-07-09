@@ -728,7 +728,7 @@ def processos_relatorio_pdf(pid):
 
     # Load logo as base64
     import base64
-    logo_path = os.path.join(app.static_folder, 'img', 'smpu_logo.png')
+    logo_path = os.path.join(app.static_folder, 'img', 'smpu_logo.jpg')
     logo_base64 = ''
     try:
         with open(logo_path, 'rb') as f:
