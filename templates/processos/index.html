@@ -37,48 +37,43 @@
     <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Resumo Anual CMAIU – {{ totais_ano.ano }}</h6>
   </div>
   <div class="card-body">
-    <div class="row g-3">
-      <!-- Coluna esquerda: métricas de processo -->
-      <div class="col-lg-6">
-        <div class="row g-2">
-          <div class="col-6">
-            <div class="text-center p-3 rounded" style="background:#f0f6ff;border-left:4px solid #0d6efd">
-              <div class="small text-muted fw-semibold mb-1">PROCESSOS NO ANO</div>
-              <div class="fs-4 fw-bold text-primary">{{ totais_ano.qtd }}</div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="text-center p-3 rounded" style="background:#f0f8f5;border-left:4px solid #198754">
-              <div class="small text-muted fw-semibold mb-1">COM CÁLCULO</div>
-              <div class="fs-4 fw-bold text-success">{{ totais_ano.com_calculo }}</div>
-            </div>
-          </div>
+    <div class="row g-2">
+      <div class="col-12 col-sm-6 col-md-3">
+        <div class="text-center p-3 rounded" style="background:#f0f6ff;border-left:4px solid #0d6efd">
+          <div class="small text-muted fw-semibold mb-1">PROCESSOS NO ANO</div>
+          <div class="fs-4 fw-bold text-primary">{{ totais_ano.qtd }}</div>
         </div>
       </div>
 
-      <!-- Coluna direita: valores de compensação -->
-      <div class="col-lg-6">
-        <div class="row g-2">
-          <div class="col-12">
-            <div class="p-3 rounded" style="background:#fffbf0;border-left:4px solid #ffc107">
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <div class="small text-muted fw-semibold mb-1">TOTAL CMU</div>
-                  <div class="fs-5 fw-bold" style="color:#7a5800">{{ totais_ano.v_cmu|brl }}</div>
-                </div>
-                <div class="text-end">
-                  <div class="small text-muted fw-semibold mb-1">TOTAL INFRAESTRUTURA</div>
-                  <div class="fs-5 fw-bold text-info">{{ totais_ano.v_infra|brl }}</div>
-                </div>
-              </div>
+      <div class="col-12 col-sm-6 col-md-3">
+        <div class="text-center p-3 rounded" style="background:#f0f8f5;border-left:4px solid #198754">
+          <div class="small text-muted fw-semibold mb-1">COM CÁLCULO</div>
+          <div class="fs-4 fw-bold text-success">{{ totais_ano.com_calculo }}</div>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-md-3">
+        <div class="text-center p-3 rounded" style="background:#fffbf0;border-left:4px solid #ffc107">
+          <div class="small text-muted fw-semibold mb-1">TOTAL CMU</div>
+          <div class="fs-5 fw-bold" style="color:#7a5800">{{ totais_ano.v_cmu|brl }}</div>
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-6 col-md-3">
+        <div class="text-center p-3 rounded" style="background:#f0f6fd;border-left:4px solid #0dcaf0">
+          <div class="small text-muted fw-semibold mb-1">TOTAL INFRAESTRUTURA</div>
+          <div class="fs-5 fw-bold text-info">{{ totais_ano.v_infra|brl }}</div>
+        </div>
+      </div>
+
+      <div class="col-12">
+        <div class="p-3 rounded text-white fw-bold" style="background:linear-gradient(135deg, #198754 0%, #0d6efd 100%)">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <div class="small text-white-50">TOTAL GLOBAL</div>
+              <div class="fs-4">{{ totais_ano.v_total|brl }}</div>
             </div>
-          </div>
-          <div class="col-12">
-            <div class="p-3 rounded text-white fw-bold" style="background:linear-gradient(135deg, #198754 0%, #0d6efd 100%)">
-              <div class="small mb-1 text-white-50">TOTAL GLOBAL</div>
-              <div class="fs-3">{{ totais_ano.v_total|brl }}</div>
-              <div class="small mt-2 text-white-50">CMU + Infraestrutura</div>
-            </div>
+            <div class="text-end small text-white-50">CMU + Infraestrutura</div>
           </div>
         </div>
       </div>
@@ -95,20 +90,32 @@
         <thead class="table-light">
           <tr>
             <th class="px-2">
-              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='num_processo', order='asc' if sort=='num_processo' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" title="Ordenar">
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='num_processo', order='asc' if sort=='num_processo' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" style="cursor:pointer" title="Ordenar">
                 Processo Adm. {% if sort=='num_processo' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
               </a>
             </th>
-            <th>Proprietário</th>
-            <th>Empreendimento</th>
-            <th>Bairro / Zona</th>
+            <th>
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='proprietario', order='asc' if sort=='proprietario' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" style="cursor:pointer" title="Ordenar">
+                Proprietário {% if sort=='proprietario' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='empreendimento', order='asc' if sort=='empreendimento' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" style="cursor:pointer" title="Ordenar">
+                Empreendimento {% if sort=='empreendimento' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
+              </a>
+            </th>
+            <th>
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='bairro', order='asc' if sort=='bairro' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" style="cursor:pointer" title="Ordenar">
+                Bairro / Zona {% if sort=='bairro' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
+              </a>
+            </th>
             <th class="text-center">
-              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='situacao', order='asc' if sort=='situacao' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" title="Ordenar">
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='situacao', order='asc' if sort=='situacao' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" style="cursor:pointer" title="Ordenar">
                 Situação {% if sort=='situacao' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
               </a>
             </th>
             <th class="text-center">
-              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='data_entrada', order='asc' if sort=='data_entrada' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" title="Ordenar">
+              <a href="{{ url_for('processos_index', q=q, situacao=sit, sort='data_entrada', order='asc' if sort=='data_entrada' and order=='desc' else 'desc') }}" class="text-decoration-none text-dark" style="cursor:pointer" title="Ordenar">
                 Data Entrada {% if sort=='data_entrada' %}<i class="bi bi-arrow-{{ 'up' if order=='asc' else 'down' }}"></i>{% endif %}
               </a>
             </th>

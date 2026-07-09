@@ -321,8 +321,15 @@ def processos_index():
         'num_processo': Processo.num_processo,
         'situacao': Processo.situacao,
         'data_entrada': Processo.data_entrada,
+        'proprietario': Proprietario.nome,
+        'empreendimento': Empreendimento.nome,
+        'bairro': Empreendimento.bairro,
     }
     sort_column = sort_map.get(sort, Processo.data_entrada)
+
+    # Se for ordenar por proprietário, empreendimento ou bairro, fazer join
+    if sort in ['proprietario', 'empreendimento', 'bairro']:
+        query = query.outerjoin(Processo.proprietario).outerjoin(Processo.empreendimento)
 
     if order == 'asc':
         processos = query.order_by(sort_column.asc()).all()
