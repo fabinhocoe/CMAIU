@@ -121,7 +121,7 @@
       </tr>
     </table>
 
-    {% set impactos_validos = processo.impactos|selectattr('descricao')|list %}
+    {% set impactos_validos = processo.impactos|selectattr('descricao')|rejectattr('classificacao', 'equalto', 'Inexistente')|list %}
     {% if impactos_validos %}
     <h6 class="section-title mt-3">3 – AVALIAÇÃO DOS IMPACTOS</h6>
     <table class="table table-sm table-bordered small">

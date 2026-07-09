@@ -69,7 +69,7 @@
       <th>Padrão de Impacto</th><td>{{ emp.padrao_impacto or '—' }}</td></tr>
 </table>
 
-{% set impactos_validos = processo.impactos|selectattr('descricao')|list %}
+{% set impactos_validos = processo.impactos|selectattr('descricao')|rejectattr('classificacao', 'equalto', 'Inexistente')|list %}
 {% if impactos_validos %}
 <h3>3 – Avaliação dos Impactos</h3>
 <table>
