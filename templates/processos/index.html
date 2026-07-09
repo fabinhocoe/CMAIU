@@ -72,6 +72,9 @@
             <th>Bairro / Zona</th>
             <th class="text-center">Situação</th>
             <th class="text-center">Data Entrada</th>
+            <th class="text-end">Compensação</th>
+            <th class="text-end">Infraestrutura</th>
+            <th class="text-end">Total</th>
             <th class="px-2"></th>
           </tr>
         </thead>
@@ -118,6 +121,33 @@
             <td class="text-center">
               {{ p.data_entrada.strftime('%d/%m/%Y') if p.data_entrada else '—' }}
             </td>
+            <td class="text-end">
+              {% if p.ultimo_calculo %}
+                <span class="fw-semibold">{{ p.ultimo_calculo.valor_compensacao|brl }}</span>
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if p.empreendimento and p.empreendimento.obra and p.empreendimento.obra.solos_criados_vinculados %}
+                {% set total_vin = p.empreendimento.obra.solos_criados_vinculados|map(attribute='vin')|map('default', 0)|sum %}
+                <span class="fw-semibold text-primary">{{ total_vin|brl }}</span>
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if p.ultimo_calculo %}
+                {% if p.empreendimento and p.empreendimento.obra and p.empreendimento.obra.solos_criados_vinculados %}
+                  {% set total_vin = p.empreendimento.obra.solos_criados_vinculados|map(attribute='vin')|map('default', 0)|sum %}
+                  <span class="fw-bold text-success">{{ (p.ultimo_calculo.valor_compensacao + total_vin)|brl }}</span>
+                {% else %}
+                  <span class="fw-bold text-success">{{ p.ultimo_calculo.valor_compensacao|brl }}</span>
+                {% endif %}
+              {% else %}
+                <span class="text-muted fst-italic">—</span>
+              {% endif %}
+            </td>
             <td class="text-end px-2">
               <a href="{{ url_for('processos_detail', pid=p.id) }}"
                  class="btn btn-xs btn-outline-primary" title="Visualizar">
@@ -127,7 +157,7 @@
           </tr>
           {% else %}
           <tr>
-            <td colspan="8" class="text-center text-muted py-5">
+            <td colspan="11" class="text-center text-muted py-5">
               <i class="bi bi-folder2-open fs-2 d-block mb-2 opacity-25"></i>
               Nenhum processo encontrado.
               {% if current_user.is_tecnico %}
