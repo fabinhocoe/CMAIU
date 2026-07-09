@@ -755,7 +755,7 @@ def processos_calculos(pid):
         db.session.add(calc)
         db.session.commit()
         flash('Cálculo realizado e salvo com sucesso.', 'success')
-        return redirect(url_for('processos_detail', pid=pid))
+        return redirect(url_for('processos_calculos', pid=pid))
 
     calc = p.ultimo_calculo
     return render_template('processos/calculos.html', processo=p, emp=emp,
