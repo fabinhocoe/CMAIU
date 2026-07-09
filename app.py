@@ -609,16 +609,6 @@ def processos_calculos(pid):
         if nivel == 'dispensado' and not f.get('justificativa_dispensa', '').strip():
             errors.append('A dispensa exige justificativa escrita.')
 
-        at = _float(f.get('area_terreno')) or (emp.area_terreno if emp else None)
-        cab = _float(f.get('cab')) or (emp.cab if emp else None)
-        ac = _float(f.get('area_computavel')) or (emp.area_computavel if emp else None)
-        if not at:
-            errors.append('Informe a área do terreno.')
-        if not cab:
-            errors.append('Informe o coeficiente de aproveitamento básico.')
-        if not ac:
-            errors.append('Informe a área computável do projeto.')
-
         zon = emp.zoneamento if emp else None
 
         # Solo Criado data is now read-only (calculated in solo criado module)
@@ -635,12 +625,13 @@ def processos_calculos(pid):
                 flash(e, 'danger')
             return redirect(url_for('processos_calculos', pid=pid))
 
-        ab = (at * cab) if at and cab else 0
-        ae = max(0, (ac - ab)) if ac and ab else 0
-        vu = cub_obj.valor * params.get('perc_cub_solo_criado', 0.06)
-        vo = area_on * vu
-        vi = area_inf * vu
-        va = area_cap * vu
+        # Solo Criado is no longer calculated here (only displayed as reference)
+        ab = 0
+        ae = 0
+        vu = 0
+        vo = 0
+        vi = 0
+        va = 0
 
         fc = params.get('fator_base_compensacao', 0.33)
         valor_base = pop * cub_obj.valor * fc

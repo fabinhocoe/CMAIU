@@ -124,43 +124,8 @@
 
 <!-- Solo Criado -->
 <div class="card border-0 shadow-sm mb-3">
-  <div class="card-header section-header"><i class="bi bi-layers me-2"></i>3 – Solo Criado</div>
+  <div class="card-header section-header"><i class="bi bi-layers me-2"></i>3 – Solo Criado (Informação de Referência)</div>
   <div class="card-body">
-    <div class="row g-3 mb-3">
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Área do Terreno (m²) <span class="text-danger">*</span></label>
-        <input type="number" step="0.01" name="area_terreno" id="at" class="form-control"
-          value="{{ emp.area_terreno if emp and emp.area_terreno else '' }}">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Coef. Básico (CAB) <span class="text-danger">*</span></label>
-        <input type="number" step="0.0001" name="cab" id="cab" class="form-control"
-          value="{{ emp.cab if emp and emp.cab else '' }}">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Área Básica (AB = AT × CAB)</label>
-        <input type="text" id="abDisplay" class="form-control bg-light" readonly
-          value="{{ c.area_basica|fmt_area if c else '' }}">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Área Computável (m²) <span class="text-danger">*</span></label>
-        <input type="number" step="0.01" name="area_computavel" id="ac" class="form-control"
-          value="{{ emp.area_computavel if emp and emp.area_computavel else '' }}">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Área Excedente (AE = AC − AB)</label>
-        <input type="text" id="aeDisplay" class="form-control bg-light" readonly
-          value="{{ c.area_excedente|fmt_area if c else '' }}">
-      </div>
-      <div class="col-md-3">
-        <label class="form-label small fw-semibold">Percentual Total Necessário</label>
-        <input type="text" id="ptDisplay" class="form-control bg-light" readonly>
-      </div>
-    </div>
-
-    <div id="alertSoloDisabled" class="alert alert-warning small d-none">
-      <i class="bi bi-exclamation-triangle me-1"></i>O zoneamento selecionado <strong>não permite</strong> solo criado.
-    </div>
 
     <!-- Solo Criado Calculado – Dados de Referência -->
     <div class="alert alert-info py-2 px-3 mb-3">
@@ -231,11 +196,7 @@
 </form>
 
 <script>
-const limOn  = {{ params.get('limite_oneroso', 40) }};
-const limInf = {{ params.get('limite_infra', 5) }};
-const limCap = {{ params.get('limite_captacao', 5) }};
-const limTot = {{ params.get('limite_total', 50) }};
-const fc     = {{ params.get('fator_base_compensacao', 0.33) }};
+const fc = {{ params.get('fator_base_compensacao', 0.33) }};
 const percCUB = {{ params.get('perc_cub_solo_criado', 0.06) }};
 
 let cubValor = {{ c.cub_valor if c and c.cub_valor else 0 }};
@@ -243,21 +204,17 @@ let cubValor = {{ c.cub_valor if c and c.cub_valor else 0 }};
 function fmtBrl(v) {
   return 'R$ ' + v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
-function fmtArea(v) {
-  return v.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2}) + ' m²';
-}
 
-// CUB select
+// CUB selection - apenas atualiza valores de compensação
 document.getElementById('cubSelect').addEventListener('change', function() {
   const opt = this.options[this.selectedIndex];
   cubValor = parseFloat(opt.dataset.valor) || 0;
   document.getElementById('cubValorDisplay').value = cubValor.toFixed(2);
   document.getElementById('vuDisplay').value = (cubValor * percCUB).toFixed(4);
   calcCompensacao();
-  calcSolo();
 });
 
-// Compensação
+// Cálculo de Compensação Urbana
 function calcCompensacao() {
   const pop = parseInt(document.getElementById('popInput').value) || 0;
   const vb = pop * cubValor * fc;
@@ -269,80 +226,14 @@ function calcCompensacao() {
 }
 document.getElementById('popInput').addEventListener('input', calcCompensacao);
 
-// Dispensa
+// Dispensa de compensação
 function toggleDispensa(val) {
   document.getElementById('dispensaBox').style.display = val === 'dispensado' ? '' : 'none';
 }
-// init
 const checked = document.querySelector('input[name="nivel_selecionado"]:checked');
 if (checked) toggleDispensa(checked.value);
 
-// Solo Criado – calcula AB, AE
-function calcBase() {
-  const at = parseFloat(document.getElementById('at').value) || 0;
-  const cab = parseFloat(document.getElementById('cab').value) || 0;
-  const ac = parseFloat(document.getElementById('ac').value) || 0;
-  const ab = at * cab;
-  const ae = Math.max(0, ac - ab);
-  document.getElementById('abDisplay').value = fmtArea(ab);
-  document.getElementById('aeDisplay').value = fmtArea(ae);
-  const pt = ab > 0 ? (ae / ab * 100) : 0;
-  document.getElementById('ptDisplay').value = pt.toFixed(4) + '%';
-  return {ab, ae};
-}
-['at','cab','ac'].forEach(id => document.getElementById(id).addEventListener('input', () => { calcBase(); calcSolo(); }));
-
-// Quando % muda → atualiza área
-function percToArea(percId, areaId) {
-  const {ab} = calcBase();
-  const perc = parseFloat(document.getElementById(percId).value) || 0;
-  document.getElementById(areaId).value = (ab * perc / 100).toFixed(2);
-  calcSolo();
-}
-// Quando área muda → atualiza %
-function areaToPerc(areaId, percId) {
-  const {ab} = calcBase();
-  const area = parseFloat(document.getElementById(areaId).value) || 0;
-  document.getElementById(percId).value = ab > 0 ? (area / ab * 100).toFixed(4) : '0';
-  calcSolo();
-}
-
-document.getElementById('percOn').addEventListener('input', () => percToArea('percOn','areaOn'));
-document.getElementById('areaOn').addEventListener('input', () => areaToPerc('areaOn','percOn'));
-document.getElementById('percInf').addEventListener('input', () => percToArea('percInf','areaInf'));
-document.getElementById('areaInf').addEventListener('input', () => areaToPerc('areaInf','percInf'));
-document.getElementById('percCap').addEventListener('input', () => percToArea('percCap','areaCap'));
-document.getElementById('areaCap').addEventListener('input', () => areaToPerc('areaCap','percCap'));
-
-function calcSolo() {
-  const vu = cubValor * percCUB;
-  const aOn  = parseFloat(document.getElementById('areaOn').value)  || 0;
-  const aInf = parseFloat(document.getElementById('areaInf').value) || 0;
-  const aCap = parseFloat(document.getElementById('areaCap').value) || 0;
-  const pOn  = parseFloat(document.getElementById('percOn').value)  || 0;
-  const pInf = parseFloat(document.getElementById('percInf').value) || 0;
-  const pCap = parseFloat(document.getElementById('percCap').value) || 0;
-
-  document.getElementById('valorOnDisplay').value  = fmtBrl(aOn  * vu);
-  document.getElementById('valorInfDisplay').value = fmtBrl(aInf * vu);
-  document.getElementById('valorCapDisplay').value = fmtBrl(aCap * vu);
-
-  const pt = pOn + pInf + pCap;
-  const at = aOn + aInf + aCap;
-  const vt = at * vu;
-  document.getElementById('percTotalDisplay').textContent = pt.toFixed(2) + '%';
-  document.getElementById('areaTotalDisplay').textContent = fmtArea(at);
-  document.getElementById('valorTotalDisplay').textContent = fmtBrl(vt);
-
-  // Alertas de limite
-  document.getElementById('percOn').classList.toggle('is-invalid', pOn > limOn);
-  document.getElementById('percInf').classList.toggle('is-invalid', pInf > limInf);
-  document.getElementById('percCap').classList.toggle('is-invalid', pCap > limCap);
-}
-
-// Init
-calcBase();
-calcSolo();
+// Inicializar cálculos de compensação
 calcCompensacao();
 </script>
 {% endblock %}
