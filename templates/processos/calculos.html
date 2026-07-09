@@ -62,10 +62,10 @@
     <div class="row g-3 mb-3">
       <div class="col-md-3">
         <label class="form-label small fw-semibold">População Total Adotada <span class="text-danger">*</span></label>
-        <input type="number" name="populacao" id="popInput" class="form-control" required
+        <input type="number" name="populacao" id="popInput" class="form-control bg-light" readonly
           value="{{ c.populacao if c else (emp.pop_total if emp else '') }}">
         {% if emp and emp.pop_total %}
-        <div class="form-text">Calculado: {{ emp.pop_total }} hab.</div>
+        <div class="form-text">Origem: Dados do empreendimento</div>
         {% endif %}
       </div>
       <div class="col-md-3">
