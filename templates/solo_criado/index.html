@@ -148,7 +148,7 @@
             <td class="text-center" style="border-left:2px solid #19875430">
               {% if r.pon is not none and r.von is not none %}
                 <span class="{% if r.pon > 40 %}text-danger fw-bold{% else %}text-success{% endif %}">
-                  {{ '%.2f'|format(r.pon) }}%
+                  {{ r.pon|fmt_perc }}
                 </span>
               {% else %}—{% endif %}
             </td>
@@ -160,7 +160,7 @@
             <td class="text-center" style="border-left:2px solid #0d6efd30">
               {% if r.pin is not none and r.pin > 0 %}
                 <span class="{% if r.pin > 5 %}text-danger fw-bold{% else %}text-primary{% endif %}">
-                  {{ '%.2f'|format(r.pin) }}%
+                  {{ r.pin|fmt_perc }}
                 </span>
               {% else %}<span class="text-muted">—</span>{% endif %}
             </td>
@@ -172,7 +172,7 @@
             <td class="text-center" style="border-left:2px solid #0dcaf030">
               {% if r.pag is not none and r.pag > 0 %}
                 <span class="{% if r.pag > 5 %}text-danger fw-bold{% else %}text-info{% endif %}">
-                  {{ '%.2f'|format(r.pag) }}%
+                  {{ r.pag|fmt_perc }}
                 </span>
               {% else %}<span class="text-muted">—</span>{% endif %}
             </td>

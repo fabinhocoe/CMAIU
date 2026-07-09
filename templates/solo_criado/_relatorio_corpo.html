@@ -63,7 +63,7 @@
           <tr>
             <td class="text-start">Onerosa (VON)</td>
             <td><span class="badge bg-success">Pagamento ao Município</span></td>
-            <td>{{ '%.2f'|format(sc.pon) if sc.pon else '—' }}%</td>
+            <td>{{ sc.pon|fmt_perc if sc.pon else '—' }}</td>
             <td>{{ '%.4f'|format(sc.ion) if sc.ion is not none else '—' }}</td>
             <td>{{ sc.aon|fmt_area if sc.aon is not none else '—' }}</td>
             <td class="fw-bold text-success">{{ sc.von|brl if sc.von is not none else '—' }}</td>
@@ -72,7 +72,7 @@
           <tr>
             <td class="text-start">Infraestrutura (VIN)</td>
             <td><span class="badge bg-primary">Investimento (aprox.)</span></td>
-            <td>{{ '%.2f'|format(sc.pin) }}%</td>
+            <td>{{ sc.pin|fmt_perc }}</td>
             <td>{{ '%.4f'|format(sc.iin) if sc.iin is not none else '—' }}</td>
             <td>{{ sc.ain|fmt_area if sc.ain is not none else '—' }}</td>
             <td class="text-primary">{{ sc.vin|brl if sc.vin is not none else '—' }}</td>
@@ -82,7 +82,7 @@
           <tr>
             <td class="text-start">Águas Pluviais (VAG)</td>
             <td><span class="badge bg-info text-dark">Investimento (aprox.)</span></td>
-            <td>{{ '%.2f'|format(sc.pag) }}%</td>
+            <td>{{ sc.pag|fmt_perc }}</td>
             <td>{{ '%.4f'|format(sc.iag) if sc.iag is not none else '—' }}</td>
             <td>{{ sc.aag|fmt_area if sc.aag is not none else '—' }}</td>
             <td class="text-info">{{ sc.vag|brl if sc.vag is not none else '—' }}</td>
@@ -91,7 +91,7 @@
           <tr class="table-dark fw-bold">
             <td class="text-start">TOTAL GERAL</td>
             <td></td>
-            <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
+            <td>{{ (((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0))|string|float)|fmt_perc }}</td>
             <td>{{ '%.4f'|format(sc.iat) if sc.iat is not none else '—' }}</td>
             <td>{{ sc.aat|fmt_area if sc.aat is not none else '—' }}</td>
             <td>{{ ((sc.von or 0)+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>

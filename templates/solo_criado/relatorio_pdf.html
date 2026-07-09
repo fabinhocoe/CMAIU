@@ -88,7 +88,7 @@
     <tr>
       <td>Outorga Onerosa (VON)</td>
       <td class="text-center">Pagamento ao Município</td>
-      <td class="text-center">{{ '%.2f'|format(sc.pon) if sc.pon else '—' }}%</td>
+      <td class="text-center">{{ sc.pon|fmt_perc if sc.pon else '—' }}</td>
       <td class="text-center">{{ '%.4f'|format(sc.ion) if sc.ion is not none else '—' }}</td>
       <td class="text-end">{{ sc.aon|fmt_area if sc.aon is not none else '—' }}</td>
       <td class="text-end fw-bold">{{ sc.von|brl if sc.von is not none else '—' }}</td>

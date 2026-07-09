@@ -122,9 +122,15 @@ def fmt_brl(valor):
     return f"R$ {valor:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
 
 
+def fmt_perc(valor):
+    """Formata percentual no padrão brasileiro."""
+    if valor is None or valor == 0:
+        return '0,00%'
+    return f"{valor:.2f}%".replace('.', ',')
+
 app.jinja_env.filters['brl'] = fmt_brl
 app.jinja_env.filters['fmt_area'] = lambda v: f"{v:,.2f} m²".replace(',', 'X').replace('.', ',').replace('X', '.') if v else '0,00 m²'
-app.jinja_env.filters['fmt_perc'] = lambda v: f"{v:.4f}%".rstrip('0').rstrip('.') + '%' if v else '0%'
+app.jinja_env.filters['fmt_perc'] = fmt_perc
 app.jinja_env.globals['now'] = datetime.now
 
 def _gerar_senha_temporaria():

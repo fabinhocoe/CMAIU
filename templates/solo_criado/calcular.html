@@ -203,14 +203,14 @@
             <tr>
               <td class="text-start">Onerosa</td>
               <td>{{ sc.aon|fmt_area }}</td>
-              <td>{{ '%.2f'|format(sc.pon) }}%</td>
+              <td>{{ sc.pon|fmt_perc }}</td>
               <td class="fw-bold text-success">{{ sc.von|brl }}</td>
             </tr>
             {% if sc.ain %}
             <tr>
               <td class="text-start">Infraestrutura</td>
               <td>{{ sc.ain|fmt_area }}</td>
-              <td>{{ '%.2f'|format(sc.pin) }}%</td>
+              <td>{{ sc.pin|fmt_perc }}</td>
               <td>{{ sc.vin|brl }}</td>
             </tr>
             {% endif %}
@@ -218,14 +218,14 @@
             <tr>
               <td class="text-start">Águas</td>
               <td>{{ sc.aag|fmt_area }}</td>
-              <td>{{ '%.2f'|format(sc.pag) }}%</td>
+              <td>{{ sc.pag|fmt_perc }}</td>
               <td>{{ sc.vag|brl }}</td>
             </tr>
             {% endif %}
             <tr class="table-success fw-bold">
               <td class="text-start">Total</td>
               <td>{{ sc.aat|fmt_area }}</td>
-              <td>{{ '%.2f'|format((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0)) }}%</td>
+              <td>{{ (((sc.pon or 0)+(sc.pin or 0)+(sc.pag or 0))|string|float)|fmt_perc }}</td>
               <td>{{ ((sc.von or 0)+(sc.vin or 0)+(sc.vag or 0))|brl }}</td>
             </tr>
           </tbody>
