@@ -44,12 +44,15 @@
       </div>
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Padrão de Impacto</label>
-        <select name="padrao_impacto" class="form-select">
+        <select name="padrao_impacto" class="form-select bg-light" disabled>
           <option value="">—</option>
           {% for p in padroes %}
           <option value="{{ p }}" {% if c and c.padrao_impacto == p %}selected{% elif emp and emp.padrao_impacto == p and not c %}selected{% endif %}>{{ p }}</option>
           {% endfor %}
         </select>
+        {% if emp and emp.padrao_impacto %}
+        <div class="form-text">Origem: Dados do empreendimento</div>
+        {% endif %}
       </div>
     </div>
   </div>
