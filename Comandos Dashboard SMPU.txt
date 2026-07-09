@@ -1,0 +1,11 @@
+Comandos Dashboard SMPU
+
+cd Fabinho\App
+pip install flash
+pip install -r requirements.txt
+python -m pip install -r requirements.txt
+python -m pip install Flask
+
+Comando para executar
+
+python app.py
