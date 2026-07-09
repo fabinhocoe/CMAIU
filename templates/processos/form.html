@@ -394,17 +394,17 @@
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Área do Terreno (m²) <span class="text-danger">*</span></label>
         <input type="number" step="0.01" name="area_terreno" id="areaTerreno" class="form-control form-control-sm" required
-               value="{{ emp.area_terreno if emp and emp.area_terreno else '' }}">
+               value="{% if emp and emp.area_terreno is not none %}{{ emp.area_terreno }}{% endif %}">
       </div>
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Área Construída Total (m²) <span class="text-danger">*</span></label>
         <input type="number" step="0.01" name="area_construida" id="areaConstruida" class="form-control form-control-sm" required
-               value="{{ emp.area_construida if emp and emp.area_construida else '' }}">
+               value="{% if emp and emp.area_construida is not none %}{{ emp.area_construida }}{% endif %}">
       </div>
       <div class="col-md-4">
         <label class="form-label small fw-semibold">Nº de Pavimentos</label>
         <input type="number" name="num_pavimentos" id="numPavimentos" class="form-control form-control-sm"
-               value="{{ emp.num_pavimentos if emp and emp.num_pavimentos else '' }}">
+               value="{% if emp and emp.num_pavimentos is not none %}{{ emp.num_pavimentos }}{% endif %}">
       </div>
 
       {# Unidades e Vagas  #}
@@ -413,17 +413,17 @@
       <div class="col-md-3">
         <label class="form-label small fw-semibold">UH (Unidades Habitacionais) <span class="text-danger">*</span></label>
         <input type="number" name="num_uh" class="form-control form-control-sm" required min="0"
-               value="{{ emp.num_uh if emp and emp.num_uh else '' }}">
+               value="{% if emp and emp.num_uh is not none %}{{ emp.num_uh }}{% endif %}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">UC (Unidades Comerciais) <span class="text-danger">*</span></label>
         <input type="number" name="num_uc" class="form-control form-control-sm" min="0" required
-               value="{{ emp.num_uc if emp and emp.num_uc else '' }}">
+               value="{% if emp and emp.num_uc is not none %}{{ emp.num_uc }}{% endif %}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Nº de Vagas <span class="text-danger">*</span></label>
         <input type="number" name="vagas" class="form-control form-control-sm" required
-               value="{{ emp.vagas if emp and emp.vagas else '' }}">
+               value="{% if emp and emp.vagas is not none %}{{ emp.vagas }}{% endif %}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Padrão de Impacto <span class="text-danger">*</span></label>
@@ -441,23 +441,23 @@
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Total de Dormitórios <span class="text-danger">*</span></label>
         <input type="number" name="total_dormitorios" id="dormitorios" class="form-control form-control-sm" required
-               value="{{ emp.total_dormitorios if emp and emp.total_dormitorios else '' }}">
+               value="{% if emp and emp.total_dormitorios is not none %}{{ emp.total_dormitorios }}{% endif %}">
         <div class="form-text">Pop. Res. = dormitórios × 2</div>
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Pop. Residencial <span class="text-danger">*</span></label>
         <input type="number" name="pop_residencial" id="popRes" class="form-control form-control-sm" required min="0"
-               value="{{ emp.pop_residencial if emp and emp.pop_residencial else '' }}">
+               value="{% if emp and emp.pop_residencial is not none %}{{ emp.pop_residencial }}{% endif %}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">Pop. Não Residencial <span class="text-danger">*</span></label>
         <input type="number" name="pop_nao_residencial" id="popNaoRes" class="form-control form-control-sm" required min="0"
-               value="{{ emp.pop_nao_residencial if emp and emp.pop_nao_residencial else '' }}">
+               value="{% if emp and emp.pop_nao_residencial is not none %}{{ emp.pop_nao_residencial }}{% endif %}">
       </div>
       <div class="col-md-3">
         <label class="form-label small fw-semibold">População Total</label>
         <input type="number" name="pop_total" id="popTotal" class="form-control form-control-sm bg-light"
-               value="{{ emp.pop_total if emp and emp.pop_total else '' }}" readonly>
+               value="{% if emp and emp.pop_total is not none %}{{ emp.pop_total }}{% endif %}" readonly>
         <div class="form-text">Calculado automaticamente</div>
       </div>
 
