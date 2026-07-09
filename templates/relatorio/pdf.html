@@ -90,40 +90,40 @@
   {% endif %}
 </table>
 
-<h3>5 – Solo Criado</h3>
+<h3>5 – Solo Criado (Informação de Referência)</h3>
+{% if emp and not emp.obra %}
+<p><strong>⚠️ Obra não vinculada</strong><br>
+Para visualizar dados de Solo Criado, é necessário vincular uma Obra ao Empreendimento.</p>
+{% elif emp and emp.obra and emp.obra.solos_criados_vinculados %}
+{% set total_pon = emp.obra.solos_criados_vinculados|map(attribute='pon')|map('default', 0)|sum %}
+{% set total_pin = emp.obra.solos_criados_vinculados|map(attribute='pin')|map('default', 0)|sum %}
+{% set total_pag = emp.obra.solos_criados_vinculados|map(attribute='pag')|map('default', 0)|sum %}
+{% set total_aon = emp.obra.solos_criados_vinculados|map(attribute='aon')|map('default', 0)|sum %}
+{% set total_ain = emp.obra.solos_criados_vinculados|map(attribute='ain')|map('default', 0)|sum %}
+{% set total_aag = emp.obra.solos_criados_vinculados|map(attribute='aag')|map('default', 0)|sum %}
+{% set total_von = emp.obra.solos_criados_vinculados|map(attribute='von')|map('default', 0)|sum %}
+{% set total_vin = emp.obra.solos_criados_vinculados|map(attribute='vin')|map('default', 0)|sum %}
+{% set total_vag = emp.obra.solos_criados_vinculados|map(attribute='vag')|map('default', 0)|sum %}
+<p><strong>Dados consolidados de Solo Criado vinculado à obra.</strong></p>
 <table>
-  <tr><th>Área Básica (AB)</th><td>{{ c.area_basica|fmt_area }}</td>
-      <th>Área Excedente (AE)</th><td>{{ c.area_excedente|fmt_area }}</td></tr>
-  <tr><th colspan="2">Valor Unitário (VU = CUB × 6%)</th><td colspan="2">{{ c.valor_unitario|brl }}/m²</td></tr>
-</table>
-<table>
-  <thead><tr><th>Modalidade</th><th>Percentual</th><th>Área</th><th>Valor</th></tr></thead>
+  <thead><tr><th>Modalidade</th><th>Percentual (%)</th><th>Metragem (m²)</th><th>Valor (R$)</th></tr></thead>
   <tbody>
-    <tr><td>Oneroso (máx. 40%)</td><td>{{ '%.2f'|format(c.perc_oneroso) }}%</td><td>{{ c.area_onerosa|fmt_area }}</td><td>{{ c.valor_oneroso|brl }}</td></tr>
-    <tr><td>Infraestrutura (máx. 5%)</td><td>{{ '%.2f'|format(c.perc_infra) }}%</td><td>{{ c.area_infra|fmt_area }}</td><td>{{ c.valor_infra|brl }}</td></tr>
-    <tr><td>Captação de Águas (máx. 5%)</td><td>{{ '%.2f'|format(c.perc_captacao) }}%</td><td>{{ c.area_captacao|fmt_area }}</td><td>{{ c.valor_captacao|brl }}</td></tr>
-    <tr class="highlight"><td>Total (máx. 50%)</td><td>{{ '%.2f'|format(c.perc_total) }}%</td><td>{{ c.area_total_solo|fmt_area }}</td><td>{{ c.valor_total_solo|brl }}</td></tr>
+    <tr><td>Onerosa (Pagamento ao Município)</td><td>{{ '%.2f'|format(total_pon) }}%</td><td>{{ '%.2f'|format(total_aon) }}</td><td>{{ total_von|brl if total_von else '—' }}</td></tr>
+    <tr><td>Infraestrutura (Investimento em Bem Público)</td><td>{{ '%.2f'|format(total_pin) }}%</td><td>{{ '%.2f'|format(total_ain) }}</td><td>{{ total_vin|brl if total_vin else '—' }}</td></tr>
+    <tr><td>Águas Pluviais (Investimento no Empreendimento)</td><td>{{ '%.2f'|format(total_pag) }}%</td><td>{{ '%.2f'|format(total_aag) }}</td><td>{{ total_vag|brl if total_vag else '—' }}</td></tr>
+    <tr class="highlight"><td><strong>TOTAL</strong></td><td><strong>{{ '%.2f'|format(total_pon + total_pin + total_pag) }}%</strong></td><td><strong>{{ '%.2f'|format(total_aon + total_ain + total_aag) }}</strong></td><td><strong>{{ (total_von + total_vin + total_vag)|brl }}</strong></td></tr>
   </tbody>
 </table>
+{% else %}
+<p><strong>Nenhum Solo Criado cadastrado para este empreendimento.</strong></p>
 {% endif %}
 
-{# Seção de Solo Criado Cadastrado (se existir) #}
-{% if emp and not emp.obra %}
-<h3>⚠️ Obra não vinculada</h3>
-<p>Para visualizar dados de Solo Criado, é necessário vincular uma Obra ao Empreendimento.</p>
-{% elif emp and emp.obra and emp.obra.solos_criados_vinculados %}
-<h3>6 – Dados de Solo Criado Cadastrado</h3>
-{% for sc in emp.obra.solos_criados_vinculados %}
-<p><strong>Solo Criado Nº {{ sc.numero or '—' }}</strong> ({{ sc.situacao or '—' }})</p>
+<h3>6 – Compensação Total (CMAIU + Infraestrutura)</h3>
 <table>
-  <thead><tr><th>Modalidade</th><th>Percentual</th><th>Metragem (m²)</th><th>Valor (R$)</th></tr></thead>
-  <tbody>
-    <tr><td>Onerosa (Pagamento ao Município)</td><td>{{ '%.2f'|format(sc.pon or 0) }}%</td><td>{{ '%.2f'|format(sc.aon or 0) }}</td><td>{{ sc.von|brl if sc.von else '—' }}</td></tr>
-    <tr><td>Infraestrutura (Investimento em Bem Público)</td><td>{{ '%.2f'|format(sc.pin or 0) }}%</td><td>{{ '%.2f'|format(sc.ain or 0) }}</td><td>{{ sc.vin|brl if sc.vin else '—' }}</td></tr>
-    <tr><td>Águas Pluviais (Investimento no Empreendimento)</td><td>{{ '%.2f'|format(sc.pag or 0) }}%</td><td>{{ '%.2f'|format(sc.aag or 0) }}</td><td>{{ sc.vag|brl if sc.vag else '—' }}</td></tr>
-  </tbody>
+  <tr><th>Compensação Urbana (CMU)</th><td class="highlight">{{ c.valor_compensacao|brl }}</td></tr>
+  <tr><th>Infraestrutura do Solo Criado</th><td>{{ total_vin|brl if total_vin else '—' }}</td></tr>
+  <tr class="highlight"><th><strong>TOTAL (Mesma finalidade: Infraestrutura Municipal)</strong></th><td><strong>{{ (c.valor_compensacao + total_vin)|brl }}</strong></td></tr>
 </table>
-{% endfor %}
 {% endif %}
 
 {% if rel %}

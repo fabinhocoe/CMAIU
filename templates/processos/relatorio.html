@@ -160,70 +160,74 @@
       {% endif %}
     </table>
 
-    <h6 class="section-title mt-3">5 – SOLO CRIADO</h6>
-    <table class="table table-sm table-bordered small">
-      <tr><th>Área Básica (AB)</th><td>{{ c.area_basica|fmt_area }}</td>
-          <th>Área Excedente (AE)</th><td>{{ c.area_excedente|fmt_area }}</td></tr>
-      <tr><th>Valor Unitário (VU)</th><td colspan="3">{{ c.valor_unitario|brl }}/m² (CUB × 6%)</td></tr>
-    </table>
-    <table class="table table-sm table-bordered small">
-      <thead class="table-light"><tr><th>Modalidade</th><th>Percentual</th><th>Área</th><th>Valor</th></tr></thead>
-      <tbody>
-        <tr><td>Oneroso (máx. 40%)</td><td>{{ '%.2f'|format(c.perc_oneroso) }}%</td><td>{{ c.area_onerosa|fmt_area }}</td><td>{{ c.valor_oneroso|brl }}</td></tr>
-        <tr><td>Infraestrutura (máx. 5%)</td><td>{{ '%.2f'|format(c.perc_infra) }}%</td><td>{{ c.area_infra|fmt_area }}</td><td>{{ c.valor_infra|brl }}</td></tr>
-        <tr><td>Captação de Águas (máx. 5%)</td><td>{{ '%.2f'|format(c.perc_captacao) }}%</td><td>{{ c.area_captacao|fmt_area }}</td><td>{{ c.valor_captacao|brl }}</td></tr>
-        <tr class="fw-bold table-light"><td>Total (máx. 50%)</td><td>{{ '%.2f'|format(c.perc_total) }}%</td><td>{{ c.area_total_solo|fmt_area }}</td><td>{{ c.valor_total_solo|brl }}</td></tr>
-      </tbody>
-    </table>
-
-    {# Seção de Solo Criado Cadastrado (se existir) #}
+    <h6 class="section-title mt-3">5 – SOLO CRIADO (Informação de Referência)</h6>
     {% if not emp.obra %}
-    <div class="alert alert-warning mt-3" style="background: #fff3cd; border: 1px solid #ffc107; padding: 12px; border-radius: 4px;">
+    <div class="alert alert-warning small">
       <i class="bi bi-exclamation-triangle me-2"></i><strong>Obra não vinculada</strong><br>
-      <small>Para visualizar dados de Solo Criado, é necessário vincular uma Obra ao Empreendimento. Acesse o formulário do processo para vinculá-la.</small>
+      <small>Para visualizar dados de Solo Criado, é necessário vincular uma Obra ao Empreendimento.</small>
     </div>
     {% elif emp.obra and emp.obra.solos_criados_vinculados %}
-    <h6 class="section-title mt-3">6 – DADOS DE SOLO CRIADO CADASTRADO</h6>
-    {% for sc in emp.obra.solos_criados_vinculados %}
-    <div class="alert alert-info small mb-3">
-      <strong><i class="bi bi-info-circle me-1"></i>Solo Criado Nº {{ sc.numero or '—' }}</strong>
-      <small class="text-muted">{{ sc.situacao or '—' }}</small>
-    </div>
+    {% set total_pon = emp.obra.solos_criados_vinculados|map(attribute='pon')|map('default', 0)|sum %}
+    {% set total_pin = emp.obra.solos_criados_vinculados|map(attribute='pin')|map('default', 0)|sum %}
+    {% set total_pag = emp.obra.solos_criados_vinculados|map(attribute='pag')|map('default', 0)|sum %}
+    {% set total_aon = emp.obra.solos_criados_vinculados|map(attribute='aon')|map('default', 0)|sum %}
+    {% set total_ain = emp.obra.solos_criados_vinculados|map(attribute='ain')|map('default', 0)|sum %}
+    {% set total_aag = emp.obra.solos_criados_vinculados|map(attribute='aag')|map('default', 0)|sum %}
+    {% set total_von = emp.obra.solos_criados_vinculados|map(attribute='von')|map('default', 0)|sum %}
+    {% set total_vin = emp.obra.solos_criados_vinculados|map(attribute='vin')|map('default', 0)|sum %}
+    {% set total_vag = emp.obra.solos_criados_vinculados|map(attribute='vag')|map('default', 0)|sum %}
+    <p class="small text-muted mb-2"><i class="bi bi-info-circle me-1"></i>Dados consolidados de Solo Criado vinculado à obra. Estes valores foram obtidos do cadastro de Solo Criado e são apenas para referência.</p>
     <table class="table table-sm table-bordered small">
       <thead class="table-light">
-        <tr class="text-center">
+        <tr>
           <th style="width:35%">Modalidade</th>
-          <th style="width:20%">Percentual (%)</th>
+          <th style="width:15%">Percentual (%)</th>
           <th style="width:20%">Metragem (m²)</th>
-          <th style="width:25%">Valor (R$)</th>
+          <th style="width:30%">Valor (R$)</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td class="fw-semibold"><i class="bi bi-cash-coin text-success me-1"></i>Onerosa (Pagamento ao Município)</td>
-          <td class="text-center">{{ '%.2f'|format(sc.pon or 0) }}%</td>
-          <td class="text-center">{{ '%.2f'|format(sc.aon or 0) }}</td>
-          <td class="text-center"><strong class="text-success">{{ sc.von|brl if sc.von else '—' }}</strong></td>
+          <td><i class="bi bi-cash-coin text-success me-1"></i>Onerosa (Pagamento ao Município)</td>
+          <td class="text-center">{{ '%.2f'|format(total_pon) }}%</td>
+          <td class="text-center">{{ '%.2f'|format(total_aon) }}</td>
+          <td class="text-center"><strong class="text-success">{{ total_von|brl if total_von else '—' }}</strong></td>
         </tr>
         <tr>
-          <td class="fw-semibold"><i class="bi bi-signpost-2 text-primary me-1"></i>Infraestrutura (Investimento em Bem Público)</td>
-          <td class="text-center">{{ '%.2f'|format(sc.pin or 0) }}%</td>
-          <td class="text-center">{{ '%.2f'|format(sc.ain or 0) }}</td>
-          <td class="text-center"><strong class="text-primary">{{ sc.vin|brl if sc.vin else '—' }}</strong></td>
+          <td><i class="bi bi-building-gear text-primary me-1"></i>Infraestrutura (Investimento em Bem Público)</td>
+          <td class="text-center">{{ '%.2f'|format(total_pin) }}%</td>
+          <td class="text-center">{{ '%.2f'|format(total_ain) }}</td>
+          <td class="text-center"><strong class="text-primary">{{ total_vin|brl if total_vin else '—' }}</strong></td>
         </tr>
         <tr>
-          <td class="fw-semibold"><i class="bi bi-droplet-half text-info me-1"></i>Águas Pluviais (Investimento no Empreendimento)</td>
-          <td class="text-center">{{ '%.2f'|format(sc.pag or 0) }}%</td>
-          <td class="text-center">{{ '%.2f'|format(sc.aag or 0) }}</td>
-          <td class="text-center"><strong class="text-info">{{ sc.vag|brl if sc.vag else '—' }}</strong></td>
+          <td><i class="bi bi-droplet-half text-info me-1"></i>Águas Pluviais (Investimento no Empreendimento)</td>
+          <td class="text-center">{{ '%.2f'|format(total_pag) }}%</td>
+          <td class="text-center">{{ '%.2f'|format(total_aag) }}</td>
+          <td class="text-center"><strong class="text-info">{{ total_vag|brl if total_vag else '—' }}</strong></td>
+        </tr>
+        <tr class="fw-bold table-light">
+          <td><strong>TOTAL</strong></td>
+          <td class="text-center"><strong>{{ '%.2f'|format(total_pon + total_pin + total_pag) }}%</strong></td>
+          <td class="text-center"><strong>{{ '%.2f'|format(total_aon + total_ain + total_aag) }}</strong></td>
+          <td class="text-center"><strong>{{ (total_von + total_vin + total_vag)|brl }}</strong></td>
         </tr>
       </tbody>
     </table>
-    {% endfor %}
+    {% else %}
+    <div class="alert alert-secondary small">
+      <i class="bi bi-info-circle me-2"></i>Nenhum Solo Criado cadastrado para este empreendimento.
+    </div>
     {% endif %}
 
+    <h6 class="section-title mt-3">6 – COMPENSAÇÃO TOTAL (CMAIU + Infraestrutura)</h6>
+    <table class="table table-sm table-bordered small">
+      <tr><th>Compensação Urbana (CMU)</th><td class="table-primary fw-bold">{{ c.valor_compensacao|brl }}</td></tr>
+      <tr><th>Infraestrutura do Solo Criado</th><td>{% if emp.obra and emp.obra.solos_criados_vinculados %}{{ total_vin|brl if total_vin else '—' }}{% else %}—{% endif %}</td></tr>
+      <tr class="table-primary fw-bold"><th>TOTAL (Mesma finalidade: Infraestrutura Municipal)</th><td>{% if emp.obra and emp.obra.solos_criados_vinculados %}{{ (c.valor_compensacao + total_vin)|brl }}{% else %}{{ c.valor_compensacao|brl }}{% endif %}</td></tr>
+    </table>
+
     {% if rel %}
-    <h6 class="section-title mt-3">{{ '7' if (emp.obra and emp.obra.solos_criados_vinculados) else '6' }} – DELIBERAÇÃO DA CMAIU</h6>
+    <h6 class="section-title mt-3">7 – DELIBERAÇÃO DA CMAIU</h6>
     <p class="small">{{ rel.deliberacao or '—' }}</p>
     {% if rel.medidas %}<p class="small"><strong>Medidas compensatórias:</strong> {{ rel.medidas }}</p>{% endif %}
     {% if rel.obs_deliberacao %}<p class="small"><strong>Observações:</strong> {{ rel.obs_deliberacao }}</p>{% endif %}
