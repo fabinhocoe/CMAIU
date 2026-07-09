@@ -304,7 +304,7 @@
         </div>
 
         <div class="row g-3">
-          <div class="col-md-5">
+          <div class="col-md-12">
             <div class="small text-muted mb-1">Tabela de Compensação</div>
             <table class="table table-sm border rounded mb-0" style="font-size:.82rem">
               <thead class="table-light">
@@ -318,21 +318,6 @@
                 {% if calc.nivel_selecionado == 'dispensado' %}
                 <tr class="table-primary"><td>Dispensado</td><td class="text-end">—</td></tr>
                 {% endif %}
-              </tbody>
-            </table>
-          </div>
-          <div class="col-md-7">
-            <div class="small text-muted mb-1">Solo Criado</div>
-            <table class="table table-sm border rounded mb-0" style="font-size:.82rem">
-              <thead class="table-light">
-                <tr><th>Área Básica (AB)</th><th class="text-end">{{ calc.area_basica|fmt_area }}</th></tr>
-                <tr><th>Área Excedente (AE)</th><th class="text-end">{{ calc.area_excedente|fmt_area }}</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>Oneroso ({{ '%.2f'|format(calc.perc_oneroso) }}%)</td><td class="text-end">{{ calc.area_onerosa|fmt_area }} — {{ calc.valor_oneroso|brl }}</td></tr>
-                <tr><td>Infraestrutura ({{ '%.2f'|format(calc.perc_infra) }}%)</td><td class="text-end">{{ calc.area_infra|fmt_area }} — {{ calc.valor_infra|brl }}</td></tr>
-                <tr><td>Captação ({{ '%.2f'|format(calc.perc_captacao) }}%)</td><td class="text-end">{{ calc.area_captacao|fmt_area }} — {{ calc.valor_captacao|brl }}</td></tr>
-                <tr class="fw-bold table-light"><td>Total ({{ '%.2f'|format(calc.perc_total) }}%)</td><td class="text-end">{{ calc.area_total_solo|fmt_area }} — {{ calc.valor_total_solo|brl }}</td></tr>
               </tbody>
             </table>
           </div>
