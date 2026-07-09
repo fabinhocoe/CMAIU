@@ -161,6 +161,16 @@
     </table>
     <p class="small text-muted mt-2"><i class="bi bi-bookmark me-1"></i><strong>Referência Legal:</strong> A CMAIU adota o art. 45-A da Lei Municipal nº 17/1993 como teto de referência para compensações urbanas. O percentual aplicado poderá variar de 0% a 100%, conforme o porte, características da obra e impactos identificados.</p>
 
+    {% set total_pon = 0 %}
+    {% set total_pin = 0 %}
+    {% set total_pag = 0 %}
+    {% set total_aon = 0 %}
+    {% set total_ain = 0 %}
+    {% set total_aag = 0 %}
+    {% set total_von = 0 %}
+    {% set total_vin = 0 %}
+    {% set total_vag = 0 %}
+
     <h6 class="section-title mt-3">5 – SOLO CRIADO (Informação de Referência)</h6>
     {% if not emp.obra %}
     <div class="alert alert-warning small">
