@@ -69,12 +69,13 @@
       <th>Padrão de Impacto</th><td>{{ emp.padrao_impacto or '—' }}</td></tr>
 </table>
 
-{% if processo.impactos %}
+{% set impactos_validos = processo.impactos|selectattr('descricao')|list %}
+{% if impactos_validos %}
 <h3>3 – Avaliação dos Impactos</h3>
 <table>
   <thead><tr><th>Impacto</th><th>Tipo</th><th>Classificação</th><th>Justificativa</th></tr></thead>
   <tbody>
-    {% for imp in processo.impactos %}
+    {% for imp in impactos_validos %}
     <tr>
       <td>{{ imp.descricao }}</td>
       <td>{{ 'Social' if imp.tipo == 'social' else 'Viário' }}</td>

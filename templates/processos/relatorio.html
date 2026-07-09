@@ -121,12 +121,13 @@
       </tr>
     </table>
 
-    {% if processo.impactos %}
+    {% set impactos_validos = processo.impactos|selectattr('descricao')|list %}
+    {% if impactos_validos %}
     <h6 class="section-title mt-3">3 – AVALIAÇÃO DOS IMPACTOS</h6>
     <table class="table table-sm table-bordered small">
       <thead class="table-light"><tr><th>Impacto</th><th>Tipo</th><th>Classificação</th><th>Justificativa</th><th>Medida</th></tr></thead>
       <tbody>
-        {% for imp in processo.impactos %}
+        {% for imp in impactos_validos %}
         <tr>
           <td>{{ imp.descricao }}</td>
           <td>{{ 'Social' if imp.tipo == 'social' else 'Viário' }}</td>
