@@ -726,9 +726,19 @@ def processos_relatorio_pdf(pid):
     if p.empreendimento and p.empreendimento.obra:
         _ = p.empreendimento.obra.solos_criados_vinculados
 
+    # Load logo as base64
+    import base64
+    logo_path = os.path.join(app.static_folder, 'img', 'smpu_logo.png')
+    logo_base64 = ''
+    try:
+        with open(logo_path, 'rb') as f:
+            logo_base64 = base64.b64encode(f.read()).decode('utf-8')
+    except (FileNotFoundError, IOError):
+        pass
+
     html = render_template('relatorio/pdf.html', processo=p, calc=calc,
                            rel=rel, integrantes=integrantes,
-                           data_emissao=date.today())
+                           data_emissao=date.today(), logo_base64=logo_base64)
     try:
         from xhtml2pdf import pisa
         buf = io.BytesIO()
