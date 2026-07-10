@@ -82,6 +82,11 @@
         </a>
       </li>
       <li class="nav-item">
+        <a href="{{ url_for('admin_convites') }}" class="nav-link sidebar-link {% if request.endpoint and 'convites' in request.endpoint %}active{% endif %}">
+          <i class="bi bi-ticket-perforated me-2"></i>Convites
+        </a>
+      </li>
+      <li class="nav-item">
         <a href="{{ url_for('admin_integrantes') }}" class="nav-link sidebar-link {% if request.endpoint and 'integrantes' in request.endpoint %}active{% endif %}">
           <i class="bi bi-person-badge me-2"></i>Integrantes
         </a>
