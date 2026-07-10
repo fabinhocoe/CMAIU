@@ -46,11 +46,21 @@
 
         <div class="col-md-6">
           <label class="form-label small fw-semibold">CPF <span class="text-danger">*</span></label>
-          <input type="text" name="cpf" class="form-control form-control-sm" required maxlength="14"
-            value="{{ u.cpf if u else '' }}" placeholder="000.000.000-00"
-            oninput="let v=this.value.replace(/\D/g,'').slice(0,11); this.value=v.length>=6 ? v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9,11) : v;">
+          <input type="text" id="cpf-input" name="cpf" class="form-control form-control-sm" required
+            value="{{ u.cpf|fmt_doc if u else '' }}" placeholder="000.000.000-00"
+            oninput="formatCPF(this)">
           <small class="text-muted">Formato: 000.000.000-00</small>
         </div>
+
+        <script>
+          function formatCPF(el) {
+            let v = el.value.replace(/\D/g, '').substring(0, 11);
+            if (v.length > 5) {
+              v = v.substring(0, 3) + '.' + v.substring(3, 6) + '.' + v.substring(6, 9) + '-' + v.substring(9, 11);
+            }
+            el.value = v;
+          }
+        </script>
 
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Data de Nascimento <span class="text-danger">*</span></label>
@@ -60,10 +70,23 @@
 
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Telefone <span class="text-danger">*</span></label>
-          <input type="tel" name="telefone" class="form-control form-control-sm" required
-            value="{{ u.telefone if u else '' }}" placeholder="(47) 99999-9999"
-            oninput="let v=this.value.replace(/\D/g,'').slice(0,11); let d=v.length; this.value=d<=2 ? '('+v : d<=7 ? '('+v.slice(0,2)+') '+v.slice(2) : '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7,11);">
+          <input type="tel" id="telefone-input" name="telefone" class="form-control form-control-sm" required
+            value="{{ u.telefone|fmt_fone if u else '' }}" placeholder="(47) 99999-9999"
+            oninput="formatPhone(this)">
           <small class="text-muted">Formato: (XX) 9XXXX-XXXX ou (XX) XXXX-XXXX</small>
+
+          <script>
+            function formatPhone(el) {
+              let v = el.value.replace(/\D/g, '').substring(0, 11);
+              if (v.length <= 2) {
+                el.value = v.length > 0 ? '(' + v : '';
+              } else if (v.length <= 7) {
+                el.value = '(' + v.substring(0, 2) + ') ' + v.substring(2);
+              } else {
+                el.value = '(' + v.substring(0, 2) + ') ' + v.substring(2, 7) + '-' + v.substring(7, 11);
+              }
+            }
+          </script>
         </div>
 
         {% if not u %}
