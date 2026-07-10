@@ -45,10 +45,11 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label small fw-semibold">CPF <span class="text-danger">*</span></label>
+          <label class="form-label small fw-semibold">CPF (apenas números) <span class="text-danger">*</span></label>
           <input type="text" name="cpf" class="form-control form-control-sm" required maxlength="14"
-            value="{{ u.cpf if u else '' }}" placeholder="000.000.000-00"
-            oninput="this.value = this.value.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')">
+            value="{{ u.cpf if u else '' }}" placeholder="00000000000"
+            oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)">
+          <small class="text-muted">Insira 11 dígitos (sem pontos ou travessão)</small>
         </div>
 
         <div class="col-md-6">

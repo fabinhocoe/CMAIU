@@ -1140,7 +1140,7 @@ def admin_usuarios_novo():
         if not errors and Usuario.query.filter_by(email=email).first():
             errors.append('E-mail já cadastrado.')
 
-        if not errors and Usuario.query.filter_by(cpf=cpf).first():
+        if not errors and cpf and Usuario.query.filter_by(cpf=cpf).first():
             errors.append('CPF já cadastrado.')
 
         if not errors and not senha:
@@ -1148,6 +1148,12 @@ def admin_usuarios_novo():
 
         if not errors and len(senha) < 8:
             errors.append('Senha deve ter no mínimo 8 caracteres.')
+
+        if not errors and f.get('telefone'):
+            # Validar formato do telefone
+            telefone_digits = f.get('telefone').replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
+            if len(telefone_digits) < 10:
+                errors.append('Telefone inválido. Use formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX')
 
         if errors:
             for e in errors:
