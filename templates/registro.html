@@ -12,8 +12,7 @@
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-        <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show" role="alert">
-          <i class="bi bi-{{ 'exclamation-triangle' if category == 'danger' else 'check-circle' }} me-2"></i>
+        <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show py-2 small" role="alert">
           {{ message }}
           <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -22,53 +21,52 @@
     {% endwith %}
 
     <!-- Info -->
-    <div class="alert alert-info">
-      <i class="bi bi-info-circle me-2"></i>
-      <strong>Bem-vindo!</strong> Preencha o formulário abaixo com seus dados. Você precisa de um código de convite válido para se registrar.
-    </div>
+    <p class="small text-muted mb-3">
+      <i class="bi bi-info-circle me-1"></i>Preencha o formulário abaixo para criar sua conta. Você precisa de um código de convite válido para se registrar.
+    </p>
 
     <form method="POST" id="registroForm">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 
       <!-- Seção 1: Código de Convite -->
       <div class="section-divider mt-0"></div>
-      <div class="mb-4">
-        <label class="form-label">Código de Convite <span class="text-danger">*</span></label>
+      <div class="mb-3">
+        <label class="form-label small fw-semibold">Código de Convite <span class="text-danger">*</span></label>
         <input type="text" name="codigo_convite" class="form-control form-control-sm text-uppercase" required
           placeholder="Ex: ABC12345" maxlength="8"
           oninput="this.value = this.value.toUpperCase()"
           pattern="[A-Z0-9]{8}">
-        <small class="form-text"><i class="bi bi-info-circle"></i> Digite o código fornecido (8 caracteres, sem espaços)</small>
+        <small class="text-muted">Digite o código fornecido (8 caracteres, sem espaços)</small>
       </div>
 
       <!-- Seção 2: Dados Pessoais -->
-      <h6 class="section-title">
+      <h6 class="section-title mt-3">
         <i class="bi bi-person"></i>Dados Pessoais
       </h6>
 
-      <div class="row g-3">
+      <div class="row g-2">
         <div class="col-12">
-          <label class="form-label">Nome Completo <span class="text-danger">*</span></label>
-          <input type="text" name="nome" class="form-control" required placeholder="Seu nome completo">
+          <label class="form-label small fw-semibold">Nome Completo <span class="text-danger">*</span></label>
+          <input type="text" name="nome" class="form-control form-control-sm" required placeholder="Seu nome completo">
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">CPF <span class="text-danger">*</span></label>
-          <input type="text" id="cpf-input" name="cpf" class="form-control" required
+          <label class="form-label small fw-semibold">CPF <span class="text-danger">*</span></label>
+          <input type="text" id="cpf-input" name="cpf" class="form-control form-control-sm" required
             placeholder="000.000.000-00" oninput="formatCPF(this)">
-          <small class="form-text">Formato: 000.000.000-00</small>
+          <small class="text-muted">Formato: 000.000.000-00</small>
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Data de Nascimento <span class="text-danger">*</span></label>
-          <input type="date" name="data_nascimento" class="form-control" required>
+          <label class="form-label small fw-semibold">Data de Nascimento <span class="text-danger">*</span></label>
+          <input type="date" name="data_nascimento" class="form-control form-control-sm" required>
         </div>
 
         <div class="col-12">
-          <label class="form-label">Telefone <span class="text-danger">*</span></label>
-          <input type="tel" id="telefone-input" name="telefone" class="form-control" required
+          <label class="form-label small fw-semibold">Telefone <span class="text-danger">*</span></label>
+          <input type="tel" id="telefone-input" name="telefone" class="form-control form-control-sm" required
             placeholder="(47) 99999-9999" oninput="formatPhone(this)">
-          <small class="form-text">Formato: (XX) 9XXXX-XXXX ou (XX) XXXX-XXXX</small>
+          <small class="text-muted">Formato: (XX) 9XXXX-XXXX ou (XX) XXXX-XXXX</small>
         </div>
       </div>
 
