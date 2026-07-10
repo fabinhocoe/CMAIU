@@ -2,181 +2,165 @@
 {% block title %}Registro de Novo Usuário – CMAIU{% endblock %}
 {% block content %}
 
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header section-header">
-          <i class="bi bi-person-plus me-2"></i>Criar Conta
+<div class="card form-card">
+  <div class="card-header">
+    <i class="bi bi-person-plus me-2"></i>Criar Conta de Acesso
+  </div>
+
+  <div class="card-body">
+    <!-- Mensagens de Erro/Sucesso -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show" role="alert">
+          <i class="bi bi-{{ 'exclamation-triangle' if category == 'danger' else 'check-circle' }} me-2"></i>
+          {{ message }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        <div class="card-body py-4">
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              {% for category, message in messages %}
-              <div class="alert alert-{{ 'danger' if category == 'danger' else 'success' }} alert-dismissible fade show border-0" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-              </div>
-              {% endfor %}
-            {% endif %}
-          {% endwith %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-          <p class="small text-muted mb-4">
-            <i class="bi bi-info-circle me-1"></i>Preencha o formulário abaixo para criar sua conta. Você precisa de um código de convite válido para se registrar.
-          </p>
+    <!-- Info -->
+    <div class="alert alert-info">
+      <i class="bi bi-info-circle me-2"></i>
+      <strong>Bem-vindo!</strong> Preencha o formulário abaixo com seus dados. Você precisa de um código de convite válido para se registrar.
+    </div>
 
-          <form method="POST">
-            <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
+    <form method="POST" id="registroForm">
+      <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
 
-            <!-- Código de Convite -->
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Código de Convite <span class="text-danger">*</span></label>
-              <input type="text" name="codigo_convite" class="form-control form-control-sm text-uppercase" required
-                placeholder="Ex: ABC12345" maxlength="8"
-                oninput="this.value = this.value.toUpperCase()"
-                pattern="[A-Z0-9]{8}">
-              <small class="text-muted">Digite o código fornecido (8 caracteres, sem espaços)</small>
-            </div>
+      <!-- Seção 1: Código de Convite -->
+      <div class="section-divider mt-0"></div>
+      <div class="mb-4">
+        <label class="form-label">Código de Convite <span class="text-danger">*</span></label>
+        <input type="text" name="codigo_convite" class="form-control form-control-sm text-uppercase" required
+          placeholder="Ex: ABC12345" maxlength="8"
+          oninput="this.value = this.value.toUpperCase()"
+          pattern="[A-Z0-9]{8}">
+        <small class="form-text"><i class="bi bi-info-circle"></i> Digite o código fornecido (8 caracteres, sem espaços)</small>
+      </div>
 
-            <hr class="my-4">
+      <!-- Seção 2: Dados Pessoais -->
+      <h6 class="section-title">
+        <i class="bi bi-person"></i>Dados Pessoais
+      </h6>
 
-            <!-- Dados Pessoais -->
-            <h6 class="text-muted small fw-semibold mb-3">
-              <i class="bi bi-person me-1"></i>Dados Pessoais
-            </h6>
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Nome Completo <span class="text-danger">*</span></label>
+          <input type="text" name="nome" class="form-control" required placeholder="Seu nome completo">
+        </div>
 
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Nome Completo <span class="text-danger">*</span></label>
-              <input type="text" name="nome" class="form-control form-control-sm" required
-                placeholder="Seu nome completo">
-            </div>
+        <div class="col-md-6">
+          <label class="form-label">CPF <span class="text-danger">*</span></label>
+          <input type="text" id="cpf-input" name="cpf" class="form-control" required
+            placeholder="000.000.000-00" oninput="formatCPF(this)">
+          <small class="form-text">Formato: 000.000.000-00</small>
+        </div>
 
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">CPF <span class="text-danger">*</span></label>
-              <input type="text" id="cpf-input" name="cpf" class="form-control form-control-sm" required
-                placeholder="000.000.000-00"
-                oninput="formatCPF(this)">
-              <small class="text-muted">Formato: 000.000.000-00</small>
-            </div>
+        <div class="col-md-6">
+          <label class="form-label">Data de Nascimento <span class="text-danger">*</span></label>
+          <input type="date" name="data_nascimento" class="form-control" required>
+        </div>
 
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Data de Nascimento <span class="text-danger">*</span></label>
-              <input type="date" name="data_nascimento" class="form-control form-control-sm" required>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Telefone <span class="text-danger">*</span></label>
-              <input type="tel" id="telefone-input" name="telefone" class="form-control form-control-sm" required
-                placeholder="(47) 99999-9999"
-                oninput="formatPhone(this)">
-              <small class="text-muted">Formato: (XX) 9XXXX-XXXX ou (XX) XXXX-XXXX</small>
-            </div>
-
-            <hr class="my-4">
-
-            <!-- Dados Profissionais -->
-            <h6 class="text-muted small fw-semibold mb-3">
-              <i class="bi bi-briefcase me-1"></i>Dados Profissionais
-            </h6>
-
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Cargo/Função <span class="text-danger">*</span></label>
-              <input type="text" name="cargo" class="form-control form-control-sm" required
-                placeholder="Ex: Fiscal de Obras">
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Setor/Departamento <span class="text-danger">*</span></label>
-              <input type="text" name="setor" class="form-control form-control-sm" required
-                placeholder="Ex: Secretaria de Planejamento">
-            </div>
-
-            <hr class="my-4">
-
-            <!-- Endereço -->
-            <h6 class="text-muted small fw-semibold mb-3">
-              <i class="bi bi-geo-alt me-1"></i>Endereço
-            </h6>
-
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">CEP</label>
-              <input type="text" id="cep-input" name="cep" class="form-control form-control-sm"
-                placeholder="00000-000"
-                oninput="formatCEP(this); buscarCEP(this.value)">
-              <small class="text-muted">Formato: 00000-000 (autopreenchimento)</small>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Rua/Endereço</label>
-              <input type="text" id="endereco-input" name="endereco" class="form-control form-control-sm"
-                placeholder="Nome da rua" readonly>
-            </div>
-
-            <div class="row g-2">
-              <div class="col-6">
-                <label class="form-label small fw-semibold">Número</label>
-                <input type="text" id="numero-input" name="numero" class="form-control form-control-sm"
-                  placeholder="123">
-              </div>
-              <div class="col-6">
-                <label class="form-label small fw-semibold">Bairro</label>
-                <input type="text" id="bairro-input" name="bairro" class="form-control form-control-sm"
-                  placeholder="Nome do bairro" readonly>
-              </div>
-            </div>
-
-            <div class="row g-2 mt-2">
-              <div class="col-9">
-                <label class="form-label small fw-semibold">Cidade</label>
-                <input type="text" id="cidade-input" name="cidade" class="form-control form-control-sm"
-                  placeholder="Nome da cidade" readonly>
-              </div>
-              <div class="col-3">
-                <label class="form-label small fw-semibold">Estado</label>
-                <input type="text" id="estado-input" name="estado" class="form-control form-control-sm"
-                  placeholder="SP" maxlength="2" readonly>
-              </div>
-            </div>
-
-            <hr class="my-4">
-
-            <!-- Segurança -->
-            <h6 class="text-muted small fw-semibold mb-3">
-              <i class="bi bi-shield-lock me-1"></i>Segurança
-            </h6>
-
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Senha <span class="text-danger">*</span></label>
-              <input type="password" id="senha" name="senha" class="form-control form-control-sm" required
-                placeholder="Mínimo 8 caracteres">
-              <small class="text-muted">Use uma senha segura com números e caracteres especiais</small>
-            </div>
-
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Confirmar Senha <span class="text-danger">*</span></label>
-              <input type="password" id="confirmar_senha" name="confirmar_senha" class="form-control form-control-sm" required
-                placeholder="Digite a mesma senha novamente">
-              <small class="text-muted">Digite a mesma senha para confirmação</small>
-              <div id="senhaFeedback" class="invalid-feedback d-block" style="display:none;">
-                As senhas não correspondem.
-              </div>
-            </div>
-
-            <hr class="my-4">
-
-            <!-- Botões -->
-            <div class="d-flex gap-2 justify-content-between">
-              <a href="{{ url_for('login') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i>Já tenho conta
-              </a>
-              <button type="submit" class="btn btn-primary btn-sm px-4">
-                <i class="bi bi-check-circle me-1"></i>Registrar
-              </button>
-            </div>
-          </form>
+        <div class="col-12">
+          <label class="form-label">Telefone <span class="text-danger">*</span></label>
+          <input type="tel" id="telefone-input" name="telefone" class="form-control" required
+            placeholder="(47) 99999-9999" oninput="formatPhone(this)">
+          <small class="form-text">Formato: (XX) 9XXXX-XXXX ou (XX) XXXX-XXXX</small>
         </div>
       </div>
-    </div>
+
+      <!-- Seção 3: Dados Profissionais -->
+      <h6 class="section-title">
+        <i class="bi bi-briefcase"></i>Dados Profissionais
+      </h6>
+
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Cargo/Função <span class="text-danger">*</span></label>
+          <input type="text" name="cargo" class="form-control" required placeholder="Ex: Fiscal de Obras">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label">Setor/Departamento <span class="text-danger">*</span></label>
+          <input type="text" name="setor" class="form-control" required placeholder="Ex: Secretaria de Planejamento">
+        </div>
+      </div>
+
+      <!-- Seção 4: Endereço -->
+      <h6 class="section-title">
+        <i class="bi bi-geo-alt"></i>Endereço
+      </h6>
+
+      <div class="row g-3">
+        <div class="col-md-4">
+          <label class="form-label">CEP</label>
+          <input type="text" id="cep-input" name="cep" class="form-control"
+            placeholder="00000-000" oninput="formatCEP(this); buscarCEP(this.value)">
+          <small class="form-text">Formato: 00000-000 (autopreenchimento)</small>
+        </div>
+
+        <div class="col-md-8">
+          <label class="form-label">Rua/Endereço</label>
+          <input type="text" id="endereco-input" name="endereco" class="form-control" placeholder="Nome da rua" readonly>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label">Número</label>
+          <input type="text" id="numero-input" name="numero" class="form-control" placeholder="123">
+        </div>
+
+        <div class="col-md-5">
+          <label class="form-label">Bairro</label>
+          <input type="text" id="bairro-input" name="bairro" class="form-control" placeholder="Nome do bairro" readonly>
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label">Estado</label>
+          <input type="text" id="estado-input" name="estado" class="form-control" placeholder="SP" maxlength="2" readonly>
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label" style="opacity:0;">-</label>
+          <input type="text" id="cidade-input" name="cidade" class="form-control" placeholder="Cidade" readonly>
+        </div>
+      </div>
+
+      <!-- Seção 5: Segurança -->
+      <h6 class="section-title">
+        <i class="bi bi-shield-lock"></i>Acesso e Segurança
+      </h6>
+
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="form-label">Senha <span class="text-danger">*</span></label>
+          <input type="password" id="senha" name="senha" class="form-control" required placeholder="Mínimo 8 caracteres">
+          <small class="form-text">Use uma senha segura com números e caracteres especiais</small>
+        </div>
+
+        <div class="col-12">
+          <label class="form-label">Confirmar Senha <span class="text-danger">*</span></label>
+          <input type="password" id="confirmar_senha" name="confirmar_senha" class="form-control" required
+            placeholder="Digite a mesma senha novamente">
+          <small class="form-text">Digite a mesma senha para confirmação</small>
+          <div id="senhaFeedback" class="password-feedback">
+            <i class="bi bi-exclamation-circle me-1"></i>As senhas não correspondem.
+          </div>
+        </div>
+      </div>
+
+      <!-- Botões -->
+      <div class="d-flex gap-2 justify-content-between mt-4">
+        <a href="{{ url_for('login') }}" class="btn btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i>Voltar para Login
+        </a>
+        <button type="submit" class="btn btn-primary px-4">
+          <i class="bi bi-check-circle me-1"></i>Registrar Conta
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 
@@ -234,7 +218,7 @@
     const senhaInput = document.getElementById('senha');
     const confirmarInput = document.getElementById('confirmar_senha');
     const feedback = document.getElementById('senhaFeedback');
-    const form = document.querySelector('form');
+    const form = document.getElementById('registroForm');
 
     if (confirmarInput) {
       confirmarInput.addEventListener('input', function() {
@@ -252,6 +236,7 @@
           e.preventDefault();
           feedback.style.display = 'block';
           confirmarInput.classList.add('is-invalid');
+          confirmarInput.focus();
           return false;
         }
       });
