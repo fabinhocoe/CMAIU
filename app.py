@@ -325,7 +325,7 @@ def registro():
         # Validações básicas
         if not all([f.get('nome'), email, cpf, telefone,
                    f.get('data_nascimento'), f.get('cargo'),
-                   f.get('setor'), codigo_convite]):
+                   f.get('setor'), codigo_convite, senha, confirmar_senha]):
             errors.append('Todos os campos obrigatórios devem ser preenchidos.')
 
         # Validar convite
