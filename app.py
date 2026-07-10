@@ -1197,7 +1197,12 @@ def admin_usuarios_novo():
                     setor=f.get('setor'),
                     supervisor_id=int(f.get('supervisor_id')),
                     data_admissao=datetime.strptime(f.get('data_admissao'), '%Y-%m-%d').date() if f.get('data_admissao') else None,
+                    cep=f.get('cep'),
                     endereco=f.get('endereco'),
+                    numero=f.get('numero'),
+                    bairro=f.get('bairro'),
+                    cidade=f.get('cidade'),
+                    estado=f.get('estado'),
                     observacoes=f.get('observacoes'),
                     perfil=f.get('perfil', 'consulta')
                 )
@@ -1281,7 +1286,12 @@ def admin_usuarios_editar(uid):
                 u.setor = f.get('setor')
                 u.supervisor_id = int(f.get('supervisor_id'))
                 u.data_admissao = datetime.strptime(f.get('data_admissao'), '%Y-%m-%d').date() if f.get('data_admissao') else None
+                u.cep = f.get('cep')
                 u.endereco = f.get('endereco')
+                u.numero = f.get('numero')
+                u.bairro = f.get('bairro')
+                u.cidade = f.get('cidade')
+                u.estado = f.get('estado')
                 u.observacoes = f.get('observacoes')
                 u.perfil = f.get('perfil', u.perfil)
                 u.situacao = f.get('situacao', u.situacao)

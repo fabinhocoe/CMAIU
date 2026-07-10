@@ -139,10 +139,49 @@
             value="{{ u.data_admissao.strftime('%Y-%m-%d') if u and u.data_admissao else '' }}">
         </div>
 
+        <!-- Seção: Endereço -->
         <div class="col-12">
-          <label class="form-label small fw-semibold">Endereço</label>
-          <input type="text" name="endereco" class="form-control form-control-sm"
-            value="{{ u.endereco if u else '' }}" placeholder="Rua, número, bairro, cidade">
+          <h6 class="text-muted small fw-semibold border-bottom pb-2 mb-2">
+            <i class="bi bi-geo-alt me-1"></i>Endereço
+          </h6>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">CEP</label>
+          <input type="text" id="cep-input" name="cep" class="form-control form-control-sm"
+            value="{{ u.cep if u else '' }}" placeholder="00000-000"
+            oninput="formatCEP(this); buscarCEP(this.value)">
+          <small class="text-muted">Formato: 00000-000</small>
+        </div>
+
+        <div class="col-md-9">
+          <label class="form-label small fw-semibold">Rua/Endereço</label>
+          <input type="text" id="endereco-input" name="endereco" class="form-control form-control-sm"
+            value="{{ u.endereco if u else '' }}" placeholder="Nome da rua ou avenida" readonly>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label small fw-semibold">Número</label>
+          <input type="text" id="numero-input" name="numero" class="form-control form-control-sm"
+            value="{{ u.numero if u else '' }}" placeholder="123">
+        </div>
+
+        <div class="col-md-4">
+          <label class="form-label small fw-semibold">Bairro</label>
+          <input type="text" id="bairro-input" name="bairro" class="form-control form-control-sm"
+            value="{{ u.bairro if u else '' }}" placeholder="Nome do bairro" readonly>
+        </div>
+
+        <div class="col-md-5">
+          <label class="form-label small fw-semibold">Cidade</label>
+          <input type="text" id="cidade-input" name="cidade" class="form-control form-control-sm"
+            value="{{ u.cidade if u else '' }}" placeholder="Nome da cidade" readonly>
+        </div>
+
+        <div class="col-md-2">
+          <label class="form-label small fw-semibold">Estado</label>
+          <input type="text" id="estado-input" name="estado" class="form-control form-control-sm"
+            value="{{ u.estado if u else '' }}" placeholder="SP" maxlength="2" readonly>
         </div>
 
         <div class="col-12">
@@ -150,6 +189,51 @@
           <textarea name="observacoes" class="form-control form-control-sm" rows="2"
             placeholder="Notas adicionais sobre o usuário">{{ u.observacoes if u else '' }}</textarea>
         </div>
+
+        <script>
+          function formatCEP(el) {
+            let v = el.value.replace(/\D/g, '').substring(0, 8);
+            if (v.length > 5) {
+              el.value = v.substring(0, 5) + '-' + v.substring(5);
+            } else {
+              el.value = v;
+            }
+          }
+
+          function buscarCEP(cep) {
+            // Remover formatação
+            let cepClean = cep.replace(/\D/g, '');
+
+            // Só buscar se tiver 8 dígitos
+            if (cepClean.length !== 8) {
+              return;
+            }
+
+            // Fazer requisição à API ViaCEP
+            fetch(`https://viacep.com.br/ws/${cepClean}/json/`)
+              .then(response => response.json())
+              .then(data => {
+                if (data.erro) {
+                  alert('CEP não encontrado!');
+                  document.getElementById('endereco-input').value = '';
+                  document.getElementById('bairro-input').value = '';
+                  document.getElementById('cidade-input').value = '';
+                  document.getElementById('estado-input').value = '';
+                } else {
+                  // Preencher os campos com os dados retornados
+                  document.getElementById('endereco-input').value = data.logradouro || '';
+                  document.getElementById('bairro-input').value = data.bairro || '';
+                  document.getElementById('cidade-input').value = data.localidade || '';
+                  document.getElementById('estado-input').value = data.uf || '';
+                  // Focar no campo de número
+                  document.getElementById('numero-input').focus();
+                }
+              })
+              .catch(error => {
+                console.error('Erro ao buscar CEP:', error);
+              });
+          }
+        </script>
 
         <!-- Seção 3: Acesso e Segurança -->
         <div class="col-12">
