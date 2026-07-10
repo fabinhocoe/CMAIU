@@ -1113,7 +1113,11 @@ def admin_usuarios_novo():
     supervisores = Usuario.query.filter_by(situacao='ativo').all()
 
     if request.method == 'POST':
+        print("=" * 60)
+        print("DEBUG: POST recebido em /admin/usuarios/novo")
         f = request.form
+        print(f"DEBUG: Dados do formulário recebidos: {dict(f)}")
+
         email = f.get('email', '').strip().lower()
         cpf = f.get('cpf', '').replace('.', '').replace('-', '').strip()
         telefone = f.get('telefone', '').replace('(', '').replace(')', '').replace('-', '').replace(' ', '').strip()
@@ -1121,42 +1125,63 @@ def admin_usuarios_novo():
         codigo_convite = f.get('codigo_convite', '').strip().upper()
         errors = []
 
+        print(f"DEBUG: CPF processado = '{cpf}' (len={len(cpf)})")
+        print(f"DEBUG: Telefone processado = '{telefone}' (len={len(telefone)})")
+        print(f"DEBUG: Email = '{email}'")
+
         # Validações básicas
-        if not all([f.get('nome'), email, cpf, f.get('telefone'),
-                   f.get('data_nascimento'), f.get('cargo'),
-                   f.get('setor'), f.get('supervisor_id')]):
+        campos_obrigatorios = [f.get('nome'), email, cpf, f.get('telefone'),
+                               f.get('data_nascimento'), f.get('cargo'),
+                               f.get('setor'), f.get('supervisor_id')]
+        print(f"DEBUG: Campos obrigatórios: {campos_obrigatorios}")
+
+        if not all(campos_obrigatorios):
             errors.append('Todos os campos obrigatórios devem ser preenchidos.')
+            print(f"DEBUG: Erro de campos obrigatórios")
 
         # Validar convite (mesmo para admin)
         if not codigo_convite:
             errors.append('Código de convite é obrigatório.')
+            print(f"DEBUG: Erro de código de convite")
         elif not errors:
+            print(f"DEBUG: Validando código de convite: {codigo_convite}")
             convite, erro_convite = _validar_convite(codigo_convite)
             if erro_convite:
                 errors.append(erro_convite)
+                print(f"DEBUG: Erro de convite: {erro_convite}")
+            else:
+                print(f"DEBUG: Convite validado com sucesso")
 
         # Validar CPF
         if not errors and len(cpf) != 11:
             errors.append('CPF deve ter exatamente 11 dígitos.')
+            print(f"DEBUG: Erro de CPF - tamanho inválido ({len(cpf)})")
 
         if not errors and Usuario.query.filter_by(email=email).first():
             errors.append('E-mail já cadastrado.')
+            print(f"DEBUG: Erro de email duplicado")
 
         if not errors and Usuario.query.filter_by(cpf=cpf).first():
             errors.append('CPF já cadastrado.')
+            print(f"DEBUG: Erro de CPF duplicado")
 
         # Validar telefone
         if not errors and len(telefone) < 10:
             errors.append('Telefone inválido. Mínimo 10 dígitos.')
+            print(f"DEBUG: Erro de telefone - tamanho inválido ({len(telefone)})")
 
         # Validar senha
         if not errors and not senha:
             errors.append('Senha é obrigatória.')
+            print(f"DEBUG: Erro de senha vazia")
 
         if not errors and len(senha) < 8:
             errors.append('Senha deve ter no mínimo 8 caracteres.')
+            print(f"DEBUG: Erro de senha curta")
 
+        print(f"DEBUG: Total de erros: {len(errors)}")
         if errors:
+            print(f"DEBUG: Erros encontrados: {errors}")
             for e in errors:
                 flash(e, 'danger')
         else:
