@@ -1498,6 +1498,12 @@ def admin_integrantes():
         if action == 'add':
             i = Integrante(nome=f.get('nome'), cargo=f.get('cargo'), orgao=f.get('orgao'))
             db.session.add(i)
+        elif action == 'edit':
+            i = Integrante.query.get(_int(f.get('id')))
+            if i:
+                i.nome = f.get('nome', i.nome)
+                i.cargo = f.get('cargo', '')
+                i.orgao = f.get('orgao', '')
         elif action == 'toggle':
             i = Integrante.query.get(_int(f.get('id')))
             if i:
@@ -1510,7 +1516,8 @@ def admin_integrantes():
         flash('Integrantes atualizados.', 'success')
         return redirect(url_for('admin_integrantes'))
     integrantes = Integrante.query.order_by(Integrante.nome).all()
-    return render_template('admin/integrantes.html', integrantes=integrantes)
+    integrante_editar_id = _int(request.args.get('editar'))
+    return render_template('admin/integrantes.html', integrantes=integrantes, integrante_editar_id=integrante_editar_id)
 
 
 # ─── API ─────────────────────────────────────────────────────────────────────
