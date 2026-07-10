@@ -16,6 +16,21 @@
     <form method="POST">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <div class="row g-3">
+        <!-- Seção 0: Código de Convite -->
+        {% if not u %}
+        <div class="col-12">
+          <div class="alert alert-info border-0 py-2 small">
+            <i class="bi bi-info-circle me-1"></i>Para cadastrar um novo usuário é necessário um código de convite válido.
+          </div>
+          <label class="form-label small fw-semibold">Código de Convite <span class="text-danger">*</span></label>
+          <input type="text" name="codigo_convite" class="form-control form-control-sm text-uppercase" required
+            placeholder="Ex: ABC12345" maxlength="8"
+            oninput="this.value = this.value.toUpperCase()"
+            pattern="[A-Z0-9]{8}">
+          <small class="text-muted">Digite o código fornecido (8 caracteres, sem espaços)</small>
+        </div>
+        {% endif %}
+
         <!-- Seção 1: Dados Pessoais -->
         <div class="col-12">
           <h6 class="text-muted small fw-semibold border-bottom pb-2 mb-2">

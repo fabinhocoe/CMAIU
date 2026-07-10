@@ -72,6 +72,49 @@ PARAMS_INICIAIS = [
 ]
 
 
+class ConviteRegistro(db.Model):
+    """Convites para registro de novos usuários com data de expiração."""
+    __tablename__ = 'convites_registro'
+    id = db.Column(db.Integer, primary_key=True)
+    codigo = db.Column(db.String(20), unique=True, nullable=False, index=True)
+    data_expiracao = db.Column(db.DateTime, nullable=False)
+    max_usos = db.Column(db.Integer, nullable=True)
+    usos_restantes = db.Column(db.Integer, nullable=True)
+    criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+    criado_por_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    situacao = db.Column(db.String(10), default='ativo')  # ativo, expirado, esgotado, cancelado
+    observacoes = db.Column(db.Text)
+
+    criado_por = db.relationship('Usuario', backref='convites_criados')
+
+    @property
+    def esta_valido(self):
+        """Verifica se o convite ainda é válido."""
+        if self.situacao != 'ativo':
+            return False
+        if datetime.utcnow() > self.data_expiracao:
+            return False
+        if self.usos_restantes is not None and self.usos_restantes <= 0:
+            return False
+        return True
+
+    @property
+    def tempo_restante(self):
+        """Retorna quantos dias restam para expirar."""
+        if self.esta_valido:
+            delta = self.data_expiracao - datetime.utcnow()
+            return delta.days
+        return 0
+
+    def usar(self):
+        """Marca um uso do convite."""
+        if self.usos_restantes is not None:
+            self.usos_restantes -= 1
+            if self.usos_restantes <= 0:
+                self.situacao = 'esgotado'
+        db.session.commit()
+
+
 class Usuario(UserMixin, db.Model):
     __tablename__ = 'usuarios'
     id = db.Column(db.Integer, primary_key=True)

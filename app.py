@@ -21,7 +21,7 @@ from models import (db, Usuario, Zoneamento, CUB, Parametro, HistoricoParametro,
                     SITUACOES_TAC, GRUPOS_OBRA, TIPOS_IRREGULARIDADE, PERC_TAC,
                     PAPEIS_PROCESSO, PAPEIS_TAC,
                     SoloCriado, SITUACOES_SC,
-                    ResponsavelTecnico)
+                    ResponsavelTecnico, ConviteRegistro)
 
 app = Flask(__name__)
 
@@ -181,6 +181,58 @@ def _validar_data(valor, nome_campo='data'):
         return None, f'{nome_campo} não pode ser futura'
 
     return data, None
+
+
+def _gerar_codigo_convite(length=8):
+    """Gera um código de convite único e seguro."""
+    import string
+    chars = string.ascii_uppercase + string.digits
+    while True:
+        codigo = ''.join(secrets.choice(chars) for _ in range(length))
+        if not ConviteRegistro.query.filter_by(codigo=codigo).first():
+            return codigo
+
+
+def _criar_convite(dias_expiracao=30, max_usos=None, usuario_id=None, observacoes=''):
+    """Cria um novo convite de registro."""
+    codigo = _gerar_codigo_convite()
+    data_expiracao = datetime.utcnow() + timedelta(days=dias_expiracao)
+
+    convite = ConviteRegistro(
+        codigo=codigo,
+        data_expiracao=data_expiracao,
+        max_usos=max_usos,
+        usos_restantes=max_usos,
+        criado_por_id=usuario_id or current_user.id,
+        observacoes=observacoes
+    )
+    db.session.add(convite)
+    db.session.commit()
+    return convite
+
+
+def _validar_convite(codigo):
+    """Valida um código de convite."""
+    if not codigo or not codigo.strip():
+        return None, 'Código de convite é obrigatório.'
+
+    codigo = codigo.strip().upper()
+    convite = ConviteRegistro.query.filter_by(codigo=codigo).first()
+
+    if not convite:
+        return None, 'Código de convite inválido.'
+
+    if not convite.esta_valido:
+        if convite.situacao == 'expirado':
+            return None, 'Código de convite expirou.'
+        elif convite.situacao == 'esgotado':
+            return None, 'Código de convite foi totalmente utilizado.'
+        elif convite.situacao == 'cancelado':
+            return None, 'Código de convite foi cancelado.'
+        else:
+            return None, 'Código de convite inválido.'
+
+    return convite, None
 
 
 def _fmt_fone(v):
@@ -1065,6 +1117,7 @@ def admin_usuarios_novo():
         email = f.get('email', '').strip().lower()
         cpf = f.get('cpf', '').replace('.', '').replace('-', '').strip()
         senha = f.get('senha', '').strip()
+        codigo_convite = f.get('codigo_convite', '').strip().upper()
         errors = []
 
         # Validações
@@ -1072,6 +1125,14 @@ def admin_usuarios_novo():
                    f.get('data_nascimento'), f.get('cargo'),
                    f.get('setor'), f.get('supervisor_id')]):
             errors.append('Todos os campos obrigatórios devem ser preenchidos.')
+
+        # Validar convite (mesmo para admin)
+        if not codigo_convite:
+            errors.append('Código de convite é obrigatório.')
+        elif not errors:
+            convite, erro_convite = _validar_convite(codigo_convite)
+            if erro_convite:
+                errors.append(erro_convite)
 
         if not errors and len(cpf) != 11:
             errors.append('CPF deve ter 11 dígitos.')
@@ -1108,6 +1169,8 @@ def admin_usuarios_novo():
             )
             u.set_senha(senha)
             db.session.add(u)
+            # Usar o convite
+            convite.usar()
             db.session.commit()
             flash('Usuário cadastrado com sucesso.', 'success')
             return redirect(url_for('admin_usuarios'))
@@ -1160,6 +1223,50 @@ def admin_usuarios_editar(uid):
             return redirect(url_for('admin_usuarios'))
 
     return render_template('admin/usuario_form.html', u=u, supervisores=supervisores)
+
+
+# ─── Admin – Convites de Registro ─────────────────────────────────────────────
+
+@app.route('/admin/convites', methods=['GET'])
+@login_required
+@admin_required
+def admin_convites():
+    """Listagem de convites de registro."""
+    convites = ConviteRegistro.query.order_by(ConviteRegistro.criado_em.desc()).all()
+    return render_template('admin/convites.html', convites=convites)
+
+
+@app.route('/admin/convites/novo', methods=['POST'])
+@login_required
+@admin_required
+def admin_convites_novo():
+    """Criar novo convite."""
+    f = request.form
+    dias = int(f.get('dias_expiracao', 30))
+    max_usos = int(f.get('max_usos')) if f.get('max_usos') else None
+    observacoes = f.get('observacoes', '')
+
+    if dias <= 0:
+        flash('Dias de expiração deve ser maior que 0.', 'danger')
+    elif max_usos is not None and max_usos <= 0:
+        flash('Máximo de usos deve ser maior que 0.', 'danger')
+    else:
+        convite = _criar_convite(dias_expiracao=dias, max_usos=max_usos, observacoes=observacoes)
+        flash(f'Convite criado: {convite.codigo}', 'success')
+
+    return redirect(url_for('admin_convites'))
+
+
+@app.route('/admin/convites/<int:cid>/cancelar', methods=['POST'])
+@login_required
+@admin_required
+def admin_convites_cancelar(cid):
+    """Cancelar um convite."""
+    convite = ConviteRegistro.query.get_or_404(cid)
+    convite.situacao = 'cancelado'
+    db.session.commit()
+    flash(f'Convite {convite.codigo} cancelado.', 'success')
+    return redirect(url_for('admin_convites'))
 
 
 # ─── Admin – Parâmetros ───────────────────────────────────────────────────────
