@@ -1232,41 +1232,74 @@ def admin_usuarios_editar(uid):
     supervisores = Usuario.query.filter_by(situacao='ativo').all()
 
     if request.method == 'POST':
+        print("=" * 60)
+        print(f"DEBUG EDITAR: POST recebido para usuário {uid}")
         f = request.form
         errors = []
 
+        # Processar dados
+        cpf = f.get('cpf', '').replace('.', '').replace('-', '').strip()
+        telefone = f.get('telefone', '').replace('(', '').replace(')', '').replace('-', '').replace(' ', '').strip()
+
+        print(f"DEBUG EDITAR: CPF = '{cpf}' (len={len(cpf)})")
+        print(f"DEBUG EDITAR: Telefone = '{telefone}' (len={len(telefone)})")
+
         # Validações dos campos obrigatórios
-        if not all([f.get('nome'), f.get('telefone'),
+        if not all([f.get('nome'), telefone,
                    f.get('data_nascimento'), f.get('cargo'),
                    f.get('setor'), f.get('supervisor_id')]):
             errors.append('Todos os campos obrigatórios devem ser preenchidos.')
+            print(f"DEBUG EDITAR: Erro - campos obrigatórios")
+
+        # Validar CPF se foi fornecido
+        if not errors and cpf and len(cpf) != 11:
+            errors.append('CPF deve ter 11 dígitos.')
+            print(f"DEBUG EDITAR: Erro - CPF inválido")
+
+        # Validar telefone
+        if not errors and len(telefone) < 10:
+            errors.append('Telefone inválido. Mínimo 10 dígitos.')
+            print(f"DEBUG EDITAR: Erro - Telefone inválido")
 
         nova_senha = f.get('senha', '').strip()
         if nova_senha and len(nova_senha) < 8:
             errors.append('Senha deve ter no mínimo 8 caracteres.')
+            print(f"DEBUG EDITAR: Erro - Senha curta")
 
         if errors:
+            print(f"DEBUG EDITAR: {len(errors)} erro(s) encontrado(s)")
             for e in errors:
                 flash(e, 'danger')
         else:
-            u.nome = f.get('nome')
-            u.telefone = f.get('telefone').replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
-            u.data_nascimento = datetime.strptime(f.get('data_nascimento'), '%Y-%m-%d').date()
-            u.cargo = f.get('cargo')
-            u.setor = f.get('setor')
-            u.supervisor_id = int(f.get('supervisor_id'))
-            u.data_admissao = datetime.strptime(f.get('data_admissao'), '%Y-%m-%d').date() if f.get('data_admissao') else None
-            u.endereco = f.get('endereco')
-            u.observacoes = f.get('observacoes')
-            u.perfil = f.get('perfil', u.perfil)
-            u.situacao = f.get('situacao', u.situacao)
+            try:
+                print(f"DEBUG EDITAR: Atualizando usuário {uid}...")
+                u.nome = f.get('nome')
+                u.cpf = cpf if cpf else u.cpf  # Atualizar CPF se fornecido
+                u.telefone = telefone
+                u.data_nascimento = datetime.strptime(f.get('data_nascimento'), '%Y-%m-%d').date()
+                u.cargo = f.get('cargo')
+                u.setor = f.get('setor')
+                u.supervisor_id = int(f.get('supervisor_id'))
+                u.data_admissao = datetime.strptime(f.get('data_admissao'), '%Y-%m-%d').date() if f.get('data_admissao') else None
+                u.endereco = f.get('endereco')
+                u.observacoes = f.get('observacoes')
+                u.perfil = f.get('perfil', u.perfil)
+                u.situacao = f.get('situacao', u.situacao)
 
-            if nova_senha:
-                u.set_senha(nova_senha)
+                if nova_senha:
+                    u.set_senha(nova_senha)
 
-            db.session.commit()
-            flash('Usuário atualizado com sucesso.', 'success')
-            return redirect(url_for('admin_usuarios'))
+                print(f"DEBUG EDITAR: Salvando... CPF final = '{u.cpf}'")
+                db.session.commit()
+                print(f"DEBUG EDITAR: ✓ Usuário salvo com sucesso!")
+                flash('Usuário atualizado com sucesso.', 'success')
+                return redirect(url_for('admin_usuarios'))
+            except Exception as e:
+                print(f"ERROR EDITAR: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                db.session.rollback()
+                flash(f'Erro ao atualizar usuário: {str(e)}', 'danger')
 
     return render_template('admin/usuario_form.html', u=u, supervisores=supervisores)
 
