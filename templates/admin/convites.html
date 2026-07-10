@@ -106,6 +106,7 @@
             <td class="text-center">
               {% if c.situacao == 'ativo' %}
               <form method="POST" action="{{ url_for('admin_convites_cancelar', cid=c.id) }}" style="display:inline">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                 <button type="submit" class="btn btn-xs btn-outline-danger"
                   onclick="return confirm('Cancelar este convite?')" title="Cancelar">
                   <i class="bi bi-x-circle"></i>
@@ -141,6 +142,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="POST" action="{{ url_for('admin_convites_novo') }}">
+        <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
         <div class="modal-body">
           <p class="small text-muted mb-3">Configure os parâmetros do novo convite de registro.</p>
 
