@@ -32,7 +32,7 @@ def migrate_usuarios():
             from sqlalchemy import text
 
             alteracoes = [
-                "ALTER TABLE usuarios ADD COLUMN cpf VARCHAR(14) UNIQUE",
+                "ALTER TABLE usuarios ADD COLUMN cpf VARCHAR(14)",
                 "ALTER TABLE usuarios ADD COLUMN telefone VARCHAR(20)",
                 "ALTER TABLE usuarios ADD COLUMN data_nascimento DATE",
                 "ALTER TABLE usuarios ADD COLUMN cargo VARCHAR(200)",
