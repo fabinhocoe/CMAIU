@@ -77,10 +77,22 @@ class Usuario(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nome = db.Column(db.String(200), nullable=False)
     email = db.Column(db.String(200), unique=True, nullable=False)
+    cpf = db.Column(db.String(14), nullable=True)
+    telefone = db.Column(db.String(20), nullable=True)
+    data_nascimento = db.Column(db.Date, nullable=True)
+    cargo = db.Column(db.String(200), nullable=True)
+    setor = db.Column(db.String(200), nullable=True)
+    supervisor_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
+    data_admissao = db.Column(db.Date)
+    endereco = db.Column(db.String(300))
+    observacoes = db.Column(db.Text)
+    assinatura_digital = db.Column(db.String(500))
     senha_hash = db.Column(db.String(256), nullable=False)
     perfil = db.Column(db.String(20), nullable=False, default='consulta')
     situacao = db.Column(db.String(10), nullable=False, default='ativo')
     criado_em = db.Column(db.DateTime, default=datetime.utcnow)
+
+    supervisor = db.relationship('Usuario', remote_side=[id], backref='subordinados')
 
     def set_senha(self, s):
         self.senha_hash = generate_password_hash(s)

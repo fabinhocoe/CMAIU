@@ -1058,28 +1058,61 @@ def admin_usuarios():
 @login_required
 @admin_required
 def admin_usuarios_novo():
+    supervisores = Usuario.query.filter_by(situacao='ativo').all()
+
     if request.method == 'POST':
         f = request.form
         email = f.get('email', '').strip().lower()
+        cpf = f.get('cpf', '').replace('.', '').replace('-', '').strip()
         senha = f.get('senha', '').strip()
+        errors = []
 
-        if not email or not f.get('nome'):
-            flash('Nome e e-mail são obrigatórios.', 'danger')
-        elif Usuario.query.filter_by(email=email).first():
-            flash('E-mail já cadastrado.', 'danger')
-        elif not senha:
-            flash('Senha é obrigatória.', 'danger')
-        elif len(senha) < 8:
-            flash('Senha deve ter no mínimo 8 caracteres.', 'danger')
+        # Validações
+        if not all([f.get('nome'), email, cpf, f.get('telefone'),
+                   f.get('data_nascimento'), f.get('cargo'),
+                   f.get('setor'), f.get('supervisor_id')]):
+            errors.append('Todos os campos obrigatórios devem ser preenchidos.')
+
+        if not errors and len(cpf) != 11:
+            errors.append('CPF deve ter 11 dígitos.')
+
+        if not errors and Usuario.query.filter_by(email=email).first():
+            errors.append('E-mail já cadastrado.')
+
+        if not errors and Usuario.query.filter_by(cpf=cpf).first():
+            errors.append('CPF já cadastrado.')
+
+        if not errors and not senha:
+            errors.append('Senha é obrigatória.')
+
+        if not errors and len(senha) < 8:
+            errors.append('Senha deve ter no mínimo 8 caracteres.')
+
+        if errors:
+            for e in errors:
+                flash(e, 'danger')
         else:
-            u = Usuario(nome=f.get('nome'), email=email,
-                        perfil=f.get('perfil', 'consulta'))
+            u = Usuario(
+                nome=f.get('nome'),
+                email=email,
+                cpf=cpf,
+                telefone=f.get('telefone').replace('(', '').replace(')', '').replace('-', '').replace(' ', ''),
+                data_nascimento=datetime.strptime(f.get('data_nascimento'), '%Y-%m-%d').date(),
+                cargo=f.get('cargo'),
+                setor=f.get('setor'),
+                supervisor_id=int(f.get('supervisor_id')),
+                data_admissao=datetime.strptime(f.get('data_admissao'), '%Y-%m-%d').date() if f.get('data_admissao') else None,
+                endereco=f.get('endereco'),
+                observacoes=f.get('observacoes'),
+                perfil=f.get('perfil', 'consulta')
+            )
             u.set_senha(senha)
             db.session.add(u)
             db.session.commit()
             flash('Usuário cadastrado com sucesso.', 'success')
             return redirect(url_for('admin_usuarios'))
-    return render_template('admin/usuario_form.html', u=None)
+
+    return render_template('admin/usuario_form.html', u=None, supervisores=supervisores)
 
 
 @app.route('/admin/usuarios/<int:uid>/editar', methods=['GET', 'POST'])
@@ -1087,18 +1120,46 @@ def admin_usuarios_novo():
 @admin_required
 def admin_usuarios_editar(uid):
     u = Usuario.query.get_or_404(uid)
+    supervisores = Usuario.query.filter_by(situacao='ativo').all()
+
     if request.method == 'POST':
         f = request.form
-        u.nome = f.get('nome')
-        u.perfil = f.get('perfil', u.perfil)
-        u.situacao = f.get('situacao', u.situacao)
+        errors = []
+
+        # Validações dos campos obrigatórios
+        if not all([f.get('nome'), f.get('telefone'),
+                   f.get('data_nascimento'), f.get('cargo'),
+                   f.get('setor'), f.get('supervisor_id')]):
+            errors.append('Todos os campos obrigatórios devem ser preenchidos.')
+
         nova_senha = f.get('senha', '').strip()
-        if nova_senha:
-            u.set_senha(nova_senha)
-        db.session.commit()
-        flash('Usuário atualizado.', 'success')
-        return redirect(url_for('admin_usuarios'))
-    return render_template('admin/usuario_form.html', u=u)
+        if nova_senha and len(nova_senha) < 8:
+            errors.append('Senha deve ter no mínimo 8 caracteres.')
+
+        if errors:
+            for e in errors:
+                flash(e, 'danger')
+        else:
+            u.nome = f.get('nome')
+            u.telefone = f.get('telefone').replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
+            u.data_nascimento = datetime.strptime(f.get('data_nascimento'), '%Y-%m-%d').date()
+            u.cargo = f.get('cargo')
+            u.setor = f.get('setor')
+            u.supervisor_id = int(f.get('supervisor_id'))
+            u.data_admissao = datetime.strptime(f.get('data_admissao'), '%Y-%m-%d').date() if f.get('data_admissao') else None
+            u.endereco = f.get('endereco')
+            u.observacoes = f.get('observacoes')
+            u.perfil = f.get('perfil', u.perfil)
+            u.situacao = f.get('situacao', u.situacao)
+
+            if nova_senha:
+                u.set_senha(nova_senha)
+
+            db.session.commit()
+            flash('Usuário atualizado com sucesso.', 'success')
+            return redirect(url_for('admin_usuarios'))
+
+    return render_template('admin/usuario_form.html', u=u, supervisores=supervisores)
 
 
 # ─── Admin – Parâmetros ───────────────────────────────────────────────────────

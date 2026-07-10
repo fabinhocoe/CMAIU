@@ -16,23 +16,108 @@
     <form method="POST">
       <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
       <div class="row g-3">
+        <!-- Seção 1: Dados Pessoais -->
+        <div class="col-12">
+          <h6 class="text-muted small fw-semibold border-bottom pb-2 mb-2">
+            <i class="bi bi-person me-1"></i>Dados Pessoais
+          </h6>
+        </div>
+
         <div class="col-12">
           <label class="form-label small fw-semibold">Nome Completo <span class="text-danger">*</span></label>
           <input type="text" name="nome" class="form-control form-control-sm" required
             value="{{ u.nome if u else '' }}" placeholder="Nome completo do usuário">
         </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">CPF <span class="text-danger">*</span></label>
+          <input type="text" name="cpf" class="form-control form-control-sm" required maxlength="14"
+            value="{{ u.cpf if u else '' }}" placeholder="000.000.000-00"
+            oninput="this.value = this.value.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Data de Nascimento <span class="text-danger">*</span></label>
+          <input type="date" name="data_nascimento" class="form-control form-control-sm" required
+            value="{{ u.data_nascimento.strftime('%Y-%m-%d') if u and u.data_nascimento else '' }}">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Telefone <span class="text-danger">*</span></label>
+          <input type="tel" name="telefone" class="form-control form-control-sm" required
+            value="{{ u.telefone if u else '' }}" placeholder="(47) 99999-9999"
+            oninput="this.value = this.value.replace(/\D/g, '').replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')">
+        </div>
+
         {% if not u %}
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label small fw-semibold">E-mail <span class="text-danger">*</span></label>
           <input type="email" name="email" class="form-control form-control-sm" required
-            placeholder="email@palhoça.sc.gov.br">
+            placeholder="usuario@palhoça.sc.gov.br">
         </div>
         {% else %}
-        <div class="col-12">
+        <div class="col-md-6">
           <label class="form-label small fw-semibold">E-mail</label>
           <input type="email" class="form-control form-control-sm" value="{{ u.email }}" readonly>
         </div>
         {% endif %}
+
+        <!-- Seção 2: Dados Profissionais -->
+        <div class="col-12">
+          <h6 class="text-muted small fw-semibold border-bottom pb-2 mb-2">
+            <i class="bi bi-briefcase me-1"></i>Dados Profissionais
+          </h6>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Cargo/Função <span class="text-danger">*</span></label>
+          <input type="text" name="cargo" class="form-control form-control-sm" required
+            value="{{ u.cargo if u else '' }}" placeholder="Ex: Fiscal de Obras, Técnico CMAIU">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Setor/Departamento <span class="text-danger">*</span></label>
+          <input type="text" name="setor" class="form-control form-control-sm" required
+            value="{{ u.setor if u else '' }}" placeholder="Ex: Secretaria de Planejamento">
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Supervisor/Responsável <span class="text-danger">*</span></label>
+          <select name="supervisor_id" class="form-select form-select-sm" required>
+            <option value="">— Selecione o supervisor —</option>
+            {% for supervisor in supervisores %}
+            <option value="{{ supervisor.id }}" {% if u and u.supervisor_id == supervisor.id %}selected{% endif %}>
+              {{ supervisor.nome }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-6">
+          <label class="form-label small fw-semibold">Data de Admissão</label>
+          <input type="date" name="data_admissao" class="form-control form-control-sm"
+            value="{{ u.data_admissao.strftime('%Y-%m-%d') if u and u.data_admissao else '' }}">
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Endereço</label>
+          <input type="text" name="endereco" class="form-control form-control-sm"
+            value="{{ u.endereco if u else '' }}" placeholder="Rua, número, bairro, cidade">
+        </div>
+
+        <div class="col-12">
+          <label class="form-label small fw-semibold">Observações</label>
+          <textarea name="observacoes" class="form-control form-control-sm" rows="2"
+            placeholder="Notas adicionais sobre o usuário">{{ u.observacoes if u else '' }}</textarea>
+        </div>
+
+        <!-- Seção 3: Acesso e Segurança -->
+        <div class="col-12">
+          <h6 class="text-muted small fw-semibold border-bottom pb-2 mb-2">
+            <i class="bi bi-shield-lock me-1"></i>Acesso e Segurança
+          </h6>
+        </div>
+
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Perfil de Acesso</label>
           <select name="perfil" class="form-select form-select-sm">
@@ -41,6 +126,7 @@
             <option value="administrador" {% if u and u.perfil == 'administrador' %}selected{% endif %}>Administrador</option>
           </select>
         </div>
+
         {% if u %}
         <div class="col-md-6">
           <label class="form-label small fw-semibold">Situação</label>
@@ -50,13 +136,14 @@
           </select>
         </div>
         {% endif %}
+
         <div class="col-12">
           <label class="form-label small fw-semibold">
             {% if u %}Nova Senha <span class="text-muted fw-normal">(deixar em branco para não alterar)</span>{% else %}Senha <span class="text-danger">*</span>{% endif %}
           </label>
           <input type="password" name="senha" class="form-control form-control-sm"
             {% if not u %}required{% endif %}
-            placeholder="{% if u %}Nova senha (opcional)…{% else %}Mínimo 6 caracteres{% endif %}">
+            placeholder="{% if u %}Nova senha (opcional)…{% else %}Mínimo 8 caracteres{% endif %}">
         </div>
       </div>
       <div class="d-flex gap-2 mt-4 justify-content-end">
