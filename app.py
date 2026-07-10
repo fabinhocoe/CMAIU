@@ -1160,28 +1160,41 @@ def admin_usuarios_novo():
             for e in errors:
                 flash(e, 'danger')
         else:
-            u = Usuario(
-                nome=f.get('nome'),
-                email=email,
-                cpf=cpf,
-                telefone=telefone,
-                data_nascimento=datetime.strptime(f.get('data_nascimento'), '%Y-%m-%d').date(),
-                cargo=f.get('cargo'),
-                setor=f.get('setor'),
-                supervisor_id=int(f.get('supervisor_id')),
-                data_admissao=datetime.strptime(f.get('data_admissao'), '%Y-%m-%d').date() if f.get('data_admissao') else None,
-                endereco=f.get('endereco'),
-                observacoes=f.get('observacoes'),
-                perfil=f.get('perfil', 'consulta')
-            )
-            u.set_senha(senha)
-            db.session.add(u)
-            db.session.flush()
-            # Usar o convite
-            convite.usar()
-            db.session.commit()
-            flash('Usuário cadastrado com sucesso.', 'success')
-            return redirect(url_for('admin_usuarios'))
+            try:
+                print(f"DEBUG: Criando usuário com CPF={cpf}, Telefone={telefone}")
+                u = Usuario(
+                    nome=f.get('nome'),
+                    email=email,
+                    cpf=cpf,
+                    telefone=telefone,
+                    data_nascimento=datetime.strptime(f.get('data_nascimento'), '%Y-%m-%d').date(),
+                    cargo=f.get('cargo'),
+                    setor=f.get('setor'),
+                    supervisor_id=int(f.get('supervisor_id')),
+                    data_admissao=datetime.strptime(f.get('data_admissao'), '%Y-%m-%d').date() if f.get('data_admissao') else None,
+                    endereco=f.get('endereco'),
+                    observacoes=f.get('observacoes'),
+                    perfil=f.get('perfil', 'consulta')
+                )
+                print(f"DEBUG: Usuario criado: {u.nome}, CPF={u.cpf}, Email={u.email}")
+                u.set_senha(senha)
+                db.session.add(u)
+                db.session.flush()
+                print(f"DEBUG: Usuario flush realizado, ID={u.id}")
+
+                # Usar o convite
+                convite.usar()
+                db.session.commit()
+                print(f"DEBUG: Usuario salvo com sucesso!")
+                flash('Usuário cadastrado com sucesso.', 'success')
+                return redirect(url_for('admin_usuarios'))
+            except Exception as e:
+                print(f"ERROR: Falha ao salvar usuário: {str(e)}")
+                print(f"ERROR: Tipo: {type(e)}")
+                import traceback
+                traceback.print_exc()
+                db.session.rollback()
+                flash(f'Erro ao salvar usuário: {str(e)}', 'danger')
 
     return render_template('admin/usuario_form.html', u=None, supervisores=supervisores)
 
