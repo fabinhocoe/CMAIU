@@ -1115,13 +1115,14 @@ def admin_usuarios_novo():
     if request.method == 'POST':
         f = request.form
         email = f.get('email', '').strip().lower()
-        cpf = f.get('cpf', '').replace('.', '').replace('-', '').strip()
+        cpf_raw = f.get('cpf', '').replace('.', '').replace('-', '').strip()
+        cpf_formatted = f.get('cpf', '').strip()  # Manter formatado para exibição
         senha = f.get('senha', '').strip()
         codigo_convite = f.get('codigo_convite', '').strip().upper()
         errors = []
 
         # Validações
-        if not all([f.get('nome'), email, cpf, f.get('telefone'),
+        if not all([f.get('nome'), email, cpf_raw, f.get('telefone'),
                    f.get('data_nascimento'), f.get('cargo'),
                    f.get('setor'), f.get('supervisor_id')]):
             errors.append('Todos os campos obrigatórios devem ser preenchidos.')
@@ -1134,13 +1135,13 @@ def admin_usuarios_novo():
             if erro_convite:
                 errors.append(erro_convite)
 
-        if not errors and len(cpf) != 11:
+        if not errors and len(cpf_raw) != 11:
             errors.append('CPF deve ter 11 dígitos.')
 
         if not errors and Usuario.query.filter_by(email=email).first():
             errors.append('E-mail já cadastrado.')
 
-        if not errors and cpf and Usuario.query.filter_by(cpf=cpf).first():
+        if not errors and cpf_raw and Usuario.query.filter_by(cpf=cpf_formatted).first():
             errors.append('CPF já cadastrado.')
 
         if not errors and not senha:
@@ -1149,11 +1150,9 @@ def admin_usuarios_novo():
         if not errors and len(senha) < 8:
             errors.append('Senha deve ter no mínimo 8 caracteres.')
 
-        if not errors and f.get('telefone'):
-            # Validar formato do telefone
-            telefone_digits = f.get('telefone').replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
-            if len(telefone_digits) < 10:
-                errors.append('Telefone inválido. Use formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX')
+        telefone_raw = f.get('telefone', '').replace('(', '').replace(')', '').replace('-', '').replace(' ', '')
+        if not errors and telefone_raw and len(telefone_raw) < 10:
+            errors.append('Telefone inválido. Mínimo 10 dígitos.')
 
         if errors:
             for e in errors:
@@ -1162,8 +1161,8 @@ def admin_usuarios_novo():
             u = Usuario(
                 nome=f.get('nome'),
                 email=email,
-                cpf=cpf,
-                telefone=f.get('telefone').replace('(', '').replace(')', '').replace('-', '').replace(' ', ''),
+                cpf=cpf_formatted,
+                telefone=f.get('telefone'),
                 data_nascimento=datetime.strptime(f.get('data_nascimento'), '%Y-%m-%d').date(),
                 cargo=f.get('cargo'),
                 setor=f.get('setor'),
@@ -1175,6 +1174,7 @@ def admin_usuarios_novo():
             )
             u.set_senha(senha)
             db.session.add(u)
+            db.session.flush()
             # Usar o convite
             convite.usar()
             db.session.commit()

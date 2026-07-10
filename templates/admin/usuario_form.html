@@ -45,11 +45,11 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label small fw-semibold">CPF (apenas números) <span class="text-danger">*</span></label>
+          <label class="form-label small fw-semibold">CPF <span class="text-danger">*</span></label>
           <input type="text" name="cpf" class="form-control form-control-sm" required maxlength="14"
-            value="{{ u.cpf if u else '' }}" placeholder="00000000000"
-            oninput="this.value = this.value.replace(/\D/g, '').slice(0, 11)">
-          <small class="text-muted">Insira 11 dígitos (sem pontos ou travessão)</small>
+            value="{{ u.cpf if u else '' }}" placeholder="000.000.000-00"
+            oninput="let v=this.value.replace(/\D/g,'').slice(0,11); this.value=v.length>=6 ? v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9,11) : v;">
+          <small class="text-muted">Formato: 000.000.000-00</small>
         </div>
 
         <div class="col-md-6">
@@ -62,7 +62,8 @@
           <label class="form-label small fw-semibold">Telefone <span class="text-danger">*</span></label>
           <input type="tel" name="telefone" class="form-control form-control-sm" required
             value="{{ u.telefone if u else '' }}" placeholder="(47) 99999-9999"
-            oninput="this.value = this.value.replace(/\D/g, '').replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3')">
+            oninput="let v=this.value.replace(/\D/g,'').slice(0,11); let d=v.length; this.value=d<=2 ? '('+v : d<=7 ? '('+v.slice(0,2)+') '+v.slice(2) : '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7,11);">
+          <small class="text-muted">Formato: (XX) 9XXXX-XXXX ou (XX) XXXX-XXXX</small>
         </div>
 
         {% if not u %}
