@@ -40,36 +40,35 @@
     .public-header {
       background: white;
       border-bottom: 1px solid #dde4ed;
-      padding: 1.5rem 1rem;
+      padding: 1rem;
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-      text-align: center;
     }
 
     .public-header-content {
       max-width: 1200px;
       margin: 0 auto;
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
-      justify-content: center;
-      gap: 1rem;
+      justify-content: space-between;
+      gap: 2rem;
     }
 
     .header-logo-section {
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
       align-items: center;
       gap: 0.75rem;
     }
 
     .header-logo {
-      max-height: 90px;
+      max-height: 60px;
       max-width: 100%;
       object-fit: contain;
     }
 
     .header-info {
-      text-align: center;
+      display: none;
     }
 
     .header-info h1 {
@@ -91,6 +90,7 @@
       color: var(--color-accent);
       text-decoration: none;
       font-weight: 500;
+      white-space: nowrap;
     }
 
     .header-link:hover {
@@ -284,14 +284,6 @@
       .header-logo-section {
         flex-direction: row;
       }
-
-      .header-info {
-        text-align: left;
-      }
-
-      .header-info h1 {
-        font-size: 1rem;
-      }
     }
 
     @media (max-width: 767px) {
@@ -299,8 +291,20 @@
         padding: 1rem;
       }
 
+      .public-header {
+        padding: 0.75rem;
+      }
+
+      .public-header-content {
+        gap: 1rem;
+      }
+
       .header-logo {
-        max-height: 70px;
+        max-height: 50px;
+      }
+
+      .header-link {
+        font-size: .75rem;
       }
     }
   </style>
@@ -312,10 +316,6 @@
       <div class="public-header-content">
         <div class="header-logo-section">
           <img src="{{ url_for('static', filename='img/smpu_logo.jpg') }}" alt="Prefeitura Municipal de Palhoça" class="header-logo">
-          <div class="header-info">
-            <h1>CMAIU</h1>
-            <p>Prefeitura Municipal de Palhoça - SC</p>
-          </div>
         </div>
         <a href="{{ url_for('login') }}" class="header-link">
           <i class="bi bi-box-arrow-in-right"></i> Já tenho conta? Fazer Login
