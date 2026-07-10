@@ -314,6 +314,7 @@ def registro():
         cpf = f.get('cpf', '').replace('.', '').replace('-', '').strip()
         telefone = f.get('telefone', '').replace('(', '').replace(')', '').replace('-', '').replace(' ', '').strip()
         senha = f.get('senha', '').strip()
+        confirmar_senha = f.get('confirmar_senha', '').strip()
         codigo_convite = f.get('codigo_convite', '').strip().upper()
         errors = []
 
@@ -351,8 +352,14 @@ def registro():
         if not errors and not senha:
             errors.append('Senha é obrigatória.')
 
+        if not errors and not confirmar_senha:
+            errors.append('Confirmação de senha é obrigatória.')
+
         if not errors and len(senha) < 8:
             errors.append('Senha deve ter no mínimo 8 caracteres.')
+
+        if not errors and senha != confirmar_senha:
+            errors.append('As senhas não correspondem. Digite a mesma senha nos dois campos.')
 
         if errors:
             for e in errors:

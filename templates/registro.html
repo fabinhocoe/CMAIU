@@ -1,6 +1,5 @@
-{% extends 'base.html' %}
+{% extends 'base_public.html' %}
 {% block title %}Registro de Novo Usuário – CMAIU{% endblock %}
-{% block page_title %}Registro de Novo Usuário{% endblock %}
 {% block content %}
 
 <div class="container mt-5">
@@ -148,9 +147,19 @@
 
             <div class="mb-3">
               <label class="form-label small fw-semibold">Senha <span class="text-danger">*</span></label>
-              <input type="password" name="senha" class="form-control form-control-sm" required
+              <input type="password" id="senha" name="senha" class="form-control form-control-sm" required
                 placeholder="Mínimo 8 caracteres">
               <small class="text-muted">Use uma senha segura com números e caracteres especiais</small>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-semibold">Confirmar Senha <span class="text-danger">*</span></label>
+              <input type="password" id="confirmar_senha" name="confirmar_senha" class="form-control form-control-sm" required
+                placeholder="Digite a mesma senha novamente">
+              <small class="text-muted">Digite a mesma senha para confirmação</small>
+              <div id="senhaFeedback" class="invalid-feedback d-block" style="display:none;">
+                As senhas não correspondem.
+              </div>
             </div>
 
             <hr class="my-4">
@@ -219,6 +228,35 @@
       })
       .catch(error => console.error('Erro:', error));
   }
+
+  // Validar senhas em tempo real
+  document.addEventListener('DOMContentLoaded', function() {
+    const senhaInput = document.getElementById('senha');
+    const confirmarInput = document.getElementById('confirmar_senha');
+    const feedback = document.getElementById('senhaFeedback');
+    const form = document.querySelector('form');
+
+    if (confirmarInput) {
+      confirmarInput.addEventListener('input', function() {
+        if (confirmarInput.value && senhaInput.value !== confirmarInput.value) {
+          feedback.style.display = 'block';
+          confirmarInput.classList.add('is-invalid');
+        } else {
+          feedback.style.display = 'none';
+          confirmarInput.classList.remove('is-invalid');
+        }
+      });
+
+      form.addEventListener('submit', function(e) {
+        if (senhaInput.value !== confirmarInput.value) {
+          e.preventDefault();
+          feedback.style.display = 'block';
+          confirmarInput.classList.add('is-invalid');
+          return false;
+        }
+      });
+    }
+  });
 </script>
 
 {% endblock %}
