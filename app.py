@@ -305,6 +305,95 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route('/registro', methods=['GET', 'POST'])
+def registro():
+    """Página pública de registro usando código de convite."""
+    if request.method == 'POST':
+        f = request.form
+        email = f.get('email', '').strip().lower()
+        cpf = f.get('cpf', '').replace('.', '').replace('-', '').strip()
+        telefone = f.get('telefone', '').replace('(', '').replace(')', '').replace('-', '').replace(' ', '').strip()
+        senha = f.get('senha', '').strip()
+        codigo_convite = f.get('codigo_convite', '').strip().upper()
+        errors = []
+
+        print("=" * 60)
+        print("DEBUG REGISTRO PÚBLICO: POST recebido")
+        print(f"DEBUG: Email = '{email}', CPF = '{cpf}'")
+
+        # Validações básicas
+        if not all([f.get('nome'), email, cpf, telefone,
+                   f.get('data_nascimento'), f.get('cargo'),
+                   f.get('setor'), codigo_convite]):
+            errors.append('Todos os campos obrigatórios devem ser preenchidos.')
+
+        # Validar convite
+        if not errors:
+            convite, erro_convite = _validar_convite(codigo_convite)
+            if erro_convite:
+                errors.append(erro_convite)
+
+        # Validar CPF
+        if not errors and len(cpf) != 11:
+            errors.append('CPF deve ter 11 dígitos.')
+
+        if not errors and Usuario.query.filter_by(email=email).first():
+            errors.append('E-mail já cadastrado.')
+
+        if not errors and Usuario.query.filter_by(cpf=cpf).first():
+            errors.append('CPF já cadastrado.')
+
+        # Validar telefone
+        if not errors and len(telefone) < 10:
+            errors.append('Telefone inválido.')
+
+        # Validar senha
+        if not errors and not senha:
+            errors.append('Senha é obrigatória.')
+
+        if not errors and len(senha) < 8:
+            errors.append('Senha deve ter no mínimo 8 caracteres.')
+
+        if errors:
+            for e in errors:
+                flash(e, 'danger')
+        else:
+            try:
+                u = Usuario(
+                    nome=f.get('nome'),
+                    email=email,
+                    cpf=cpf,
+                    telefone=telefone,
+                    data_nascimento=datetime.strptime(f.get('data_nascimento'), '%Y-%m-%d').date(),
+                    cargo=f.get('cargo'),
+                    setor=f.get('setor'),
+                    cep=f.get('cep'),
+                    endereco=f.get('endereco'),
+                    numero=f.get('numero'),
+                    bairro=f.get('bairro'),
+                    cidade=f.get('cidade'),
+                    estado=f.get('estado'),
+                    perfil='consulta',
+                    situacao='ativo'
+                )
+                u.set_senha(senha)
+                db.session.add(u)
+                db.session.flush()
+
+                # Usar o convite
+                convite.usar()
+                db.session.commit()
+                print(f"DEBUG: Usuário '{u.nome}' registrado com sucesso!")
+                flash('Registro realizado com sucesso! Você já pode fazer login.', 'success')
+                return redirect(url_for('login'))
+            except Exception as e:
+                print(f"ERROR: {str(e)}")
+                db.session.rollback()
+                flash(f'Erro ao registrar: {str(e)}', 'danger')
+
+    return render_template('registro.html')
+
+
 # ─── Dashboard ───────────────────────────────────────────────────────────────
 
 @app.route('/')

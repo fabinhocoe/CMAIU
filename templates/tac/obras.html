@@ -82,8 +82,7 @@
                   <input type="hidden" name="_csrf_token" value="{{ csrf_token() }}">
                   <input type="hidden" name="action" value="edit">
                   <input type="hidden" name="id" value="{{ o.id }}">
-                  {% set obra_edit = o %}
-                  {% include 'tac/_obra_campos.html' with context %}
+                  {% include 'tac/_obra_campos_edit.html' %}
                   <div class="d-flex gap-2 mt-2">
                     <button type="submit" class="btn btn-sm btn-success">
                       <i class="bi bi-check-circle me-1"></i>Salvar
